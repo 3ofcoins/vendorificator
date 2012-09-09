@@ -1,0 +1,25 @@
+# -*- ruby -*-
+
+basedir = 'vendor'
+
+vendor 'generated', :version => '0.23' do |v|
+  # A generic vendor module.
+  # A directory #{root}/#{basedir}/generated has been created,
+  # we are now in this directory and should do whatever is needed
+  # to get this module here.
+  File.open('README') { |f| f.puts "Hello, World!" }
+  File.open('VERSION') { |f| f.puts v.version }
+end
+# attributes: version, path (defaults to name)
+
+archive "http://ftp.gnu.org/gnu/hello/hello-2.8.tar.gz"
+# name: hello-2.8
+# strip_root: false
+# type: tar.gz (recognized: tar.gz == tgz, tar.bz2, zip)
+# version: nil
+# checksum: automatically added
+# download: via wget or given block
+
+git "git://github.com/octocat/Hello-World.git"
+# revision: nil (automatically locked at cloning)
+# name: Hello-World
