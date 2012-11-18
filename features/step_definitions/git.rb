@@ -14,3 +14,7 @@ end
 Then /^no other branch exists$/ do
   @git.branches.to_a.length.should == 1
 end
+
+Then /^branch "(.*?)" exists$/ do |branch_name|
+  @git.branches.map(&:to_s).include?(branch_name).should be_true
+end

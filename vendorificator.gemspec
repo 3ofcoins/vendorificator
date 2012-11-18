@@ -20,4 +20,7 @@ Gem::Specification.new do |gem|
 
   gem.add_development_dependency 'cucumber'
   gem.add_development_dependency 'rspec-expectations'
+  gem.add_development_dependency 'git'
+  gem.add_development_dependency 'mixlib-config'
+  gem.add_development_dependency 'mixlib-shellout'
 end

@@ -2,6 +2,7 @@ require 'fileutils'
 require 'tmpdir'
 
 require 'git'
+require 'mixlib/shellout'
 require 'rspec/expectations'
 
 # Run each test in a temporary directory, initialized as a git repository

@@ -20,10 +20,5 @@ module Vendorificator
     rescue Grit::Git::CommandFailed
       raise RuntimeError, "Git repository is not clean."
     end
-
-    def orphan(branch_name)
-      git.checkout( { :orphan => true }, 'vendor/foo' )
-      git.rm( { :r => true, :f => true }, '.')
-    end
   end
 end

@@ -1,6 +1,6 @@
 # -*- ruby -*-
 
-basedir = 'vendor'
+basedir 'vendor'
 
 vendor 'generated', :version => '0.23' do |v|
   # A generic vendor module.
