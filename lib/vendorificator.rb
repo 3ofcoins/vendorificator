@@ -4,4 +4,3 @@ require "vendorificator/version"
 
 require 'vendorificator/config'
 require 'vendorificator/vendor'
-require 'vendorificator/git'
