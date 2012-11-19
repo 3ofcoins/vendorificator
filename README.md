@@ -1,6 +1,7 @@
 # Vendorificator
 
-TODO: Write a gem description
+THIS WORK IS HEAVILY IN PROGRESS and is far from usable yet. Sorry
+about that - I'm working on it.
 
 ## Installation
 
