@@ -29,6 +29,9 @@ module Vendorificator
 
     desc :sync, "Download new or updated vendor files"
     def sync
+      Vendorificator::Config[:modules].each do |mod|
+        mod.run!
+      end
     end
 
     private

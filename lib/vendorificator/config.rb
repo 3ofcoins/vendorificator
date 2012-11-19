@@ -11,7 +11,7 @@ module Vendorificator
       c[:root] = Pathname.getwd
       c[:basedir] = 'vendor'
       c[:branch_prefix] = 'vendor/'
-      c[:modules] = {}
+      c[:modules] = []
     end
 
     def self.from_file(filename)

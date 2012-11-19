@@ -6,13 +6,16 @@ When /^nothing happens$/ do
   nil # NOP
 end
 
-
 Then /^file "(.*?)" exists$/ do |path|
   File.exists?(path).should be_true
 end
 
 Then /^the README file exists$/ do
   step 'file "README" exists'
+end
+
+Then /^file "(.*?)" reads "(.*?)"$/ do |path, text|
+  File.read(path).strip.should == text.strip
 end
 
 Given /^a repository with following Vendorfile:$/ do |string|
