@@ -12,7 +12,8 @@ module Vendorificator
       def install!
         @method_name ||= self.name.split('::').last.downcase.to_sym
         _cls = self # for self is obscured in define_method block's body
-        Vendorificator::Config.define_singleton_method(@method_name) do |name, *args, &block|
+        ( class << Vendorificator::Config ; self ; end ).
+            send(:define_method, @method_name ) do |name, *args, &block|
           self[:modules] << _cls.new(name.to_s, *args, &block)
         end
       end
@@ -113,7 +114,7 @@ module Vendorificator
           args[:type] ||= :tarbz2
         when /\.zip$/
           args[:type] ||= :zip
-        when /\.([^\.]{1-4})$/
+        when /\.([^\.][^\.]?[^\.]?[^\.]?)$/
           args[:type] ||=
             begin
               unless args[:unpack]
