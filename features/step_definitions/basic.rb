@@ -25,6 +25,10 @@ Given /^a repository with following Vendorfile:$/ do |string|
 end
 
 When /^I run "(.*?)"$/ do |command|
-  @command = Mixlib::ShellOut.new(command)
+  @command = Mixlib::ShellOut.new(command,
+    :environment => {
+      'GIT_DIR' => nil, 
+      'GIT_INDEX_FILE' => nil,
+      'GIT_WORK_TREE' => nil })
   @command.run_command.error!
 end
