@@ -1,5 +1,7 @@
 require 'fileutils'
 
+require 'thor/shell/basic'
+
 require 'vendorificator/config'
 
 module Vendorificator
@@ -35,6 +37,11 @@ module Vendorificator
       @block = block
     end
 
+    def shell
+      @shell ||=
+        Vendorificator::Config[:shell] || Thor::Shell::Basic.new
+    end
+
     def branch_name
       "#{Vendorificator::Config[:branch_prefix]}#{name}"
     end
@@ -64,13 +71,19 @@ module Vendorificator
 
         # Actually fill the directory with the wanted content
         Dir::chdir work_dir do
-          self.conjure!
+          begin
+            shell.padding += 1
+            self.conjure!
+          ensure
+            shell.padding -= 1
+          end
         end
 
         # Commit and tag the conjured module
         repo.add(work_dir)
         repo.commit_index(conjure_commit_message)
         repo.git.tag( { :a => true, :m => conjure_tag_message }, conjure_tag_name )
+        shell.say_status :tag, conjure_tag_name
 
         # Merge back to the original branch
         repo.git.checkout( {}, orig_head.name )

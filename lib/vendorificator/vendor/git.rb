@@ -17,6 +17,7 @@ class Vendorificator::Vendor::Git < Vendorificator::Vendor
   end
 
   def conjure!
+    shell.say_status :clone, repository
     Grit::Git.new('.').clone({}, repository, '.')
     @repo = Grit::Repo.new('.')
     super

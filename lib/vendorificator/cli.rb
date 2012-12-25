@@ -14,6 +14,7 @@ module Vendorificator
     def initialize(*args)
       super
       Vendorificator::Config.from_file(find_vendorfile)
+      Vendorificator::Config[:shell] = shell
 
       # Ensure we're in a Git repository and it's clean
       begin
@@ -30,7 +31,13 @@ module Vendorificator
     desc :sync, "Download new or updated vendor files"
     def sync
       Vendorificator::Config[:modules].each do |mod|
-        mod.run!
+        say_status :module, mod.name
+        begin
+          shell.padding += 1
+          mod.run!
+        ensure
+          shell.padding -= 1
+        end
       end
     end
 

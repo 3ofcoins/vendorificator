@@ -52,11 +52,13 @@ class Vendorificator::Vendor::Archive < Vendorificator::Vendor
   end
 
   def conjure!
+    shell.say_status :download, url
     archive = Tempfile.new([basename, extname])
     archive.write( open(url).read )
     archive.close
     @conjured_checksum = Digest::SHA256.file(archive.path).hexdigest
     raise RuntimeError, "Checksum error" if checksum && checksum!=conjured_checksum
+    shell.say_status :unpack, filename
     system "#{unpack} #{Escape.shell_single_word archive.path}"
     if Dir.entries('.').length == 3 && !args[:no_strip_root]
       root = (Dir.entries('.') - %w(.. .)).first
