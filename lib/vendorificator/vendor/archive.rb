@@ -68,6 +68,7 @@ class Vendorificator::Vendor::Archive < Vendorificator::Vendor
       FileUtils::mv root_entries.map { |e| File.join(root, e) }, '.'
       FileUtils::rmdir root
     end
+    super
   ensure
     archive.close
     archive.unlink
