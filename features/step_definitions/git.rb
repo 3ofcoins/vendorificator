@@ -19,6 +19,14 @@ Then /^branch "(.*?)" exists$/ do |branch_name|
   @git.branches.map(&:to_s).include?(branch_name).should be_true
 end
 
+Then /^branch "(.*?)" does not exist$/ do |branch_name|
+  @git.branches.map(&:to_s).include?(branch_name).should be_false
+end
+
 Then /^tag "(.*?)" exists$/ do |branch_name|
   @git.tags.map(&:name).include?(branch_name).should be_true
+end
+
+Then /^tag "(.*?)" does not exist$/ do |branch_name|
+  @git.tags.map(&:name).include?(branch_name).should be_false
 end

@@ -15,6 +15,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = Vendorificator::VERSION
 
+  gem.add_dependency 'escape'
   gem.add_dependency 'grit'
   gem.add_dependency 'thor'
 

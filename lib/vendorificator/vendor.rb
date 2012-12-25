@@ -1,7 +1,4 @@
 require 'fileutils'
-require 'uri'
-
-require 'grit'
 
 require 'vendorificator/config'
 
@@ -48,12 +45,11 @@ module Vendorificator
 
     def run!
       repo = Vendorificator::Config.repo
+      orig_head = repo.head
 
       # We want to be in repository's root now, as we will need to
       # remove stuff and don't want to have removed directory as cwd.
       Dir::chdir repo.working_dir do
-        orig_head = repo.head
-
         # If our branch exists, check it out; otherwise, create a new
         # orphaned branch.
         if repo.heads.find { |head| head.name == branch_name }
@@ -80,6 +76,9 @@ module Vendorificator
         repo.git.checkout( {}, orig_head.name )
         repo.git.pull( {}, '.', branch_name )
       end
+    ensure
+      # If conjuring failed, we should make sure we're back on original branch
+      repo.git.checkout( {}, orig_head.name ) if defined?(orig_head)
     end
 
     def conjure_commit_message
@@ -99,83 +98,5 @@ module Vendorificator
     end
 
     install!
-
-    class Archive < Vendor
-      arg_reader :url, :strip_root, :type, :checksum
-
-      def initialize(name, args={}, &block)
-        no_url_given = !args[:url]
-
-        args[:url] ||= name
-        args[:filename] ||= URI::parse(args[:url]).path.split('/').last
-
-        case args[:filename]
-        when /\.(tar\.|t)gz$/
-          args[:type] ||= :targz
-        when /\.tar\.bz2$/
-          args[:type] ||= :tarbz2
-        when /\.zip$/
-          args[:type] ||= :zip
-        when /\.([^\.][^\.]?[^\.]?[^\.]?)$/
-          args[:type] ||=
-            begin
-              unless args[:unpack]
-                raise RuntimeError,
-                "Unknown file type #{$1.inspect}, please provide :unpack argument"
-              end
-              $1
-            end
-        else
-          args[:basename] ||= args[:filename]
-          args[:extension] ||= ''
-          unless args[:unpack] || [:targz, :tarbz2, :zip].include?(args[:type])
-            raise RuntimeError, "Unknown file type for #{args[:filename].inspect}, please provide :unpack or :type argument"
-          end
-        end
-        args[:basename] ||= $`
-        args[:extension] ||= $&
-
-        name = args[:basename] if no_url_given
-
-        super(name, args, &block)
-      end
-
-      install!
-    end
-
-    class Git < Vendor
-      arg_reader :repository, :revision, :branch
-      attr_reader :repo, :conjured_revision
-
-      def initialize(name, args={}, &block)
-        unless args.include?(:repository)
-          args[:repository] = name
-          name = name.split('/').last.sub(/\.git$/, '')
-        end
-        super(name, args, &block)
-      end
-
-      def conjure!
-        Grit::Git.new('.').clone({}, repository, '.')
-        @repo = Grit::Repo.new('.')
-        super
-        @conjured_revision = repo.head.commit.id
-        FileUtils::rm_rf '.git'
-      end
-
-      def conjure_tag_name
-        "vendor/#{name}/#{version || conjured_revision}"
-      end
-
-
-      def conjure_commit_message
-        rv = "Conjured git module #{name} "
-        rv << "version #{version} " if version
-        rv << "revision #{conjured_revision}"
-        rv
-      end
-
-      install!
-    end
   end
 end
