@@ -4,9 +4,9 @@ require File.expand_path('../lib/vendorificator/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors       = ["Maciej Pasternacki"]
   gem.email         = ["maciej@pasternacki.net"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
-  gem.homepage      = ""
+  gem.description   = "Vendor everything. Stay sane."
+  gem.summary       = "Integrate third-party vendor modules into your git repository"
+  gem.homepage      = "https://github.com/3ofcoins/vendorificator/"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = %w(vendorify) # gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
