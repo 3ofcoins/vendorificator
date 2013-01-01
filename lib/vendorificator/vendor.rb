@@ -42,10 +42,6 @@ module Vendorificator
         Vendorificator::Config[:shell] || Thor::Shell::Basic.new
     end
 
-    def repo
-      @repo ||= Vendorificator::Config.repo
-    end
-
     def branch_name
       "#{Vendorificator::Config[:branch_prefix]}#{name}"
     end
@@ -59,10 +55,12 @@ module Vendorificator
     end
 
     def needed?
-      return !repo.tags.find { |t| t.name == conjure_tag_name }
+      return !Vendorificator::Config.repo.tags.
+        find { |t| t.name == conjure_tag_name }
     end
 
     def run!
+      repo = Vendorificator::Config.repo
       orig_head = repo.head
 
       unless needed?
@@ -107,7 +105,7 @@ module Vendorificator
       end
     ensure
       # If conjuring failed, we should make sure we're back on original branch
-      repo.git.checkout( {}, orig_head.name ) if defined?(orig_head)
+      repo.git.checkout( {}, orig_head.name ) if defined?(orig_head) rescue nil
     end
 
     def conjure_commit_message

@@ -16,17 +16,22 @@ Then /^no other branch exists$/ do
 end
 
 Then /^branch "(.*?)" exists$/ do |branch_name|
-  @git.branches.map(&:to_s).include?(branch_name).should be_true
+  @git.branches.map(&:to_s).should include branch_name
 end
 
 Then /^branch "(.*?)" does not exist$/ do |branch_name|
-  @git.branches.map(&:to_s).include?(branch_name).should be_false
+  @git.branches.map(&:to_s).should_not include branch_name
 end
 
-Then /^tag "(.*?)" exists$/ do |branch_name|
-  @git.tags.map(&:name).include?(branch_name).should be_true
+Then /^tag "(.*?)" exists$/ do |tag_name|
+  @git.tags.map(&:name).should include tag_name
 end
 
-Then /^tag "(.*?)" does not exist$/ do |branch_name|
-  @git.tags.map(&:name).include?(branch_name).should be_false
+Then /^tag "(.*?)" does not exist$/ do |tag_name|
+  @git.tags.map(&:name).should_not include tag_name
+end
+
+Then /^tag matching "(.*?)" exists$/ do |re|
+  re = Regexp.new(re)
+  @git.tags.map(&:name).should be_any { |b| re === b }
 end
