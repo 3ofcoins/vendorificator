@@ -16,7 +16,7 @@ module Vendorificator::Hooks
         next if ignored.include?(name)
 
         work_dirs = Vendorificator::Config[:modules].map(&:work_dir)
-        path = cookbook_path.map { |p| File.absolute_path(File.join(p, name)) }
+        path = cookbook_path.map { |p| File.expand_path(File.join(p, name)) }
 
         # Don't add cookbooks which already have modules
         next unless (path & work_dirs).empty?
