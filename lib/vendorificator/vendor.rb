@@ -65,6 +65,7 @@ module Vendorificator
 
       unless needed?
         shell.say_status 'up to date', work_subdir, :blue
+        after_conjure_hook
         return
       end
 
@@ -102,6 +103,8 @@ module Vendorificator
         # Merge back to the original branch
         repo.git.checkout( {}, orig_head.name )
         repo.git.pull( {}, '.', branch_name )
+
+        after_conjure_hook
       end
     ensure
       # If conjuring failed, we should make sure we're back on original branch
@@ -123,6 +126,8 @@ module Vendorificator
     def conjure!
       block.call(self) if block
     end
+
+    def after_conjure_hook ; end
 
     install!
   end

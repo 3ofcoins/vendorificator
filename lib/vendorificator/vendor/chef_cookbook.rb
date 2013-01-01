@@ -3,8 +3,10 @@ require 'uri'
 require 'json'
 
 require 'vendorificator/vendor/archive'
+require 'vendorificator/hooks/chef_cookbook'
 
 class Vendorificator::Vendor::ChefCookbook < Vendorificator::Vendor::Archive
+  include Vendorificator::Hooks::ChefCookbookDependencies
   @method_name = :chef_cookbook
   API_PREFIX = 'http://cookbooks.opscode.com/api/v1/cookbooks/'
 

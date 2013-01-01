@@ -35,3 +35,8 @@ Then /^tag matching "(.*?)" exists$/ do |re|
   re = Regexp.new(re)
   @git.tags.map(&:name).should be_any { |b| re === b }
 end
+
+Then /^tag matching "(.*?)" does not exist$/ do |re|
+  re = Regexp.new(re)
+  @git.tags.map(&:name).should_not be_any { |b| re === b }
+end
