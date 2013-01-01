@@ -30,7 +30,14 @@ module Vendorificator
 
     desc :sync, "Download new or updated vendor files"
     def sync
-      Vendorificator::Config[:modules].each do |mod|
+      # We don't use Vendorificator::Config[:modules].each here,
+      # because mod.run! is explicitly allowed to append to
+      # Vendorificator::Config[:modules], and #each fails to catch up
+      # on some Ruby implementations.
+      i = 0
+      while true
+        break if i >= Vendorificator::Config[:modules].length
+        mod = Vendorificator::Config[:modules][i]
         say_status :module, mod.name
         begin
           shell.padding += 1
@@ -38,6 +45,7 @@ module Vendorificator
         ensure
           shell.padding -= 1
         end
+        i += 1
       end
     end
 
