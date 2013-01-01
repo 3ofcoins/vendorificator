@@ -28,3 +28,9 @@ After do
   end
   @tmp_wd = nil
 end
+
+class String
+  def strip_console_escapes
+    self.gsub(/\e\[[^m]{1,5}m/,'')
+  end
+end

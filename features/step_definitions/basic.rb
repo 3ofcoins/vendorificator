@@ -61,3 +61,19 @@ end
 Then /the command has failed/ do
   expect { @command.error! }.to raise_error(Mixlib::ShellOut::ShellCommandFailed)
 end
+
+Then /^command output includes "(.*?)"$/ do |str|
+  @command.stdout.strip_console_escapes.should include str
+end
+
+Then /^command output does not include "(.*?)"$/ do |str|
+  @command.stdout.strip_console_escapes.should_not include str
+end
+
+Then /^command output matches "(.*?)"$/ do |re|
+  @command.stdout.strip_console_escapes.should match re
+end
+
+Then /^command output does not match "(.*?)"$/ do |re|
+  @command.stdout.strip_console_escapes.should_not match re
+end

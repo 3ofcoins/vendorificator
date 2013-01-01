@@ -42,24 +42,40 @@ module Vendorificator
         Vendorificator::Config[:shell] || Thor::Shell::Basic.new
     end
 
+    def repo
+      @repo ||= Vendorificator::Config.repo
+    end
+
     def branch_name
       "#{Vendorificator::Config[:branch_prefix]}#{name}"
     end
 
+    def work_subdir
+      File.join(Vendorificator::Config[:basedir], path||name)
+    end
+
     def work_dir
-      File.join(Vendorificator::Config[:root_dir], Vendorificator::Config[:basedir], path||name)
+      File.join(Vendorificator::Config[:root_dir], work_subdir)
+    end
+
+    def needed?
+      return !repo.tags.find { |t| t.name == conjure_tag_name }
     end
 
     def run!
-      repo = Vendorificator::Config.repo
       orig_head = repo.head
+
+      unless needed?
+        shell.say_status 'up to date', work_subdir, :blue
+        return
+      end
 
       # We want to be in repository's root now, as we will need to
       # remove stuff and don't want to have removed directory as cwd.
       Dir::chdir repo.working_dir do
         # If our branch exists, check it out; otherwise, create a new
         # orphaned branch.
-        if repo.heads.find { |head| head.name == branch_name }
+        if repo.get_head(branch_name)
           repo.git.checkout( {}, branch_name )
         else
           repo.git.checkout( { :orphan => true }, branch_name )
