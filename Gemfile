@@ -7,4 +7,5 @@ group :development do
   gem "rake"
   gem "pry"
   gem "awesome_print"
+  gem "relish"
 end
