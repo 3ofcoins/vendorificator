@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'pathname'
 require 'tmpdir'
 
 require 'git'
@@ -34,3 +35,6 @@ class String
     self.gsub(/\e\[[^m]{1,5}m/,'')
   end
 end
+
+ENV['VCR_LIBRARY_DIR'] = Pathname.new(__FILE__).
+  dirname.join('..', 'fixtures', 'vcr_cassettes').realpath.to_s

@@ -49,6 +49,22 @@ module Vendorificator
       end
     end
 
+    def self.start
+      if ENV['VCR_LIBRARY_DIR']
+        require 'vcr'
+        VCR.configure do |c|
+          c.cassette_library_dir = ENV['VCR_LIBRARY_DIR']
+          c.default_cassette_options = { :record => :new_episodes }
+          c.hook_into :fakeweb
+        end
+        VCR.use_cassette(ENV['VCR_CASSETTE'] || 'vendorificator') do
+          super
+        end
+      else
+        super
+      end
+    end
+
     private
 
     # Find proper Vendorfile
