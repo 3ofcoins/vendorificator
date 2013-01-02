@@ -50,10 +50,10 @@ module Vendorificator
     end
 
     def self.start
-      if ENV['VCR_LIBRARY_DIR']
+      if ENV['FIXTURES_DIR']
         require 'vcr'
         VCR.configure do |c|
-          c.cassette_library_dir = ENV['VCR_LIBRARY_DIR']
+          c.cassette_library_dir = File.join(ENV['FIXTURES_DIR'], 'vcr_cassettes')
           c.default_cassette_options = { :record => :new_episodes }
           c.hook_into :fakeweb
         end

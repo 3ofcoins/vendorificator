@@ -3,7 +3,7 @@ Feature: Git-based vendor module
 Scenario:
   Given a repository with following Vendorfile:
     """
-    git 'git://github.com/github/testrepo.git'
+    git "file://#{ENV['FIXTURES_DIR']}/git/testrepo"
     """
   When I run "vendorify"
   Then I'm on "master" branch

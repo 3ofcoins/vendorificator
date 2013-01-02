@@ -36,5 +36,5 @@ class String
   end
 end
 
-ENV['VCR_LIBRARY_DIR'] = Pathname.new(__FILE__).
-  dirname.join('..', 'fixtures', 'vcr_cassettes').realpath.to_s
+ENV['FIXTURES_DIR'] = Pathname.new(__FILE__).
+  dirname.join('..', 'fixtures').realpath.to_s
