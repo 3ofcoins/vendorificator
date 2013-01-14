@@ -31,7 +31,6 @@ Scenario: Dependency hook
   And tag matching "^vendor/cookbooks/runit/" exists
   And file "vendor/cookbooks/runit/metadata.rb" exists
 
-@wip
 Scenario: Ignored dependency
   Given a repository with following Vendorfile:
     """
