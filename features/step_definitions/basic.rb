@@ -7,11 +7,11 @@ When /^nothing happens$/ do
 end
 
 Then /^file "(.*?)" exists$/ do |path|
-  File.exists?(path).should be_true
+  assert { File.exists?(path) }
 end
 
 Then /^file "(.*?)" does not exist$/ do |path|
-  File.exists?(path).should be_false
+  deny { File.exists?(path) }
 end
 
 Then /^the README file exists$/ do
@@ -19,7 +19,7 @@ Then /^the README file exists$/ do
 end
 
 Then /^file "(.*?)" reads "(.*?)"$/ do |path, text|
-  File.read(path).strip.should == text.strip
+  assert { File.read(path).strip == text.strip }
 end
 
 Given /^a repository with following Vendorfile:$/ do |string|
@@ -59,21 +59,22 @@ When /^I run "(.*?)"$/ do |command|
 end
 
 Then /the command has failed/ do
-  expect { @command.error! }.to raise_error(Mixlib::ShellOut::ShellCommandFailed)
+  assert { rescuing { @command.error! }.is_a?(
+      Mixlib::ShellOut::ShellCommandFailed ) }
 end
 
 Then /^command output includes "(.*?)"$/ do |str|
-  @command.stdout.strip_console_escapes.should include str
+  assert { @command.stdout.strip_console_escapes.include?(str) }
 end
 
 Then /^command output does not include "(.*?)"$/ do |str|
-  @command.stdout.strip_console_escapes.should_not include str
+  deny { @command.stdout.strip_console_escapes.include?(str) }
 end
 
 Then /^command output matches "(.*?)"$/ do |re|
-  @command.stdout.strip_console_escapes.should match re
+  assert { @command.stdout.strip_console_escapes =~ Regexp.new(re) }
 end
 
 Then /^command output does not match "(.*?)"$/ do |re|
-  @command.stdout.strip_console_escapes.should_not match re
+  deny { @command.stdout.strip_console_escapes =~ Regexp.new(re) }
 end

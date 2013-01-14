@@ -4,7 +4,9 @@ require 'tmpdir'
 
 require 'git'
 require 'mixlib/shellout'
-require 'rspec/expectations'
+require 'wrong'
+
+World(Wrong)
 
 # Run each test in a temporary directory, initialized as a git repository
 FileUtils::mkdir_p 'tmp'

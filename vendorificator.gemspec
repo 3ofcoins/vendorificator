@@ -21,10 +21,10 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'mixlib-config'
 
   gem.add_development_dependency 'cucumber'
-  gem.add_development_dependency 'rspec-expectations'
   gem.add_development_dependency 'git'
   gem.add_development_dependency 'mixlib-shellout'
   gem.add_development_dependency 'chef', '>= 10.16.0'
   gem.add_development_dependency 'vcr'
   gem.add_development_dependency 'fakeweb'
+  gem.add_development_dependency 'wrong'
 end
