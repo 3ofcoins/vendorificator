@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
 
+warn "DEPRECATED: `vendorify` command is deprecated, run `vendor` instead."
+
 require 'vendorificator/cli'
 Vendorificator::CLI.start

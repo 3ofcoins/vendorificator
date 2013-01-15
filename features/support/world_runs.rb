@@ -54,6 +54,21 @@ module Vendorificator
         command.stderr.strip_console_escapes
       end
 
+      # Depending on stream, returns:
+      # when 'stdout': command_stdout
+      # when 'stderr': command_stderr
+      # otherwise: command.stdout + "\n" + command_stderr
+      def command_output(stream=nil)
+        case stream
+        when 'stdout'
+          command_stdout
+        when 'stderr'
+          command_stderr
+        else
+          "#{command_stdout}\n#{command_stderr}"
+        end
+      end
+
       def print_command_result
         puts <<EOF
 

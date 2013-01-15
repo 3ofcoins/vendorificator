@@ -39,10 +39,10 @@ Then /the command has failed/ do
   deny { command_succeeded }
 end
 
-Then /^command output includes (#{PATTERN})$/ do |pat|
-  assert { command_stdout =~ pat }
+Then /^command (output|stdout|stderr) includes (#{PATTERN})$/ do |stream, pat|
+  assert { command_output(stream) =~ pat }
 end
 
-Then /^command output does not include (#{PATTERN})$/ do |pat|
-  deny { command_stdout =~ pat }
+Then /^command (output|stdout|stderr) does not include (#{PATTERN})$/ do |stream, pat|
+  deny { command_output(stream) =~ pat }
 end

@@ -8,7 +8,7 @@ Scenario:
       FileUtils::rm Dir['test/archive*.c']
     end
     """
-  When I run "vendorify"
+  When I run "vendor"
   Then following has been conjured:
     | Name         | testrepo       |
     | With file    | test/alias.c   |
