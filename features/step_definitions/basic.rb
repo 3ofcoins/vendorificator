@@ -34,13 +34,13 @@ When /^I try to run "(.*?)"$/ do |command_string|
   run command_string
 end
 
-When /^I run "(.*?)"$/ do |command|
-  step "I try to run \"#{command}\""
+When /^I run "(.*?)"$/ do |command_string|
+  step "I try to run \"#{command_string}\""
   assert { command_succeeded }
 end
 
 Then /the command has failed/ do
-  deny { command_succeeded }
+  deny { command_succeeded(false) }
 end
 
 Then /^command (output|stdout|stderr) includes (#{PATTERN})$/ do |stream, pat|

@@ -38,11 +38,11 @@ module Vendorificator
         print_command_result if ENV['VERBOSE']
       end
 
-      def command_succeeded
+      def command_succeeded(print_failed=true)
         command.error!
         true
       rescue Mixlib::ShellOut::ShellCommandFailed
-        print_command_result
+        print_command_result if print_failed
         false
       end
 
