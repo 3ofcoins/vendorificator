@@ -2,8 +2,6 @@ require 'fileutils'
 require 'pathname'
 require 'tmpdir'
 
-require 'git'
-require 'mixlib/shellout'
 require 'wrong'
 
 World(Wrong)
@@ -16,15 +14,12 @@ Before do
   @tmp_wd = Dir.mktmpdir(nil, 'tmp')
   Dir.chdir(@tmp_wd)
 
-  @git = Git.init
-  File.open('README', 'w') { |f| f.puts("Lorem ipsum dolor sit amet") }
-  @git.add('README')
-  @git.commit('Added the README file')
+  commit_file('README', 'Lorem ipsum dolor sit amet')
 end
 
-After do
+After do |scenario|
   Dir::chdir(@orig_wd)
-  if ENV['DEBUG']
+  if ENV['DEBUG'] || scenario.failed?
     puts "Keeping working directory #{@tmp_wd} for debugging"
   else
     FileUtils::rm_rf(@tmp_wd)
@@ -32,11 +27,6 @@ After do
   @tmp_wd = nil
 end
 
-class String
-  def strip_console_escapes
-    self.gsub(/\e\[[^m]{1,5}m/,'')
-  end
-end
-
 ENV['FIXTURES_DIR'] = Pathname.new(__FILE__).
   dirname.join('..', 'fixtures').realpath.to_s
+

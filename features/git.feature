@@ -6,7 +6,7 @@ Scenario:
     git "file://#{ENV['FIXTURES_DIR']}/git/testrepo"
     """
   When I run "vendorify"
-  Then I'm on "master" branch
-  And branch "vendor/testrepo" exists
-  And tag "vendor/testrepo/10e9ac58c77bc229d8c59a5b4eb7422916453148" exists
-  And file "vendor/testrepo/test/alias.c" exists
+  Then following has been conjured:
+    | Name      | testrepo                                 |
+    | Version   | 10e9ac58c77bc229d8c59a5b4eb7422916453148 |
+    | With file | test/alias.c                             |

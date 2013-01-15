@@ -9,8 +9,7 @@ Scenario:
     end
     """
   When I run "vendorify"
-  Then I'm on "master" branch
-  And branch "vendor/testrepo" exists
-  And tag "vendor/testrepo/testrepo-0.1.tar.gz" exists
-  And file "vendor/testrepo/test/alias.c" exists
-  And file "vendor/testrepo/test/archive.c" does not exist
+  Then following has been conjured:
+    | Name         | testrepo       |
+    | With file    | test/alias.c   |
+    | Without file | test/archive.c |

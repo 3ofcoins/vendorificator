@@ -11,8 +11,8 @@ Background:
 
 Scenario:
   When I run "vendorify"
-  Then I'm on "master" branch
-  And branch "vendor/generated" exists
-  And tag "vendor/generated/0.23" exists
-  And file "vendor/generated/README" exists
+  Then the following has been conjured:
+    | Name      | generated |
+    | Version   | 0.23      |
+    | With file | README    |
   And file "vendor/generated/VERSION" reads "0.23"

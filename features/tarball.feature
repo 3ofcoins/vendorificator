@@ -6,10 +6,10 @@ Scenario: just URL as name
     archive 'http://test-assets.3ofcoins.net.s3-website-us-east-1.amazonaws.com/testrepo-0.1.tar.gz'
     """
   When I run "vendorify"
-  Then I'm on "master" branch
-  And branch "vendor/testrepo-0.1" exists
-  And tag "vendor/testrepo-0.1/testrepo-0.1.tar.gz" exists
-  And file "vendor/testrepo-0.1/test/alias.c" exists
+  Then following has been conjured:
+    | Name      | testrepo-0.1        |
+    | Version   | testrepo-0.1.tar.gz |
+    | With file | test/alias.c        |
 
 Scenario: URL as keyword
   Given a repository with following Vendorfile:
@@ -18,10 +18,10 @@ Scenario: URL as keyword
       :url => 'http://test-assets.3ofcoins.net.s3-website-us-east-1.amazonaws.com/testrepo-0.1.tar.gz'
     """
   When I run "vendorify"
-  Then I'm on "master" branch
-  And branch "vendor/testrepo" exists
-  And tag "vendor/testrepo/testrepo-0.1.tar.gz" exists
-  And file "vendor/testrepo/test/alias.c" exists
+  Then following has been conjured:
+    | Name      | testrepo            |
+    | Version   | testrepo-0.1.tar.gz |
+    | With file | test/alias.c        |
 
 Scenario: Version & checksum
   Given a repository with following Vendorfile:
@@ -32,10 +32,10 @@ Scenario: Version & checksum
       :checksum => 'ea207a896f929ffb3a1dfe128332d6134a18edab7c01b97bfb2b1c7eacebe0cb'
     """
   When I run "vendorify"
-  Then I'm on "master" branch
-  And branch "vendor/testrepo" exists
-  And tag "vendor/testrepo/0.1" exists
-  And file "vendor/testrepo/test/alias.c" exists
+  Then following has been conjured:
+    | Name      | testrepo     |
+    | Version   | 0.1          |
+    | With file | test/alias.c |
 
 Scenario: Wrong checksum
   Given a repository with following Vendorfile:
@@ -47,10 +47,9 @@ Scenario: Wrong checksum
     """
   When I try to run "vendorify"
   Then the command has failed
-  And I'm on "master" branch
-  And branch "vendor/testrepo" does not exist
-  And tag "vendor/testrepo/0.1" does not exist
-  And file "vendor/testrepo/test/alias.c" does not exist
+  Then following has not been conjured:
+    | Name      | testrepo     |
+    | With file | test/alias.c |
 
 Scenario: Tarball without a root directory
   Given a repository with following Vendorfile:
@@ -59,7 +58,6 @@ Scenario: Tarball without a root directory
       :url => 'http://test-assets.3ofcoins.net.s3-website-us-east-1.amazonaws.com/testrepo-0.1-noroot.tar.gz'
     """
   When I run "vendorify"
-  Then I'm on "master" branch
-  And branch "vendor/testrepo" exists
-  And tag "vendor/testrepo/testrepo-0.1-noroot.tar.gz" exists
-  And file "vendor/testrepo/test/alias.c" exists
+  Then following has been conjured:
+    | Name      | testrepo     |
+    | With file | test/alias.c |

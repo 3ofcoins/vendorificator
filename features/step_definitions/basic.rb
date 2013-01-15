@@ -23,58 +23,26 @@ Then /^file "(.*?)" reads "(.*?)"$/ do |path, text|
 end
 
 Given /^a repository with following Vendorfile:$/ do |string|
-  File.open("Vendorfile", "w") { |f| f.puts(string) }
-  @git.add("Vendorfile")
-  @git.commit("Added Vendorfile")
+  commit_file('Vendorfile', string)
 end
 
-When /^I try to run "(.*?)"$/ do |command|
-  @command = Mixlib::ShellOut.new(command,
-    :environment => {
-      'GIT_DIR' => nil,
-      'GIT_INDEX_FILE' => nil,
-      'GIT_WORK_TREE' => nil })
-  @command.run_command
-
-  if ENV['VERBOSE']
-    puts <<EOF
----- BEGIN #{command} ----
---- STATUS ---
-#{@command.exitstatus}
-
---- STDOUT ---
-#{@command.stdout}
-
---- STDERR ---
-#{@command.stderr}
-
----- END ----
-EOF
-  end
+When /^I try to run "(.*?)"$/ do |command_string|
+  run command_string
 end
 
 When /^I run "(.*?)"$/ do |command|
   step "I try to run \"#{command}\""
-  @command.error!
+  assert { command_succeeded }
 end
 
 Then /the command has failed/ do
-  assert { rescuing { @command.error! }.is_a?(
-      Mixlib::ShellOut::ShellCommandFailed ) }
+  deny { command_succeeded }
 end
 
-Then /^command output includes "(.*?)"$/ do |str|
-  assert { @command.stdout.strip_console_escapes.include?(str) }
+Then /^command output includes (#{PATTERN})$/ do |pat|
+  assert { command_stdout =~ pat }
 end
 
-Then /^command output does not include "(.*?)"$/ do |str|
-  deny { @command.stdout.strip_console_escapes.include?(str) }
-end
-
-Then /^command output matches "(.*?)"$/ do |re|
-  assert { @command.stdout.strip_console_escapes =~ Regexp.new(re) }
-end
-
-Then /^command output does not match "(.*?)"$/ do |re|
-  deny { @command.stdout.strip_console_escapes =~ Regexp.new(re) }
+Then /^command output does not include (#{PATTERN})$/ do |pat|
+  deny { command_stdout =~ pat }
 end
