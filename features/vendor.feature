@@ -1,15 +1,13 @@
 Feature: bare 'vendor' clause
 
-Background:
+Scenario:
   Given a repository with following Vendorfile:
-    """
+    """ruby
     vendor 'generated', :version => '0.23' do |v|
       File.open('README', 'w') { |f| f.puts "Hello, World!" }
       File.open('VERSION', 'w') { |f| f.puts v.version }
     end
     """
-
-Scenario:
   When I run "vendorify"
   Then the following has been conjured:
     | Name      | generated |

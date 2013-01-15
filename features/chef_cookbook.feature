@@ -4,7 +4,7 @@ Scenario: A single cookbook, without dependencies
 
 Scenario: Version & checksum
   Given a repository with following Vendorfile:
-    """
+    """ruby
     require 'vendorificator/vendor/chef_cookbook'
 
     chef_cookbook 'apt'
@@ -16,7 +16,7 @@ Scenario: Version & checksum
 
 Scenario: Dependency hook
   Given a repository with following Vendorfile:
-    """
+    """ruby
     require 'vendorificator/vendor/chef_cookbook'
 
     chef_cookbook 'memcached'
@@ -28,7 +28,7 @@ Scenario: Dependency hook
 
 Scenario: Ignored dependency
   Given a repository with following Vendorfile:
-    """
+    """ruby
     require 'vendorificator/vendor/chef_cookbook'
 
     chef_cookbook_ignore_dependencies ['runit']

@@ -2,7 +2,7 @@ Feature: a vendor module is downloaded only if needed
 
 Scenario: already downloaded tarball
   Given a repository with following Vendorfile:
-    """
+    """ruby
     archive :testrepo,
       :url => 'http://test-assets.3ofcoins.net.s3-website-us-east-1.amazonaws.com/testrepo-0.1.tar.gz'
     """

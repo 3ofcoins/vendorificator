@@ -2,7 +2,7 @@ Feature: simple tarball module
 
 Scenario: just URL as name
   Given a repository with following Vendorfile:
-    """
+    """ruby
     archive 'http://test-assets.3ofcoins.net.s3-website-us-east-1.amazonaws.com/testrepo-0.1.tar.gz'
     """
   When I run "vendorify"
@@ -13,7 +13,7 @@ Scenario: just URL as name
 
 Scenario: URL as keyword
   Given a repository with following Vendorfile:
-    """
+    """ruby
     archive :testrepo,
       :url => 'http://test-assets.3ofcoins.net.s3-website-us-east-1.amazonaws.com/testrepo-0.1.tar.gz'
     """
@@ -25,7 +25,7 @@ Scenario: URL as keyword
 
 Scenario: Version & checksum
   Given a repository with following Vendorfile:
-    """
+    """ruby
     archive :testrepo,
       :url => 'http://test-assets.3ofcoins.net.s3-website-us-east-1.amazonaws.com/testrepo-0.1.tar.gz',
       :version => '0.1',
@@ -39,7 +39,7 @@ Scenario: Version & checksum
 
 Scenario: Wrong checksum
   Given a repository with following Vendorfile:
-    """
+    """ruby
     archive :testrepo,
       :url => 'http://test-assets.3ofcoins.net.s3-website-us-east-1.amazonaws.com/testrepo-0.1.tar.gz',
       :version => '0.1',
@@ -53,7 +53,7 @@ Scenario: Wrong checksum
 
 Scenario: Tarball without a root directory
   Given a repository with following Vendorfile:
-    """
+    """ruby
     archive :testrepo,
       :url => 'http://test-assets.3ofcoins.net.s3-website-us-east-1.amazonaws.com/testrepo-0.1-noroot.tar.gz'
     """

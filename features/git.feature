@@ -2,7 +2,7 @@ Feature: Git-based vendor module
 
 Scenario:
   Given a repository with following Vendorfile:
-    """
+    """ruby
     git "file://#{ENV['FIXTURES_DIR']}/git/testrepo"
     """
   When I run "vendorify"
