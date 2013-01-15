@@ -1,6 +1,12 @@
 #!/usr/bin/env rake
 require "bundler/gem_tasks"
 
+namespace :relish do
+  task :push do
+    sh "relish push 3ofcoins/vendorificator"
+  end
+end
+
 begin
   require 'cucumber'
   require 'cucumber/rake/task'
