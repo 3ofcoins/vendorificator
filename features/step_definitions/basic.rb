@@ -26,6 +26,10 @@ Given /^a repository with following Vendorfile:$/ do |string|
   commit_file('Vendorfile', string)
 end
 
+When /^I change Vendorfile to:$/ do |string|
+  commit_file('Vendorfile', string, "Updated Vendorfile")
+end
+
 When /^I try to run "(.*?)"$/ do |command_string|
   run command_string
 end

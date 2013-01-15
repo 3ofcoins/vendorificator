@@ -3,29 +3,21 @@ require 'chef/cookbook/metadata'
 module Vendorificator::Hooks
   module ChefCookbookDependencies
     # Add required Chef cookbooks to vendor modules
-    def after_conjure_hook
+    def dependencies
       ignored = Vendorificator::Config[:chef_cookbook_ignore_dependencies] || []
-      cookbook_path = Vendorificator::Config[:chef_cookbook_path] || []
-      cookbook_path |= [ File.dirname(self.work_dir) ]
+      metadata = File.join(self.work_dir, 'metadata.rb')
 
-      cbmd = Chef::Cookbook::Metadata.new
-      cbmd.from_file File.join(self.work_dir, 'metadata.rb')
-
-      cbmd.dependencies.each do |name, version|
-        # Don't add ignored cookbooks
-        next if ignored.include?(name)
-
-        work_dirs = Vendorificator::Config[:modules].map(&:work_dir)
-        path = cookbook_path.map { |p| File.expand_path(File.join(p, name)) }
-
-        # Don't add cookbooks which already have modules
-        next unless (path & work_dirs).empty?
-
-        shell.say_status :dependency, name, :yellow
-        Vendorificator::Config.chef_cookbook(name)
+      unless File.exist?(metadata)
+        shell.say_status 'WARNING', "Metadata of #{name} does not exist at #{metadata}, could not gather dependencies", :red
+        return super
       end
 
-      super
+      cbmd = Chef::Cookbook::Metadata.new
+      cbmd.from_file(metadata)
+
+      super + cbmd.dependencies.
+        reject { |name, version| ignored.include?(name) }.
+        map { |name, version| Vendorificator::Vendor::ChefCookbook.new(name) }
     end
   end
 end

@@ -2147,4 +2147,93 @@ http_interactions:
     http_version: !binary |-
       MS4x
   recorded_at: Wed, 02 Jan 2013 18:01:49 GMT
+- request:
+    method: get
+    uri: http://cookbooks.opscode.com/api/v1/cookbooks/runit
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      accept:
+      - ! '*/*'
+      user-agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      server:
+      - nginx/1.0.5
+      date:
+      - Tue, 15 Jan 2013 13:38:11 GMT
+      content-type:
+      - application/json; charset=utf-8
+      connection:
+      - keep-alive
+      status:
+      - 200 OK
+      content-length:
+      - '1153'
+      set-cookie:
+      - logged-in-username=; domain=.opscode.com; path=/
+      - _sandbox_session=eyJzZXNzaW9uX2lkIjoiODlmMmQzN2RiNGQxMzhkMGJmMjEwY2E2M2VlNmJiMmUiLCJsb2NhdGlvbiI6eyJjb250cm9sbGVyIjoiYXBpL3YxL2Nvb2tib29rcyIsImlkIjoicnVuaXQiLCJhY3Rpb24iOiJzaG93In19--e4a78ffbe57b6493eda892b08d0f0b4f762513c3;
+        domain=.opscode.com; path=/; HttpOnly
+      etag:
+      - ! '"6d247f8bf0c8b36ecbee767096e70554"'
+      cache-control:
+      - private, max-age=0, must-revalidate
+      x-runtime:
+      - '41'
+    body:
+      encoding: US-ASCII
+      string: ! '{"latest_version":"http://cookbooks.opscode.com/api/v1/cookbooks/runit/versions/0_16_2","description":"Installs
+        runit and provides runit_service definition","updated_at":"2012-12-20T00:32:23Z","versions":["http://cookbooks.opscode.com/api/v1/cookbooks/runit/versions/0_16_2","http://cookbooks.opscode.com/api/v1/cookbooks/runit/versions/0_16_0","http://cookbooks.opscode.com/api/v1/cookbooks/runit/versions/0_15_0","http://cookbooks.opscode.com/api/v1/cookbooks/runit/versions/0_14_2","http://cookbooks.opscode.com/api/v1/cookbooks/runit/versions/0_14_1","http://cookbooks.opscode.com/api/v1/cookbooks/runit/versions/0_14_0","http://cookbooks.opscode.com/api/v1/cookbooks/runit/versions/0_13_0","http://cookbooks.opscode.com/api/v1/cookbooks/runit/versions/0_12_0","http://cookbooks.opscode.com/api/v1/cookbooks/runit/versions/0_11_0","http://cookbooks.opscode.com/api/v1/cookbooks/runit/versions/0_8_0","http://cookbooks.opscode.com/api/v1/cookbooks/runit/versions/0_7_0"],"average_rating":4.6,"maintainer":"opscode","category":"Process
+        Management","external_url":"github.com/opscode-cookbooks/runit","created_at":"2009-10-25T23:54:45Z","name":"runit"}'
+    http_version: '1.1'
+  recorded_at: Tue, 15 Jan 2013 13:38:11 GMT
+- request:
+    method: get
+    uri: http://cookbooks.opscode.com/api/v1/cookbooks/runit/versions/0_16_2
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      accept:
+      - ! '*/*'
+      user-agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      server:
+      - nginx/1.0.5
+      date:
+      - Tue, 15 Jan 2013 13:38:12 GMT
+      content-type:
+      - application/json; charset=utf-8
+      connection:
+      - keep-alive
+      status:
+      - 200 OK
+      content-length:
+      - '351'
+      etag:
+      - ! '"0414f88f62b7d90a866ce75530942c2b"'
+      set-cookie:
+      - logged-in-username=; domain=.opscode.com; path=/
+      - _sandbox_session=eyJzZXNzaW9uX2lkIjoiNGZhMDZhY2NiY2NiZDBkMDhhMWUwODM3ZDdlNGZjYzYiLCJsb2NhdGlvbiI6eyJhY3Rpb24iOiJzaG93IiwiY29va2Jvb2tfaWQiOiJydW5pdCIsImNvbnRyb2xsZXIiOiJhcGkvdjEvY29va2Jvb2tfdmVyc2lvbnMiLCJpZCI6IjBfMTZfMiJ9fQ%3D%3D--7e6e1e4c771ed9fb89f55b8d44a8529d7b3fd663;
+        domain=.opscode.com; path=/; HttpOnly
+      x-runtime:
+      - '11'
+      cache-control:
+      - private, max-age=0, must-revalidate
+    body:
+      encoding: US-ASCII
+      string: ! '{"file":"http://s3.amazonaws.com/community-files.opscode.com/cookbook_versions/tarballs/2685/original/runit.tgz?1355963535","cookbook":"http://cookbooks.opscode.com/api/v1/cookbooks/runit","created_at":"2012-12-20T00:32:17Z","version":"0.16.2","license":"Apache
+        2.0","average_rating":null,"tarball_file_size":11443,"updated_at":"2012-12-20T00:32:17Z"}'
+    http_version: '1.1'
+  recorded_at: Tue, 15 Jan 2013 13:38:12 GMT
 recorded_with: VCR 2.3.0

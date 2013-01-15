@@ -25,19 +25,11 @@ module Vendorificator
       rescue Grit::Git::CommandFailed
         raise RuntimeError, "Git repository is not clean."
       end
-
     end
 
     desc :sync, "Download new or updated vendor files"
     def sync
-      # We don't use Vendorificator::Config[:modules].each here,
-      # because mod.run! is explicitly allowed to append to
-      # Vendorificator::Config[:modules], and #each fails to catch up
-      # on some Ruby implementations.
-      i = 0
-      while true
-        break if i >= Vendorificator::Config[:modules].length
-        mod = Vendorificator::Config[:modules][i]
+      Vendorificator::Config.each_module do |mod|
         say_status :module, mod.name
         begin
           shell.padding += 1
@@ -45,7 +37,15 @@ module Vendorificator
         ensure
           shell.padding -= 1
         end
-        i += 1
+      end
+    end
+
+    desc :list, "List known vendor modules"
+    def list
+      Vendorificator::Config.each_module do |mod|
+        say_status( mod.status.to_s.gsub('_', ' ').upcase,
+                    "#{mod.name} #{mod.version}",
+                    ( mod.status==:up_to_date ? :green : :yellow ) )
       end
     end
 

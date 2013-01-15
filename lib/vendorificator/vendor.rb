@@ -54,9 +54,15 @@ module Vendorificator
       File.join(Vendorificator::Config[:root_dir], work_subdir)
     end
 
+    def status
+      repo = Vendorificator::Config.repo
+      return :new unless repo.branches.find { |b| b.name == branch_name }
+      return :outdated unless repo.tags.find { |t| t.name == conjure_tag_name }
+      return :up_to_date
+    end
+
     def needed?
-      return !Vendorificator::Config.repo.tags.
-        find { |t| t.name == conjure_tag_name }
+      return self.status != :up_to_date
     end
 
     def run!
@@ -65,7 +71,6 @@ module Vendorificator
 
       unless needed?
         shell.say_status 'up to date', work_subdir, :blue
-        after_conjure_hook
         return
       end
 
@@ -103,8 +108,6 @@ module Vendorificator
         # Merge back to the original branch
         repo.git.checkout( {}, orig_head.name )
         repo.git.pull( {}, '.', branch_name )
-
-        after_conjure_hook
       end
     ensure
       # If conjuring failed, we should make sure we're back on original branch
@@ -127,7 +130,7 @@ module Vendorificator
       block.call(self) if block
     end
 
-    def after_conjure_hook ; end
+    def dependencies ; [] ; end
 
     install!
   end
