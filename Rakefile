@@ -1,4 +1,8 @@
 #!/usr/bin/env rake
+require "rubygems"
+require "bundler"
+Bundler.setup
+
 require "bundler/gem_tasks"
 
 namespace :relish do
