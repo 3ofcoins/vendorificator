@@ -28,6 +28,11 @@ class Vendorificator::Vendor::ChefCookbook < Vendorificator::Vendor::Archive
     super(name, args, &block)
   end
 
+  def conjure!
+    super
+    FileUtils::rm_f '.git'
+  end
+
   def branch_name
     "#{Vendorificator::Config[:branch_prefix]}cookbooks/#{name}"
   end
