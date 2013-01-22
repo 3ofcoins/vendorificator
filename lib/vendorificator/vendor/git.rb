@@ -6,7 +6,7 @@ require 'vendorificator/vendor'
 
 class Vendorificator::Vendor::Git < Vendorificator::Vendor
   arg_reader :repository, :revision, :branch
-  attr_reader :repo, :conjured_revision
+  attr_reader :module_repo, :conjured_revision
 
   def initialize(name, args={}, &block)
     unless args.include?(:repository)
@@ -19,7 +19,7 @@ class Vendorificator::Vendor::Git < Vendorificator::Vendor
   def conjure!
     shell.say_status :clone, repository
     Grit::Git.new('.').clone({}, repository, '.')
-    @repo = Grit::Repo.new('.')
+    @module_repo = Grit::Repo.new('.')
     super
     @conjured_revision = repo.head.commit.id
     FileUtils::rm_rf '.git'
