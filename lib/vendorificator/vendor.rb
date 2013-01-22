@@ -107,53 +107,71 @@ module Vendorificator
       return self.status != :up_to_date
     end
 
-    def run!
-      repo = Vendorificator::Config.repo
+    def in_branch(options={}, &block)
       orig_head = repo.head
 
-      unless needed?
-        shell.say_status 'up to date', work_subdir, :blue
-        return
-      end
-
-      # We want to be in repository's root now, as we will need to
+      # We want to be in repository's root now, as we may need to
       # remove stuff and don't want to have removed directory as cwd.
       Dir::chdir repo.working_dir do
         # If our branch exists, check it out; otherwise, create a new
         # orphaned branch.
-        if repo.get_head(branch_name)
+        if self.head
           repo.git.checkout( {}, branch_name )
+          repo.git.rm( { :r => true, :f => true }, '.') if options[:clean]
         else
           repo.git.checkout( { :orphan => true }, branch_name )
+          repo.git.rm( { :r => true, :f => true }, '.')
         end
-
-        # Prepare a nice, clean place for work.
-        repo.git.rm( { :r => true, :f => true }, '.')
-        FileUtils::mkdir_p work_dir
-
-        # Actually fill the directory with the wanted content
-        Dir::chdir work_dir do
-          begin
-            shell.padding += 1
-            self.conjure!
-          ensure
-            shell.padding -= 1
-          end
-        end
-
-        # Commit and tag the conjured module
-        repo.add(work_dir)
-        repo.commit_index(conjure_commit_message)
-        repo.git.tag( { :a => true, :m => conjure_tag_message }, conjure_tag_name )
-        shell.say_status :tag, conjure_tag_name
-
-        # Merge back to the original branch
-        repo.git.checkout( {}, orig_head.name )
-        repo.git.pull( {}, '.', branch_name )
       end
+
+      yield
     ensure
-      # If conjuring failed, we should make sure we're back on original branch
+      # We should make sure we're back on original branch
       repo.git.checkout( {}, orig_head.name ) if defined?(orig_head) rescue nil
+    end
+
+    def run!
+      case status
+
+      when :up_to_date
+        shell.say_status 'up to date', self.to_s
+
+      when :unpulled, :unmerged
+        shell.say_status 'merging', self.to_s, :yellow
+        repo.git.merge({}, tag.name)
+
+      when :outdated, :new
+        shell.say_status 'fetching', self.to_s, :yellow
+        begin
+          shell.padding += 1
+          in_branch(:clean => true) do
+            FileUtils::mkdir_p work_dir
+
+            # Actually fill the directory with the wanted content
+            Dir::chdir work_dir do
+              begin
+                shell.padding += 1
+                self.conjure!
+              ensure
+                shell.padding -= 1
+              end
+            end
+
+            # Commit and tag the conjured module
+            repo.add(work_dir)
+            repo.commit_index(conjure_commit_message)
+            repo.git.tag( { :a => true, :m => conjure_tag_message }, conjure_tag_name )
+            shell.say_status :tag, conjure_tag_name
+          end
+          # Merge back to the original branch
+          repo.git.merge( {}, branch_name )
+        ensure
+          shell.padding -= 1
+        end
+
+      else
+        say_status self.status, "I'm unsure what to do.", :red
+      end
     end
 
     def conjure_commit_message
