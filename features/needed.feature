@@ -12,5 +12,5 @@ Scenario: already downloaded tarball
   And command output includes "testrepo-0.1.tar.gz"
   Then I run "vendor" 
   And command output includes /module\s+testrepo/
-  And command output includes /up to date\s+vendor\/testrepo/
+  And command output includes /up to date\s+testrepo/
   And command output does not include "testrepo-0.1.tar.gz"
