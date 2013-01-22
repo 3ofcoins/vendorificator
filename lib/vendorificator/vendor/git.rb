@@ -21,7 +21,7 @@ class Vendorificator::Vendor::Git < Vendorificator::Vendor
     Grit::Git.new('.').clone({}, repository, '.')
     @module_repo = Grit::Repo.new('.')
     super
-    @conjured_revision = repo.head.commit.id
+    @conjured_revision = module_repo.head.commit.id
     FileUtils::rm_rf '.git'
   end
 
