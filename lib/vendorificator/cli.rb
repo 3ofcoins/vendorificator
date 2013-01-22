@@ -37,8 +37,18 @@ module Vendorificator
     def status
       say_status 'WARNING', 'Git repository is not clean', :red unless clean_repo?
       Vendorificator::Config.each_module do |mod|
-        say_status( mod.status.to_s.gsub('_', ' ').upcase,
-                    "#{mod.name} #{mod.version}",
+        status_line = mod.to_s
+
+        updatable = mod.updatable?
+        if updatable
+          if updatable == true
+            status_line << ' (updatable)'
+          else
+            status_line << " (updatable to #{updatable.name})"
+          end
+        end
+
+        say_status( mod.status.to_s.gsub('_', ' '), status_line,
                     ( mod.status==:up_to_date ? :green : :yellow ) )
       end
     end
