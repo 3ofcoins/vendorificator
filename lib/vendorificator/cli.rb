@@ -10,9 +10,11 @@ module Vendorificator
     default_task :sync
 
     class_option :file, :aliases => '-f', :type => :string, :banner => 'PATH'
+    class_option :debug, :aliases => '-d', :type => :boolean, :default => false
 
     def initialize(*args)
       super
+      Grit.debug = true if options[:debug]
       Vendorificator::Config.from_file(find_vendorfile)
       Vendorificator::Config[:shell] = shell
 
