@@ -49,6 +49,7 @@ module Vendorificator
     def to_s
       rv = "#{name}"
       rv << "/#{version}" if version
+      rv
     end
 
     def inspect
@@ -72,13 +73,14 @@ module Vendorificator
     end
 
     def merged
+      return nil unless head
       rv = repo.git.merge_base({}, head.commit.sha, repo.head.commit.sha).strip
       rv unless rv.empty?
     end
 
     def updatable?
       return nil if self.status == 'up_to_date'
-      return false if merged == head.commit.sha
+      return false if head && merged == head.commit.sha
       head_tag = repo.tags.find { |t| t.name == repo.recent_tag_name(head.name) }
       return head_tag || true
     end
