@@ -17,20 +17,11 @@ module Vendorificator
       Grit.debug = true if options[:debug]
       Vendorificator::Config.from_file(find_vendorfile)
       Vendorificator::Config[:shell] = shell
-
-      # Ensure we're in a Git repository and it's clean
-      begin
-        # copy code from http://stackoverflow.com/a/3879077/16390
-        Vendorificator::Config.repo.git.native :update_index, {}, '-q', '--ignore-submodules', '--refresh'
-        Vendorificator::Config.repo.git.native :diff_files, {:raise => true}, '--quiet', '--ignore-submodules', '--'
-        Vendorificator::Config.repo.git.native :diff_index, {:raise => true}, '--cached', '--quiet', 'HEAD', '--ignore-submodules', '--'
-      rescue Grit::Git::CommandFailed
-        raise RuntimeError, "Git repository is not clean."
-      end
     end
 
     desc :sync, "Download new or updated vendor files"
     def sync
+      ensure_clean_repo!
       Vendorificator::Config.each_module do |mod|
         say_status :module, mod.name
         begin
@@ -44,6 +35,7 @@ module Vendorificator
 
     desc :status, "List known vendor modules and their status"
     def status
+      say_status 'WARNING', 'Git repository is not clean', :red unless clean_repo?
       Vendorificator::Config.each_module do |mod|
         say_status( mod.status.to_s.gsub('_', ' ').upcase,
                     "#{mod.name} #{mod.version}",
@@ -91,5 +83,20 @@ module Vendorificator
       raise RuntimeError, "Vendorfile not found"
     end
 
+    def clean_repo?
+      # copy code from http://stackoverflow.com/a/3879077/16390
+      Vendorificator::Config.repo.git.native :update_index, {}, '-q', '--ignore-submodules', '--refresh'
+      Vendorificator::Config.repo.git.native :diff_files, {:raise => true}, '--quiet', '--ignore-submodules', '--'
+      Vendorificator::Config.repo.git.native :diff_index, {:raise => true}, '--cached', '--quiet', 'HEAD', '--ignore-submodules', '--'
+      true
+    rescue Grit::Git::CommandFailed
+      false
+    end
+
+    def ensure_clean_repo!
+      unless clean_repo?
+        fail!('Repository is not clean.')
+      end
+    end
   end
 end
