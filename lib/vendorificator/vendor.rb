@@ -46,6 +46,15 @@ module Vendorificator
       "#{Vendorificator::Config[:branch_prefix]}#{name}"
     end
 
+    def to_s
+      rv = "#{name}"
+      rv << "/#{version}" if version
+    end
+
+    def inspect
+      "#<#{self.class} #{self}>"
+    end
+
     def work_subdir
       File.join(Vendorificator::Config[:basedir], path||name)
     end
