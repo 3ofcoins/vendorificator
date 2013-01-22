@@ -42,8 +42,8 @@ module Vendorificator
       end
     end
 
-    desc :list, "List known vendor modules"
-    def list
+    desc :status, "List known vendor modules and their status"
+    def status
       Vendorificator::Config.each_module do |mod|
         say_status( mod.status.to_s.gsub('_', ' ').upcase,
                     "#{mod.name} #{mod.version}",
