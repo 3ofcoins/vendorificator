@@ -53,6 +53,65 @@ module Vendorificator
       end
     end
 
+    desc :pull, "Pull upstream branches from a remote repository"
+    method_option :remote, :aliases => ['-r'], :default => nil
+    method_option :dry_run, :aliases => ['-n'], :default => false, :type => :boolean
+    def pull
+      ensure_clean_repo!
+      remotes = ( options[:remote] ? options[:remote].split(',') : conf[:remotes] )
+      remotes.each do |remote|
+        indent 'remote', remote do
+          fail! "Unknown remote #{remote}" unless repo.remote_list.include?(remote)
+
+          repo.git.fetch({}, remote)
+          repo.git.fetch({:tags => true}, remote)
+
+          ref_rx = /^#{Regexp.quote(remote)}\//
+          remote_branches = Hash[
+            repo.remotes.map { |r| [ $', r ] if r.name =~ ref_rx }.compact ]
+
+          conf.each_module do |mod|
+            remote_head = remote_branches[mod.branch_name]
+            ours = mod.head && mod.head.commit.sha
+            theirs = remote_head && remote_head.commit.sha
+
+            if remote_head
+              if not mod.head
+                say_status 'new', mod.branch_name, :yellow
+                repo.git.branch(
+                  { :track => true }, mod.branch_name, remote_head.name
+                  ) unless options[:dry_run]
+              elsif ours == theirs
+                say_status 'unchanged', mod.branch_name
+              elsif repo.fast_forwardable?(theirs, ours)
+                say_status 'updated', mod.name, :yellow
+                unless options[:dry_run]
+                  mod.in_branch do
+                    repo.git.merge({:ff_only => true}, remote_head.name)
+                  end
+                end
+              elsif repo.fast_forwardable?(ours, theirs)
+                say_status 'older', mod.branch_name
+              else
+                say_status 'complicated', mod.branch_name, :red
+                indent do
+                  say 'Merge it yourself.'
+                end
+              end
+            else
+              say_status 'unknown', mod.branch_name
+            end
+          end
+        end
+      end
+    end
+
+    desc :pry, 'pry'
+    def pry
+      require 'pry'
+      binding.pry
+    end
+
     def self.start
       if ENV['FIXTURES_DIR']
         require 'vcr'
@@ -70,6 +129,27 @@ module Vendorificator
     end
 
     private
+
+    def conf
+      Vendorificator::Config
+    end
+
+    def repo
+      Vendorificator::Config.repo
+    end
+
+    def fail!(message, exception_message='I give up.')
+      say_status('FATAL', message, :red)
+      raise Thor::Error, 'I give up.'
+    end
+
+    def indent(*args, &block)
+      say_status *args unless args.empty?
+      shell.padding += 1
+      yield
+    ensure
+      shell.padding -= 1
+    end
 
     # Find proper Vendorfile
     def find_vendorfile

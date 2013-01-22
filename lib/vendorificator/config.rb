@@ -12,6 +12,7 @@ module Vendorificator
       c[:basedir] = 'vendor'
       c[:branch_prefix] = 'vendor/'
       c[:modules] = []
+      c[:remotes] = %w(origin)
     end
 
     def self.from_file(filename)
