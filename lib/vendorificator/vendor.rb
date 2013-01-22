@@ -63,11 +63,44 @@ module Vendorificator
       File.join(Vendorificator::Config[:root_dir], work_subdir)
     end
 
+    def head
+      repo.get_head(branch_name)
+    end
+
+    def tag
+      repo.tags.find { |t| t.name == conjure_tag_name }
+    end
+
+    def merged
+      rv = repo.git.merge_base({}, head.commit.sha, repo.head.commit.sha).strip
+      rv unless rv.empty?
+    end
+
+    def updatable?
+      return nil if self.status == 'up_to_date'
+      return false if merged == head.commit.sha
+      head_tag = repo.tags.find { |t| t.name == repo.recent_tag_name(head.name) }
+      return head_tag || true
+    end
+
     def status
-      repo = Vendorificator::Config.repo
-      return :new unless repo.branches.find { |b| b.name == branch_name }
-      return :outdated unless repo.tags.find { |t| t.name == conjure_tag_name }
-      return :up_to_date
+      # If there's no branch yet, it's a completely new module
+      return :new unless head
+
+      # If there's a branch but no tag, it's a known module that's not
+      # been updated for the new definition yet.
+      return :outdated unless tag
+
+      # Well, this is awkward: branch is in config and exists, but is
+      # not merged into current branch at all.
+      return :unmerged unless merged
+
+      # Merge base is tagged with our tag. We're good.
+      return :up_to_date if tag.commit.sha == merged
+
+      return :unpulled if repo.fast_forwardable?(tag.commit.sha, merged)
+
+      return :unknown
     end
 
     def needed?
@@ -140,6 +173,16 @@ module Vendorificator
     end
 
     def dependencies ; [] ; end
+
+    private
+
+    def conf
+      Vendorificator::Config
+    end
+
+    def repo
+      Vendorificator::Config.repo
+    end
 
     install!
   end
