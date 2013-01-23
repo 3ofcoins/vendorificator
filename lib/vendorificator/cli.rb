@@ -35,7 +35,7 @@ module Vendorificator
 
     desc :status, "List known vendor modules and their status"
     def status
-      say_status 'WARNING', 'Git repository is not clean', :red unless clean_repo?
+      say_status 'WARNING', 'Git repository is not clean', :red unless repo.clean?
       Vendorificator::Config.each_module do |mod|
         status_line = mod.to_s
 
@@ -58,50 +58,10 @@ module Vendorificator
     method_option :dry_run, :aliases => ['-n'], :default => false, :type => :boolean
     def pull
       ensure_clean_repo!
-      remotes = ( options[:remote] ? options[:remote].split(',') : conf[:remotes] )
+      remotes = options[:remote] ? options[:remote].split(',') : conf[:remotes]
       remotes.each do |remote|
         indent 'remote', remote do
-          fail! "Unknown remote #{remote}" unless repo.remote_list.include?(remote)
-
-          repo.git.fetch({}, remote)
-          repo.git.fetch({:tags => true}, remote)
-
-          ref_rx = /^#{Regexp.quote(remote)}\//
-          remote_branches = Hash[
-            repo.remotes.map { |r| [ $', r ] if r.name =~ ref_rx }.compact ]
-
-          conf.each_module do |mod|
-            remote_head = remote_branches[mod.branch_name]
-            ours = mod.head && mod.head.commit.sha
-            theirs = remote_head && remote_head.commit.sha
-
-            if remote_head
-              if not mod.head
-                say_status 'new', mod.branch_name, :yellow
-                repo.git.branch(
-                  { :track => true }, mod.branch_name, remote_head.name
-                  ) unless options[:dry_run]
-              elsif ours == theirs
-                say_status 'unchanged', mod.branch_name
-              elsif repo.fast_forwardable?(theirs, ours)
-                say_status 'updated', mod.name, :yellow
-                unless options[:dry_run]
-                  mod.in_branch do
-                    repo.git.merge({:ff_only => true}, remote_head.name)
-                  end
-                end
-              elsif repo.fast_forwardable?(ours, theirs)
-                say_status 'older', mod.branch_name
-              else
-                say_status 'complicated', mod.branch_name, :red
-                indent do
-                  say 'Merge it yourself.'
-                end
-              end
-            else
-              say_status 'unknown', mod.branch_name
-            end
-          end
+          repo.pull(remote, options)
         end
       end
     end
@@ -173,18 +133,8 @@ module Vendorificator
       raise RuntimeError, "Vendorfile not found"
     end
 
-    def clean_repo?
-      # copy code from http://stackoverflow.com/a/3879077/16390
-      Vendorificator::Config.repo.git.native :update_index, {}, '-q', '--ignore-submodules', '--refresh'
-      Vendorificator::Config.repo.git.native :diff_files, {:raise => true}, '--quiet', '--ignore-submodules', '--'
-      Vendorificator::Config.repo.git.native :diff_index, {:raise => true}, '--cached', '--quiet', 'HEAD', '--ignore-submodules', '--'
-      true
-    rescue Grit::Git::CommandFailed
-      false
-    end
-
     def ensure_clean_repo!
-      unless clean_repo?
+      unless repo.clean?
         fail!('Repository is not clean.')
       end
     end
