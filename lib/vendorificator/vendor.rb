@@ -79,7 +79,8 @@ module Vendorificator
     end
 
     def updatable?
-      return nil if self.status == 'up_to_date'
+      return nil if self.status == :up_to_date
+      return false if !head
       return false if head && merged == head.commit.sha
       head_tag = repo.tags.find { |t| t.name == repo.recent_tag_name(head.name) }
       return head_tag || true
