@@ -20,6 +20,13 @@ class Vendorificator::Vendor::Git < Vendorificator::Vendor
     shell.say_status :clone, repository
     Grit::Git.new('.').clone({}, repository, '.')
     @module_repo = Grit::Repo.new('.')
+
+    if revision
+      module_repo.git.checkout({:b => 'vendorified'}, revision)
+    elsif branch
+      module_repo.git.checkout({:b => 'vendorified'}, "origin/#{branch}")
+    end
+
     super
     @conjured_revision = module_repo.head.commit.id
     FileUtils::rm_rf '.git'
