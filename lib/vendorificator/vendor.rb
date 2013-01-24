@@ -15,7 +15,9 @@ module Vendorificator
         _cls = self # for self is obscured in define_method block's body
         ( class << Vendorificator::Config ; self ; end ).
             send(:define_method, @method_name ) do |name, *args, &block|
-          self[:modules] << _cls.new(name.to_s, *args, &block)
+          mod = _cls.new(name.to_s, *args, &block)
+          self[:modules] << mod
+          mod
         end
       end
 
