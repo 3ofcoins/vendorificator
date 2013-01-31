@@ -34,9 +34,9 @@ module Vendorificator
     end
 
     desc :status, "List known vendor modules and their status"
-    def status
+    def status(*modules)
       say_status 'WARNING', 'Git repository is not clean', :red unless repo.clean?
-      Vendorificator::Config.each_module do |mod|
+      Vendorificator::Config.each_module(*modules) do |mod|
         status_line = mod.to_s
 
         updatable = mod.updatable?

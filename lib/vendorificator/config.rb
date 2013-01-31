@@ -39,7 +39,9 @@ module Vendorificator
                 end
     end
 
-    def self.each_module
+    def self.each_module(*modules)
+      module_paths = modules.map { |m| File.expand_path(m) }
+
       # We don't use self[:modules].each here, because mod.run! is
       # explicitly allowed to append to Config[:modules], and #each
       # fails to catch up on some Ruby implementations.
@@ -47,7 +49,10 @@ module Vendorificator
       while true
         break if i >= Vendorificator::Config[:modules].length
         mod = Vendorificator::Config[:modules][i]
-        yield mod
+        yield mod if
+          modules.empty? ||
+          modules.include?(mod.name) ||
+          module_paths.include?(mod.work_dir)
         i += 1
 
         # Add dependencies
