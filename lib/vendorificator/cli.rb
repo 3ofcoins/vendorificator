@@ -66,7 +66,7 @@ module Vendorificator
       end
     end
 
-    desc :pry, 'pry'
+    desc :pry, 'Pry into the binding', :hide => true
     def pry
       require 'pry'
       binding.pry
