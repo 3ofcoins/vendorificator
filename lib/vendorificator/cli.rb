@@ -12,6 +12,8 @@ module Vendorificator
     class_option :file, :aliases => '-f', :type => :string, :banner => 'PATH'
     class_option :debug, :aliases => '-d', :type => :boolean, :default => false
 
+    MODULES_USAGE     = '[module [module [module ...]]]'
+    MODULES_DESC      = 'If no modules are given, all modules will be used.'
     def initialize(*args)
       super
       Grit.debug = true if options[:debug]
@@ -33,7 +35,11 @@ module Vendorificator
       end
     end
 
-    desc :status, "List known vendor modules and their status"
+    desc "status #{MODULES_USAGE}", "List known vendor modules and their status"
+    long_desc <<EOF
+Lists known vendor modules and their status.
+#{MODULES_DESC}
+EOF
     def status(*modules)
       say_status 'WARNING', 'Git repository is not clean', :red unless repo.clean?
       Vendorificator::Config.each_module(*modules) do |mod|
