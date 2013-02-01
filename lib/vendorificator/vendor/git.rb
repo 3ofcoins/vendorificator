@@ -32,8 +32,8 @@ class Vendorificator::Vendor::Git < Vendorificator::Vendor
     FileUtils::rm_rf '.git'
   end
 
-  def conjure_tag_name
-    "vendor/#{name}/#{version || conjured_revision}"
+  def upstream_version
+    conjured_revision
   end
 
   def conjure_commit_message

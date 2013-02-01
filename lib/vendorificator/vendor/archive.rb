@@ -76,8 +76,8 @@ class Vendorificator::Vendor::Archive < Vendorificator::Vendor
     archive.unlink
   end
 
-  def conjure_tag_name
-    "vendor/#{name}/#{version || filename}"
+  def upstream_version
+    filename
   end
 
   def conjure_commit_message

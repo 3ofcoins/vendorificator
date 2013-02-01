@@ -8,6 +8,8 @@ module Vendorificator
   class Vendor
 
     class << self
+      attr_accessor :category, :method_name
+
       # Define a method on Vendorificator::Config to add the
       # vendor module to the module definition list.
       def install!
@@ -33,6 +35,10 @@ module Vendorificator
     attr_reader :config, :name, :args, :block
     arg_reader :version, :path
 
+    def path
+      args[:path] || _join(category, name)
+    end
+
     def initialize(name, args={}, &block)
       @name = name
       @args = args
@@ -44,14 +50,16 @@ module Vendorificator
         Vendorificator::Config[:shell] || Thor::Shell::Basic.new
     end
 
+    def category
+      self.class.category
+    end
+
     def branch_name
-      "#{Vendorificator::Config[:branch_prefix]}#{name}"
+      _join(Vendorificator::Config[:branch_prefix], category, name)
     end
 
     def to_s
-      rv = "#{name}"
-      rv << "/#{version}" if version
-      rv
+      _join(name, version)
     end
 
     def inspect
@@ -59,7 +67,7 @@ module Vendorificator
     end
 
     def work_subdir
-      File.join(Vendorificator::Config[:basedir], path||name)
+      File.join(Vendorificator::Config[:basedir], path)
     end
 
     def work_dir
@@ -71,13 +79,45 @@ module Vendorificator
     end
 
     def tag
-      repo.tags.find { |t| t.name == conjure_tag_name }
+      repo.tags.find { |t| t.name == tag_name }
     end
 
     def merged
-      return nil unless head
-      rv = repo.git.merge_base({}, head.commit.sha, repo.head.commit.sha).strip
-      rv unless rv.empty?
+      unless @_has_merged
+        if head
+          merged = repo.git.
+            merge_base({}, head.commit.sha, repo.head.commit.sha).strip
+          @merged = merged unless merged.empty?
+        end
+        @_has_merged = true
+      end
+      @merged
+    end
+
+    def merged_tag
+      unless @_has_merged_tag
+        if merged
+          tag = repo.git.describe( {
+              :exact_match => true,
+              :match => _join(tag_name_base, '*') },
+            merged).strip
+          @merged_tag = tag unless tag.empty?
+        end
+        @_has_merged_tag = true
+      end
+      @merged_tag
+    end
+
+    def merged_version
+      merged_tag && merged_tag[(1+tag_name_base.length)..-1]
+    end
+
+    def version
+      @args[:version] || merged_version || upstream_version
+    end
+
+    def upstream_version
+      # To be overriden
     end
 
     def updatable?
@@ -165,8 +205,8 @@ module Vendorificator
             # Commit and tag the conjured module
             repo.add(work_dir)
             repo.commit_index(conjure_commit_message)
-            repo.git.tag( { :a => true, :m => conjure_tag_message }, conjure_tag_name )
-            shell.say_status :tag, conjure_tag_name
+            repo.git.tag( { :a => true, :m => tag_message }, tag_name )
+            shell.say_status :tag, tag_name
           end
           # Merge back to the original branch
           repo.git.merge( {}, branch_name )
@@ -179,15 +219,19 @@ module Vendorificator
       end
     end
 
+    def tag_name_base
+      _join('vendor', category, name)
+    end
+
+    def tag_name
+      _join(tag_name_base, version)
+    end
+
     def conjure_commit_message
       "Conjured vendor module #{name} version #{version}"
     end
 
-    def conjure_tag_name
-      "vendor/#{name}/#{version}"
-    end
-
-    def conjure_tag_message
+    def tag_message
       conjure_commit_message
     end
 
@@ -205,6 +249,10 @@ module Vendorificator
 
     def repo
       Vendorificator::Config.repo
+    end
+
+    def _join(*parts)
+      parts.compact.map(&:to_s).join('/')
     end
 
     install!

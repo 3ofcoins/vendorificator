@@ -7,42 +7,47 @@ require 'vendorificator/hooks/chef_cookbook'
 
 class Vendorificator::Vendor::ChefCookbook < Vendorificator::Vendor::Archive
   include Vendorificator::Hooks::ChefCookbookDependencies
+
   @method_name = :chef_cookbook
+  @category = :cookbooks
+
   API_PREFIX = 'http://cookbooks.opscode.com/api/v1/cookbooks/'
 
   def initialize(name, args={}, &block)
-    uri = if args[:version]
-            "#{API_PREFIX}#{name}/versions/#{args[:version].gsub(/[^0-9]/, '_')}"
-          else
-            JSON.load(
-              Net::HTTP.get_response(URI.parse("#{API_PREFIX}#{name}")).body
-            )['latest_version']
-          end
-
-    cookbook_data = JSON.load(Net::HTTP.get_response(URI.parse(uri)).body)
-
-    args[:version] = cookbook_data['version']
-    args[:url] = cookbook_data['file']
-    args[:cookbook_api_data] = cookbook_data
+    args[:url] ||= true         # to avoid having name treated as url
+    args[:filename] ||= "#{name}.tgz"
 
     super(name, args, &block)
   end
 
+  def api_data(v=nil)
+    v = v.gsub(/[^0-9]/, '_') if v
+    @api_data ||= {}
+    @api_data[v] ||=
+      begin
+        url = "#{API_PREFIX}#{name}"
+        url << "/versions/#{v}" if v
+        JSON::load(Net::HTTP.get_response(URI.parse(url)).body)
+      end
+  end
+
+  def cookbook_data
+    @cookbook_data ||= api_data(version)
+  end
+
+  def upstream_version
+    URI::parse(api_data['latest_version']).path.split('/').last.gsub('_', '.')
+  end
+
+  def url
+    cookbook_data['file']
+  end
+
   def conjure!
     super
+    # Some Opscode Community tarballs include a confusing .git file,
+    # we don't want this.
     FileUtils::rm_f '.git'
-  end
-
-  def branch_name
-    "#{Vendorificator::Config[:branch_prefix]}cookbooks/#{name}"
-  end
-
-  def work_subdir
-    File.join(Vendorificator::Config[:basedir], 'cookbooks', path||name)
-  end
-
-  def conjure_tag_name
-    "vendor/cookbooks/#{name}/#{version || filename}"
   end
 
   def conjure_commit_message
