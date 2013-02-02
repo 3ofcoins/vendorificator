@@ -6,16 +6,17 @@ module Vendorificator
   class CLI < Thor
     include Vendorificator
 
-    check_unknown_options! :except => [:diff]
+    check_unknown_options! :except => [:git, :diff, :log]
+    stop_on_unknown_option! :git, :diff, :log
+
     default_task :sync
 
     class_option :file, :aliases => '-f', :type => :string, :banner => 'PATH'
     class_option :debug, :aliases => '-d', :type => :boolean, :default => false
-
-    MODULES_USAGE     = '[module [module [module ...]]]'
-    MODULES_DESC      = 'If no modules are given, all modules will be used.'
-    GIT_OPTIONS_USAGE = '[--git-options --opt1 [--opt2 [--opt3 ...]]]'
-    GIT_OPTIONS_DESC  = "All options passed after '--git-options' will be passed directly to Git."
+    class_option :quiet, :aliases => ['-q'], :default => false, :type => :boolean
+    class_option :modules, :type => :string, :default => '',
+      :banner => 'mod1,mod2,...,modN',
+      :desc => 'Run only for specified modules (name or path, comma separated)'
 
     def initialize(*args)
       super
@@ -34,7 +35,7 @@ module Vendorificator
     desc :sync, "Download new or updated vendor files"
     def sync
       ensure_clean_repo!
-      Vendorificator::Config.each_module do |mod|
+      Vendorificator::Config.each_module(*modules) do |mod|
         say_status :module, mod.name
         begin
           shell.padding += 1
@@ -45,12 +46,8 @@ module Vendorificator
       end
     end
 
-    desc "status #{MODULES_USAGE}", "List known vendor modules and their status"
-    long_desc <<EOF
-Lists known vendor modules and their status.
-#{MODULES_DESC}
-EOF
-    def status(*modules)
+    desc "status", "List known vendor modules and their status"
+    def status
       say_status 'WARNING', 'Git repository is not clean', :red unless repo.clean?
       Vendorificator::Config.each_module(*modules) do |mod|
         status_line = mod.to_s
@@ -69,33 +66,6 @@ EOF
       end
     end
 
-    desc "diff #{MODULES_USAGE} #{GIT_OPTIONS_USAGE}",
-         "Show differences between work tree and upstream module(s)"
-    long_desc <<EOF
-Shows differences between work tree and upstream module(s) by calling `git diff`.
-#{MODULES_DESC}
-#{GIT_OPTIONS_DESC}
-EOF
-    method_option :quiet, :aliases => ['-q'], :default => false, :type => :boolean
-    method_option :only_changed, :default => false, :type => :boolean
-    def diff(*args)
-      modules, git_options = split_git_options(args)
-      Vendorificator::Config.each_module(*modules) do |mod|
-        unless mod.merged
-          say_status 'unmerged', mod.to_s, :red unless options[:only_changed]
-          next
-        end
-        git_args = git_options + [ mod.merged, '--', mod.work_dir ]
-        diff = repo.git.native('diff', {}, *git_args)
-        if diff.empty?
-          say_status 'unchanged', mod.to_s, :green unless options[:only_changed]
-        else
-          say_status 'changed', mod.to_s, :yellow
-        end
-        puts diff unless options[:quiet] || diff.empty?
-      end
-    end
-
     desc :pull, "Pull upstream branches from a remote repository"
     method_option :remote, :aliases => ['-r'], :default => nil
     method_option :dry_run, :aliases => ['-n'], :default => false, :type => :boolean
@@ -108,6 +78,57 @@ EOF
         end
       end
     end
+    desc "git GIT_COMMAND [GIT_ARGS [...]]",
+         "Run a git command for specified modules"
+    long_desc <<EOF
+  Run a git command for specified modules. Within GIT_ARGS arguments,
+  you can use @MERGED@ and @PATH@ tags, which will be substituted with
+  mo#dule's most recently merged revision and full path of its work
+  directory.
+
+  The 'diff' and 'log' commands are simple aliases for 'git' command.
+
+  Examples:
+    vendor git log @MERGED@..HEAD -- @PATH@    # basic 'vendor log'
+    vendor git diff --stat @MERGED@ -- @PATH@  # 'vendor diff', as diffstat
+EOF
+    method_option :only_changed, :default => false, :type => :boolean
+    def git(command, *args)
+      Vendorificator::Config.each_module(*modules) do |mod|
+        unless mod.merged
+          say_status 'unmerged', mod.to_s, :red unless options[:only_changed]
+          next
+        end
+
+        actual_args = args.dup.map do |arg|
+          arg.
+            gsub('@MERGED@', mod.merged).
+            gsub('@PATH@', mod.work_dir)
+        end
+
+        output = repo.git.native(command, {}, *actual_args)
+        if output.empty?
+          say_status 'unchanged', mod.to_s, :green unless options[:only_changed]
+        else
+          say_status 'changed', mod.to_s, :yellow
+        end
+        puts output unless options[:quiet] || output.empty?
+      end
+    end
+
+    desc "diff [OPTIONS] [GIT OPTIONS]",
+         "Show differences between work tree and upstream module(s)"
+    method_option :only_changed, :default => false, :type => :boolean
+    def diff(*args)
+      invoke :git, %w'diff' + args + %w'@MERGED@ -- @PATH@'
+    end
+
+    desc "log [OPTIONS] [GIT OPTIONS]",
+         "Show git log of commits added to upstream module(s)"
+    method_option :only_changed, :default => false, :type => :boolean
+    def log(*args)
+      invoke :git, %w'log' + args + %w'@MERGED@..HEAD -- @PATH@'
+    end
 
     desc :pry, 'Pry into the binding', :hide => true
     def pry
@@ -116,6 +137,11 @@ EOF
     end
 
     def self.start
+      # Make --git-options always quoted
+      if i = ARGV.index('--git-options')
+        ARGV[i+1,0] = '--'
+      end
+
       if ENV['FIXTURES_DIR']
         require 'vcr'
         VCR.configure do |c|
@@ -139,6 +165,10 @@ EOF
       when 0 then [ [], args[1..-1] ]
       else [ args[0..(i-1)], args[(i+1)..-1] ]
       end
+    end
+
+    def modules
+      options[:modules].split(',').map(&:strip)
     end
 
     def conf
@@ -189,5 +219,15 @@ EOF
         fail!('Repository is not clean.')
       end
     end
+  end
+end
+
+# Monkey patch over https://github.com/wycats/thor/pull/298
+class Thor::Options
+  alias_method :_orig_current_is_switch?, :current_is_switch?
+  def current_is_switch?
+    rv = _orig_current_is_switch?
+    @parsing_options = false if !rv[0] && @stop_on_unknown && @parsing_options
+    rv
   end
 end
