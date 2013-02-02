@@ -9,7 +9,7 @@ Scenario: Version & checksum
 
     chef_cookbook 'apt'
     """
-  When I run "vendor"
+  When I run "vendor sync"
   Then following has been conjured:
     | Name      | cookbooks/apt |
     | With file | metadata.rb   |
@@ -21,7 +21,7 @@ Scenario: Dependency hook
 
     chef_cookbook 'memcached'
     """
-  When I run "vendor"
+  When I run "vendor sync"
   Then following has been conjured:
     | Name      | cookbooks/memcached | cookbooks/runit |
     | With file | metadata.rb         | metadata.rb     |
@@ -35,7 +35,7 @@ Scenario: Ignored dependency
 
     chef_cookbook 'memcached'
     """
-  When I run "vendor"
+  When I run "vendor sync"
   Then following has been conjured:
     | Name      | cookbooks/memcached |
     | With file | metadata.rb         |

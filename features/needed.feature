@@ -6,11 +6,11 @@ Scenario: already downloaded tarball
     archive :testrepo, :version => '0.1',
       :url => 'http://test-assets.3ofcoins.net.s3-website-us-east-1.amazonaws.com/testrepo-0.1.tar.gz'
     """
-  When I run "vendor"
+  When I run "vendor sync"
   Then I'm on "master" branch
   And command output includes /module\s+testrepo/
   And command output includes "testrepo-0.1.tar.gz"
-  Then I run "vendor" 
+  Then I run "vendor sync"
   And command output includes /module\s+testrepo/
   And command output includes /up to date\s+testrepo/
   And command output does not include "testrepo-0.1.tar.gz"

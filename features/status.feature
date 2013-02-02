@@ -16,12 +16,12 @@ Scenario: status new module
   Then command output includes /new\s+generated\/0.23/
 
 Scenario: status up-to-date module
-  When I run "vendor"
+  When I run "vendor sync"
   And I run "vendor status"
   Then command output includes /up to date\s+generated\/0.23/
 
 Scenario: status outdated modules
-  When I run "vendor"
+  When I run "vendor sync"
   And I change Vendorfile to:
     """ruby
     vendor 'generated', :version => '0.42' do |v|
@@ -41,7 +41,7 @@ Scenario: Module's dependencies are statused if they are known
   And I run "vendor status"
   Then command output includes /new\s+memcached/
   And command output does not include "runit"
-  When I run "vendor"
+  When I run "vendor sync"
   And I run "vendor status"
   Then command output includes /up to date\s+memcached/
   And command output includes /up to date\s+runit/
