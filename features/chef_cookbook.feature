@@ -35,3 +35,23 @@ Scenario: Ignored dependency
   And following has not been conjured:
     | Name      | cookbooks/runit |
     | With file | metadata.rb     |
+
+Scenario: Ignored all dependencies
+  Given a repository with following Vendorfile:
+    """ruby
+    chef_cookbook_ignore_dependencies true
+    chef_cookbook 'chef-server'
+    """
+  When I run "vendor sync"
+  Then following has been conjured:
+    | Name      | cookbooks/chef-server |
+    | With file | metadata.rb           |
+  And following has not been conjured:
+    | Name      | cookbooks/runit |
+    | With file | metadata.rb     |
+  And following has not been conjured:
+    | Name      | cookbooks/daemontools |
+    | With file | metadata.rb           |
+  And following has not been conjured:
+    | Name      | cookbooks/apache2 |
+    | With file | metadata.rb       |
