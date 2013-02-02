@@ -9,7 +9,6 @@ module Vendorificator
     extend Mixlib::Config
 
     configure do |c|
-      c[:root] = Pathname.getwd
       c[:basedir] = 'vendor'
       c[:branch_prefix] = 'vendor'
       c[:modules] = []
@@ -27,7 +26,6 @@ module Vendorificator
           pathname.dirname
         end
       self[:vendorfile_path] = pathname
-      self[:lockfile_path] = pathname.dirname.join(pathname.basename.to_s + '.lock')
       super(pathname.to_s)
     end
 
