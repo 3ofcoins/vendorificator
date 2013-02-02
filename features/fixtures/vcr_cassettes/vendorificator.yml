@@ -14,34 +14,24 @@ http_interactions:
   response:
     status:
       code: 200
-      message: !binary |-
-        T0s=
+      message: OK
     headers:
-      !binary "eC1hbXotaWQtMg==":
-      - !binary |-
-        ZmpINS8vU2RsRXhhbXg5eU56ZVU1Y014WDNnL2FmWUkxeHR5ZTA4V3B2TDg3
-        dG5ackJLcDFMMTN4T1lqYmZvdw==
-      !binary "eC1hbXotcmVxdWVzdC1pZA==":
-      - !binary |-
-        MUE4Q0Q1REFGN0VDOEMwQQ==
-      !binary "ZGF0ZQ==":
-      - !binary |-
-        V2VkLCAwMiBKYW4gMjAxMyAxNzo1OTo0MiBHTVQ=
-      !binary "bGFzdC1tb2RpZmllZA==":
-      - !binary |-
-        VHVlLCAyNSBEZWMgMjAxMiAxNjo1NjozMSBHTVQ=
-      !binary "ZXRhZw==":
-      - !binary |-
-        IjJjZDQyOGNlNDRhMjY1ZTcwYjk5MTBhOWQ3NGY2MmIzIg==
-      !binary "Y29udGVudC10eXBl":
-      - !binary |-
-        YXBwbGljYXRpb24veC1nemlw
-      !binary "Y29udGVudC1sZW5ndGg=":
-      - !binary |-
-        MjA0ODA=
-      !binary "c2VydmVy":
-      - !binary |-
-        QW1hem9uUzM=
+      x-amz-id-2:
+      - fjH5//SdlExamx9yNzeU5cMxX3g/afYI1xtye08WpvL87tnZrBKp1L13xOYjbfow
+      x-amz-request-id:
+      - 1A8CD5DAF7EC8C0A
+      date:
+      - Wed, 02 Jan 2013 17:59:42 GMT
+      last-modified:
+      - Tue, 25 Dec 2012 16:56:31 GMT
+      etag:
+      - ! '"2cd428ce44a265e70b9910a9d74f62b3"'
+      content-type:
+      - application/x-gzip
+      content-length:
+      - '20480'
+      server:
+      - AmazonS3
     body:
       encoding: ASCII-8BIT
       string: !binary |-
@@ -501,8 +491,7 @@ http_interactions:
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAA=
-    http_version: !binary |-
-      MS4x
+    http_version: '1.1'
   recorded_at: Wed, 02 Jan 2013 17:59:42 GMT
 - request:
     method: get
@@ -518,34 +507,24 @@ http_interactions:
   response:
     status:
       code: 200
-      message: !binary |-
-        T0s=
+      message: OK
     headers:
-      !binary "eC1hbXotaWQtMg==":
-      - !binary |-
-        dmkxcUlzb2duRGlBcElld0FodHVMQnBwOHBSYmRSTit3N2ltaWlTVk41L0pO
-        MEJoa1dRVk0xa24wVkxOd0lFVw==
-      !binary "eC1hbXotcmVxdWVzdC1pZA==":
-      - !binary |-
-        MTg1OTg5MDU3MDUzRTc5OA==
-      !binary "ZGF0ZQ==":
-      - !binary |-
-        V2VkLCAwMiBKYW4gMjAxMyAxODowMToxNiBHTVQ=
-      !binary "bGFzdC1tb2RpZmllZA==":
-      - !binary |-
-        VHVlLCAyNSBEZWMgMjAxMiAxNjo1NjozMCBHTVQ=
-      !binary "ZXRhZw==":
-      - !binary |-
-        ImRjMTgzNDIxZjRiMTRjNzZlMDQxMjE4M2YzZTY5OWU5Ig==
-      !binary "Y29udGVudC10eXBl":
-      - !binary |-
-        YXBwbGljYXRpb24veC1nemlw
-      !binary "Y29udGVudC1sZW5ndGg=":
-      - !binary |-
-        MjA0ODA=
-      !binary "c2VydmVy":
-      - !binary |-
-        QW1hem9uUzM=
+      x-amz-id-2:
+      - vi1qIsognDiApIewAhtuLBpp8pRbdRN+w7imiiSVN5/JN0BhkWQVM1kn0VLNwIEW
+      x-amz-request-id:
+      - '185989057053E798'
+      date:
+      - Wed, 02 Jan 2013 18:01:16 GMT
+      last-modified:
+      - Tue, 25 Dec 2012 16:56:30 GMT
+      etag:
+      - ! '"dc183421f4b14c76e0412183f3e699e9"'
+      content-type:
+      - application/x-gzip
+      content-length:
+      - '20480'
+      server:
+      - AmazonS3
     body:
       encoding: ASCII-8BIT
       string: !binary |-
@@ -1005,8 +984,7 @@ http_interactions:
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAA=
-    http_version: !binary |-
-      MS4x
+    http_version: '1.1'
   recorded_at: Wed, 02 Jan 2013 18:01:15 GMT
 - request:
     method: get
@@ -1111,37 +1089,26 @@ http_interactions:
   response:
     status:
       code: 200
-      message: !binary |-
-        T0s=
+      message: OK
     headers:
-      !binary "eC1hbXotaWQtMg==":
-      - !binary |-
-        Z243b2kzQS9UOWlJRnYxNVRSYWlSM0diRmo5WExhWHRySk5EMkJHeFo0cWVX
-        cXl0eWtYRlN5QWw1ZE9uODFoLw==
-      !binary "eC1hbXotcmVxdWVzdC1pZA==":
-      - !binary |-
-        QTRDQTU1M0NCNEExNUFEMQ==
-      !binary "ZGF0ZQ==":
-      - !binary |-
-        V2VkLCAwMiBKYW4gMjAxMyAxODowMTo0NyBHTVQ=
-      !binary "bGFzdC1tb2RpZmllZA==":
-      - !binary |-
-        V2VkLCAxOSBEZWMgMjAxMiAyMzo1Njo0MiBHTVQ=
-      !binary "ZXRhZw==":
-      - !binary |-
-        IjFiMmZiNjQwZGE3OWYwZWY1ZTdjYmVmZGQzZTViYWNjIg==
-      !binary "YWNjZXB0LXJhbmdlcw==":
-      - !binary |-
-        Ynl0ZXM=
-      !binary "Y29udGVudC10eXBl":
-      - !binary |-
-        YXBwbGljYXRpb24vb2N0ZXQtc3RyZWFt
-      !binary "Y29udGVudC1sZW5ndGg=":
-      - !binary |-
-        MTIzMzQ=
-      !binary "c2VydmVy":
-      - !binary |-
-        QW1hem9uUzM=
+      x-amz-id-2:
+      - gn7oi3A/T9iIFv15TRaiR3GbFj9XLaXtrJND2BGxZ4qeWqytykXFSyAl5dOn81h/
+      x-amz-request-id:
+      - A4CA553CB4A15AD1
+      date:
+      - Wed, 02 Jan 2013 18:01:47 GMT
+      last-modified:
+      - Wed, 19 Dec 2012 23:56:42 GMT
+      etag:
+      - ! '"1b2fb640da79f0ef5e7cbefdd3e5bacc"'
+      accept-ranges:
+      - bytes
+      content-type:
+      - application/octet-stream
+      content-length:
+      - '12334'
+      server:
+      - AmazonS3
     body:
       encoding: ASCII-8BIT
       string: !binary |-
@@ -1420,8 +1387,7 @@ http_interactions:
         Rf63N2bP/2/uLvO/nqWpBb/rEVj0C9BZml8b/mVbtmVbtmVbtmVbtmVbtmVb
         tmVbtmVbtmVbtmVbtmVbtmVbtmVbtmVbtmVbtmVbtmVbtmVbtn/X9n8x167u
         ABgBAA==
-    http_version: !binary |-
-      MS4x
+    http_version: '1.1'
   recorded_at: Wed, 02 Jan 2013 18:01:46 GMT
 - request:
     method: get
@@ -1525,37 +1491,26 @@ http_interactions:
   response:
     status:
       code: 200
-      message: !binary |-
-        T0s=
+      message: OK
     headers:
-      !binary "eC1hbXotaWQtMg==":
-      - !binary |-
-        c2tublZEQlpidThxcHhJMktsODhzeG5HK2d4dEU3WGJvR3RVNEhjQzBEOHF2
-        VU9UdVpqSFN4UHh5R0ErL3ZGUg==
-      !binary "eC1hbXotcmVxdWVzdC1pZA==":
-      - !binary |-
-        Qjc1N0RCQjlCRTQ2MkEyMg==
-      !binary "ZGF0ZQ==":
-      - !binary |-
-        V2VkLCAwMiBKYW4gMjAxMyAxODowMTo0OSBHTVQ=
-      !binary "bGFzdC1tb2RpZmllZA==":
-      - !binary |-
-        VHVlLCAxOCBEZWMgMjAxMiAyMjoxMTo0MiBHTVQ=
-      !binary "ZXRhZw==":
-      - !binary |-
-        ImIyYjdiM2YxZDg5N2JiMDA1ZmQ0ODEwMjg5NDI1MGQxIg==
-      !binary "YWNjZXB0LXJhbmdlcw==":
-      - !binary |-
-        Ynl0ZXM=
-      !binary "Y29udGVudC10eXBl":
-      - !binary |-
-        YXBwbGljYXRpb24vb2N0ZXQtc3RyZWFt
-      !binary "Y29udGVudC1sZW5ndGg=":
-      - !binary |-
-        ODU2Mg==
-      !binary "c2VydmVy":
-      - !binary |-
-        QW1hem9uUzM=
+      x-amz-id-2:
+      - sknnVDBZbu8qpxI2Kl88sxnG+gxtE7XboGtU4HcC0D8qvUOTuZjHSxPxyGA+/vFR
+      x-amz-request-id:
+      - B757DBB9BE462A22
+      date:
+      - Wed, 02 Jan 2013 18:01:49 GMT
+      last-modified:
+      - Tue, 18 Dec 2012 22:11:42 GMT
+      etag:
+      - ! '"b2b7b3f1d897bb005fd48102894250d1"'
+      accept-ranges:
+      - bytes
+      content-type:
+      - application/octet-stream
+      content-length:
+      - '8562'
+      server:
+      - AmazonS3
     body:
       encoding: ASCII-8BIT
       string: !binary |-
@@ -1750,8 +1705,7 @@ http_interactions:
         CqzCO+OW1uJoMdVyJ9mXVjQOA1V0Z8qX02YwPtbEDVt/8PxtW9rSlra0pS1t
         aUtb2tKWtrSlLW1pS1va0pa2tKUtbWlLW9rSlra0pS1taUtb2tKWtrSlLW35
         45X/A5OfgAEAyAAA
-    http_version: !binary |-
-      MS4x
+    http_version: '1.1'
   recorded_at: Wed, 02 Jan 2013 18:01:48 GMT
 - request:
     method: get
@@ -1855,37 +1809,26 @@ http_interactions:
   response:
     status:
       code: 200
-      message: !binary |-
-        T0s=
+      message: OK
     headers:
-      !binary "eC1hbXotaWQtMg==":
-      - !binary |-
-        RWNySkRXeFM0eVpQVDhrVlo4TS9IZU14ZGoreG1BTjROczVlM1B0bktuUEl5
-        aW83N0VyaUtQZ2llQ29Kbjdtbg==
-      !binary "eC1hbXotcmVxdWVzdC1pZA==":
-      - !binary |-
-        OTMwMjNFMzFFODI1NjEzRQ==
-      !binary "ZGF0ZQ==":
-      - !binary |-
-        V2VkLCAwMiBKYW4gMjAxMyAxODowMTo1MCBHTVQ=
-      !binary "bGFzdC1tb2RpZmllZA==":
-      - !binary |-
-        VGh1LCAyMCBEZWMgMjAxMiAwMDozMjoyNSBHTVQ=
-      !binary "ZXRhZw==":
-      - !binary |-
-        IjBmMDkzNGExMGY4Y2I4NmQ3ZjdmMGQ1NmY1ODQ0MzhiIg==
-      !binary "YWNjZXB0LXJhbmdlcw==":
-      - !binary |-
-        Ynl0ZXM=
-      !binary "Y29udGVudC10eXBl":
-      - !binary |-
-        YXBwbGljYXRpb24vb2N0ZXQtc3RyZWFt
-      !binary "Y29udGVudC1sZW5ndGg=":
-      - !binary |-
-        MTE0NDM=
-      !binary "c2VydmVy":
-      - !binary |-
-        QW1hem9uUzM=
+      x-amz-id-2:
+      - EcrJDWxS4yZPT8kVZ8M/HeMxdj+xmAN4Ns5e3PtnKnPIyio77EriKPgieCoJn7mn
+      x-amz-request-id:
+      - 93023E31E825613E
+      date:
+      - Wed, 02 Jan 2013 18:01:50 GMT
+      last-modified:
+      - Thu, 20 Dec 2012 00:32:25 GMT
+      etag:
+      - ! '"0f0934a10f8cb86d7f7f0d56f584438b"'
+      accept-ranges:
+      - bytes
+      content-type:
+      - application/octet-stream
+      content-length:
+      - '11443'
+      server:
+      - AmazonS3
     body:
       encoding: ASCII-8BIT
       string: !binary |-
@@ -2144,8 +2087,7 @@ http_interactions:
         eHP6/BdzSofxBsm3yGf8BfQDvOMSZ15zPkHpTbo926fn4tPr9Dko84W9WQDK
         78HgDLrzRH+/EOMZwPa9P5QxW17La3ktr+W1vJbX8lpey2t5La/ltbyW1/Ja
         XjPX/wctRtTdAPAAAA==
-    http_version: !binary |-
-      MS4x
+    http_version: '1.1'
   recorded_at: Wed, 02 Jan 2013 18:01:49 GMT
 - request:
     method: get
@@ -2236,4 +2178,198 @@ http_interactions:
         2.0","average_rating":null,"tarball_file_size":11443,"updated_at":"2012-12-20T00:32:17Z"}'
     http_version: '1.1'
   recorded_at: Tue, 15 Jan 2013 13:38:12 GMT
+- request:
+    method: get
+    uri: http://cookbooks.opscode.com/api/v1/cookbooks/apt
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      accept:
+      - ! '*/*'
+      user-agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      server:
+      - nginx/1.0.5
+      date:
+      - Fri, 01 Feb 2013 18:37:42 GMT
+      content-type:
+      - application/json; charset=utf-8
+      connection:
+      - keep-alive
+      status:
+      - 200 OK
+      etag:
+      - ! '"34f0f7f2ed8fab02b975a3674e53f727"'
+      set-cookie:
+      - logged-in-username=; domain=.opscode.com; path=/
+      - _sandbox_session=eyJzZXNzaW9uX2lkIjoiZWQxNjVhZDZkNDM4Yzg2Y2M3YjdmMjliZjFmYTVjNzIiLCJsb2NhdGlvbiI6eyJjb250cm9sbGVyIjoiYXBpL3YxL2Nvb2tib29rcyIsImlkIjoiYXB0IiwiYWN0aW9uIjoic2hvdyJ9fQ%3D%3D--a9c1cf4f2483a88eb6a573440c451b35ed1ff550;
+        domain=.opscode.com; path=/; HttpOnly
+      cache-control:
+      - private, max-age=0, must-revalidate
+      content-length:
+      - '1956'
+      x-runtime:
+      - '19'
+    body:
+      encoding: US-ASCII
+      string: ! '{"latest_version":"http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_8_4","category":"Package
+        Management","external_url":"github.com/opscode-cookbooks/apt","description":"Configures
+        apt and apt services and LWRPs for managing apt repositories and preferences","maintainer":"opscode","versions":["http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_8_4","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_8_2","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_8_0","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_7_0","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_6_0","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_5_0","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_4_8","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_4_6","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_4_4","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_4_2","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_4_0","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_3_2","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_3_0","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_2_2","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_2_0","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_1_2","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_1_1","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_1_0","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1_0_0","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/0_9_3","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/0_9_2","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/0_9_0","http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/0_8_0"],"created_at":"2009-10-25T23:48:48Z","name":"apt","updated_at":"2013-01-27T16:25:51Z","average_rating":2.875}'
+    http_version: '1.1'
+  recorded_at: Fri, 01 Feb 2013 18:37:43 GMT
+- request:
+    method: get
+    uri: http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/__________________________________1________________________1_8_4
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      accept:
+      - ! '*/*'
+      user-agent:
+      - Ruby
+  response:
+    status:
+      code: 404
+      message: Not Found
+    headers:
+      server:
+      - nginx/1.0.5
+      date:
+      - Fri, 01 Feb 2013 18:37:42 GMT
+      content-type:
+      - text/html; charset=utf-8
+      connection:
+      - keep-alive
+      status:
+      - 404 Not Found
+      cache-control:
+      - no-cache
+      content-length:
+      - '71'
+    body:
+      encoding: US-ASCII
+      string: ! '{"error_messages":["Resource does not exist"],"error_code":"NOT_FOUND"}'
+    http_version: '1.1'
+  recorded_at: Fri, 01 Feb 2013 18:37:43 GMT
+- request:
+    method: get
+    uri: http://cookbooks.opscode.com/api/v1/cookbooks/memcached
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      accept:
+      - ! '*/*'
+      user-agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      server:
+      - nginx/1.0.5
+      date:
+      - Fri, 01 Feb 2013 18:37:44 GMT
+      content-type:
+      - application/json; charset=utf-8
+      connection:
+      - keep-alive
+      status:
+      - 200 OK
+      etag:
+      - ! '"6359521077f09f882f518fb8a4cbe48e"'
+      set-cookie:
+      - logged-in-username=; domain=.opscode.com; path=/
+      - _sandbox_session=eyJzZXNzaW9uX2lkIjoiNjViMDAwNTA3NzBjNzc0MzQ5MjA1N2NiYTMyYzQ3M2EiLCJsb2NhdGlvbiI6eyJjb250cm9sbGVyIjoiYXBpL3YxL2Nvb2tib29rcyIsImlkIjoibWVtY2FjaGVkIiwiYWN0aW9uIjoic2hvdyJ9fQ%3D%3D--9a1bf984037467c1856e36e770b5832bb4d1be4d;
+        domain=.opscode.com; path=/; HttpOnly
+      cache-control:
+      - private, max-age=0, must-revalidate
+      content-length:
+      - '1148'
+      x-runtime:
+      - '19'
+    body:
+      encoding: US-ASCII
+      string: ! '{"latest_version":"http://cookbooks.opscode.com/api/v1/cookbooks/memcached/versions/1_2_0","category":"Other","external_url":"github.com/opscode-cookbooks/memcached","description":"Installs
+        memcached and provides a define to set up an instance of memcache via runit","maintainer":"opscode","versions":["http://cookbooks.opscode.com/api/v1/cookbooks/memcached/versions/1_2_0","http://cookbooks.opscode.com/api/v1/cookbooks/memcached/versions/1_1_2","http://cookbooks.opscode.com/api/v1/cookbooks/memcached/versions/1_1_0","http://cookbooks.opscode.com/api/v1/cookbooks/memcached/versions/1_0_4","http://cookbooks.opscode.com/api/v1/cookbooks/memcached/versions/1_0_2","http://cookbooks.opscode.com/api/v1/cookbooks/memcached/versions/1_0_0","http://cookbooks.opscode.com/api/v1/cookbooks/memcached/versions/0_10_4","http://cookbooks.opscode.com/api/v1/cookbooks/memcached/versions/0_10_3","http://cookbooks.opscode.com/api/v1/cookbooks/memcached/versions/0_10_2","http://cookbooks.opscode.com/api/v1/cookbooks/memcached/versions/0_8_0"],"created_at":"2009-10-28T19:15:47Z","name":"memcached","updated_at":"2013-01-25T03:57:16Z","average_rating":4.0}'
+    http_version: '1.1'
+  recorded_at: Fri, 01 Feb 2013 18:37:45 GMT
+- request:
+    method: get
+    uri: http://cookbooks.opscode.com/api/v1/cookbooks/memcached/versions/__________________________________1______________________________1_2_0
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      accept:
+      - ! '*/*'
+      user-agent:
+      - Ruby
+  response:
+    status:
+      code: 404
+      message: Not Found
+    headers:
+      server:
+      - nginx/1.0.5
+      date:
+      - Fri, 01 Feb 2013 18:37:45 GMT
+      content-type:
+      - text/html; charset=utf-8
+      connection:
+      - keep-alive
+      status:
+      - 404 Not Found
+      cache-control:
+      - no-cache
+      content-length:
+      - '71'
+    body:
+      encoding: US-ASCII
+      string: ! '{"error_messages":["Resource does not exist"],"error_code":"NOT_FOUND"}'
+    http_version: '1.1'
+  recorded_at: Fri, 01 Feb 2013 18:37:46 GMT
+- request:
+    method: get
+    uri: http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/__________________________________1________________________1_7_0
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      accept:
+      - ! '*/*'
+      user-agent:
+      - Ruby
+  response:
+    status:
+      code: 404
+      message: Not Found
+    headers:
+      server:
+      - nginx/1.0.5
+      date:
+      - Fri, 01 Feb 2013 18:47:11 GMT
+      content-type:
+      - text/html; charset=utf-8
+      connection:
+      - keep-alive
+      status:
+      - 404 Not Found
+      cache-control:
+      - no-cache
+      content-length:
+      - '71'
+    body:
+      encoding: US-ASCII
+      string: ! '{"error_messages":["Resource does not exist"],"error_code":"NOT_FOUND"}'
+    http_version: '1.1'
+  recorded_at: Fri, 01 Feb 2013 18:47:12 GMT
 recorded_with: VCR 2.3.0
