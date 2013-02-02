@@ -9,7 +9,7 @@ module Vendorificator
     check_unknown_options! :except => [:git, :diff, :log]
     stop_on_unknown_option! :git, :diff, :log
 
-    default_task :sync
+    default_task :help
 
     class_option :file, :aliases => '-f', :type => :string, :banner => 'PATH'
     class_option :debug, :aliases => '-d', :type => :boolean, :default => false
