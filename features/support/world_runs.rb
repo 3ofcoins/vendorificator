@@ -39,11 +39,14 @@ module Vendorificator
       end
 
       def command_succeeded(print_failed=true)
-        command.error!
-        true
-      rescue Mixlib::ShellOut::ShellCommandFailed
-        print_command_result if print_failed
-        false
+        begin
+          command.error!
+        rescue Mixlib::ShellOut::ShellCommandFailed
+          print_command_result if print_failed
+          false
+        else
+          true
+        end
       end
 
       def command_stdout
