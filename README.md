@@ -40,6 +40,9 @@ subcommands.
 Run `vendor` to see list of subcommands. Run `vendor help _command_`
 to get detailed description of a command.
 
+There is a lightning talk presentation/demo slide deck online at
+https://speakerdeck.com/mpasternacki/vendorificator
+
 ### Commands
 
 Most important commands are listed here; use `vendor help` for more
