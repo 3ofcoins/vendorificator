@@ -1,7 +1,6 @@
 # Vendorificator
 
-> **THIS WORK IS HEAVILY IN PROGRESS** and is far from usable yet. Sorry
-about that - I'm working on it. Expect first usable version in January 2013.
+> **THIS PROGRAM IS STILL IN BETA**, use on your own risk!
 
 ## About
 
@@ -34,7 +33,199 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Vendorificator is a command-line tool. The command is called `vendor`
+(`bundle exec vendor` if you use Bundler). It accepts multiple
+subcommands.
+
+Run `vendor` to see list of subcommands. Run `vendor help _command_`
+to get detailed description of a command.
+
+### Commands
+
+Most important commands are listed here; use `vendor help` for more
+detail.
+
+ * `vendor sync` will update all vendor modules that need updating
+ * `vendor status` will list all the modules and their status
+ * `vendor pull` will pull all vendor branches, tags, and notes from a
+   Git remote
+ * `vendor diff` will show the differences between vendor module's
+   pristine branch and curent work tree
+ * `vendor log` will show a `git log` of all changes made to a particular
+   vendor module's files that are not in module's pristine branch
+
+## Configuration
+
+Vendorificator reads its configuration from a Ruby file named
+`Vendorfile` (or `config/vendor.rb`). If the file does not exist in
+the current directory, it looks for it in parent directories until it
+gets to the git repository's root. All files Vendorificator creates
+are rooted in directory containing the `Vendorfile` (or the directory
+containing `config` directory with `vendor.rb` file in it).
+
+Vendorfile is a Ruby file containing configuration settings and
+description of upstream vendor modules. It may also contain any custom
+Ruby code if needed.
+
+### Settings
+
+ * `basedir "subpath"` -- directory below work root where
+   Vendorificator will download modules. Defaults to `"vendor"`.
+ * `branch_prefix "prefix"` -- prefix for name of Git
+   branches. Defaults to `"vendor"`, which means all branches created
+   by Vendorificator start with `"vendor/"`.
+ * `remotes ['remote1', 'remote2', ...]` -- list of Git remotes that
+   `vendor pull` will use as default. Defaults to `['origin']`.
+ * `chef_cookbook_ignore_dependencies ['cookbook1', 'cookbook2', ...]`
+   -- default value for `:ignore_dependencies` argument of
+ `chef_cookbook` modules.
+
+### Modules
+
+A **vendor module** is a single piece of upstream code managed by
+Vendorificator. It is a basic building block. A vendor module is
+declared by calling one of a couple functions that define them.
+
+#### vendor
+
+Vendor is most general of those. You call it like this:
+
+```ruby
+vendor 'name', :option => 'value' do
+  # here in the block you code what needs to be done
+  # to get ("conjure") the module. You're already in
+  # the right directory, branch, etc, and what you add to the
+  # current directory will be committed and tagged.
+end
+```
+
+It takes following options:
+
+ * `:version` - the version of module. If the module's contents should
+   change, increase the version, so that Vendorificator knows it needs
+   to re-create the module.
+ * `:category` - module's *category* is subdirectory of the basedir
+   where module's directory will be created. For example, `vendor
+   "foo"` will go to `vendor/foo` by default, but `vendor "foo",
+   :category => :widgets` will go to `vendor/widgets/foo`. It is also
+   added in a similar way to module's branch name, tag names, etc.
+ * `:path` - lets you specify subdirectory in which the module will be
+   downloaded
+
+All other upstream modules take these options, and can be given a
+block to postprocess their content (e.g. if a tarball includes a
+`.git` file/directory that confuses Git, you can remove it in a
+block).
+
+Example:
+
+```ruby
+vendor 'generated', :version => '0.23' do |mod|
+  File.open('README') { |f| f.puts "Hello, World!" }
+  File.open('VERSION') { |f| f.puts mod.version }
+end
+```
+
+#### archive
+
+Archive takes a tar.gz, tar.bz2, or zip file, downloads it, and
+unpacks it as contents of the module. It takes same options as
+`vendor`, plus:
+
+ * `:url` -- address from which to download the archive. If not given,
+   module's name will be used as URL, and its basename as module's
+   name (e.g. `archive
+   "http://ftp.gnu.org/gnu/hello/hello-2.8.tar.gz"` will be named
+   `"hello-2.8"` and downloaded from the URL).
+ * `:filename` -- a filename to download. Useful if URL doesn't
+   specify this nwell.
+ * `:type` -- `:targz`, `:tarbz2`, or `:zip`
+ * `:unpack` -- a command that will be used to unpack the file
+ * `:basename` -- defaults to basename of `filename`, will be used as
+   directory name
+ * `:no_strip_root` -- by default, if archive consists of a single
+   directory, Vendorificator will strip it. Setting this to true
+   disables this behaviour.
+ * `:checksum` -- if set to SHA256 checksum of the file, it will be
+   checked on download.
+   
+Archive's `:version` defaults to file name.
+
+Example:
+
+```ruby
+    archive :hello,
+      :url => 'http://ftp.gnu.org/gnu/hello/hello-2.8.tar.gz',
+      :version => '2.8',
+      :checksum => 'e6b77f81f7cf7daefad4a9f5b65de6cae9c3f13b8cfbaea8cb53bb5ea5460d73'
+```
+
+#### git
+
+Downloads snapshot of a Git repository. Takes the same options as
+`vendor`, plus:
+
+ * `:repository` -- address of the repository. Defaults to name (and
+   sets name to its basename then), just like `:url` for `archive`
+   (e.g. `git "git://github.com/github/testrepo.git"` will be cloned
+   from that repository, and named `testrepo`).
+ * `:branch`, `:revision` -- what to check out when repository is
+   cloned.
+
+Git module's `:version` defaults to the conjured revision.
+
+Example:
+
+```ruby
+git 'git://github.com/mpasternacki/nagios.git',
+    :branch => 'COOK-1997',
+    :category => :cookbooks,
+    :version => '0.20130124.2'
+```
+
+#### chef_cookbook
+
+Downloads an Opscode Chef cookbook from http://community.opscode.com/
+website (same thing that `knife cookbook site install` does). It
+resolves dependencies -- all needed modules will be downloaded by
+default. Its category defaults to `:cookbooks`. It may take the same
+arguments as `archive` (but the name and possibly version is almost
+always enough), plus:
+
+ * `:ignore_dependencies` -- if true, ignore dependencies
+   completely. If an array, don't download dependencies that are in
+   the array. Default for that is `chef_cookbook_ignore_dependencies`
+   setting.
+   
+Examples:
+
+```ruby
+chef_cookbook 'apt'
+chef_cookbook 'memcached'
+chef_cookbook 'chef-server', :ignore_dependences => true
+```
+
+```ruby
+chef_cookbook_ignore_dependencies ['runit']
+chef_cookbook 'memcached'
+```
+
+```ruby
+chef_cookbook 'memcached', ignore_dependencies => ['runit']
+```
+
+If you get Chef cookbooks from Git or anywhere else than Opscode's
+community website, you can still use dependency resolution by mixing
+in the hook class:
+
+```ruby
+class <<  git 'git://github.com/user/cookbook.git', :category => :cookbooks
+  include Vendorificator::Hooks::ChefCookbookDependencies
+end
+```
+
+This is a bit convoluted, but there will soon be an argument to do
+that in a nicer way.
 
 ## Contributing
 
