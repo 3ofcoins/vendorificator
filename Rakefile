@@ -26,6 +26,8 @@ rescue LoadError
   end
 end
 
-task :default => :features do
+task :bundle do
   sh 'bundle list'
 end
+
+task :default => [:bundle, :features]
