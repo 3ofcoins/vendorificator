@@ -1,7 +1,10 @@
-require 'chef/cookbook/metadata'
-
 module Vendorificator::Hooks
   module ChefCookbookDependencies
+    def initialize(*args)
+      require 'chef/cookbook/metadata'
+      super
+    end
+
     # Add required Chef cookbooks to vendor modules
     def dependencies
       ignored =
