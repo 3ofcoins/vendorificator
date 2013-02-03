@@ -26,6 +26,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'chef', '>= 10.16.0'
   gem.add_development_dependency 'vcr'
   gem.add_development_dependency 'fakeweb'
-  gem.add_development_dependency 'wrong'
+  gem.add_development_dependency 'wrong', '>= 0.7.0'
   gem.add_development_dependency 'rake'
 end
