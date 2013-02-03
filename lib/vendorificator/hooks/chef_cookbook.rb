@@ -8,8 +8,9 @@ module Vendorificator::Hooks
     # Add required Chef cookbooks to vendor modules
     def dependencies
       ignored =
-        args[:ignore_dependencies] ||
-        Vendorificator::Config[:chef_cookbook_ignore_dependencies]
+        args.key?(:ignore_dependencies) ?
+          args[:ignore_dependencies] :
+            Vendorificator::Config[:chef_cookbook_ignore_dependencies]
       metadata = File.join(self.work_dir, 'metadata.rb')
 
       unless File.exist?(metadata)
