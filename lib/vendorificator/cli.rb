@@ -136,7 +136,7 @@ EOF
       binding.pry
     end
 
-    def self.start
+    def self.start(*args)
       # Make --git-options always quoted
       if i = ARGV.index('--git-options')
         ARGV[i+1,0] = '--'
@@ -150,10 +150,10 @@ EOF
           c.hook_into :fakeweb
         end
         VCR.use_cassette(ENV['VCR_CASSETTE'] || 'vendorificator') do
-          super
+          super(*args)
         end
       else
-        super
+        super(*args)
       end
     end
 
