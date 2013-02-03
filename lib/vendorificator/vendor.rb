@@ -32,7 +32,7 @@ module Vendorificator
       end
     end
 
-    attr_reader :config, :name, :args, :block
+    attr_reader :name, :args, :block
     arg_reader :version, :path
 
     def path
