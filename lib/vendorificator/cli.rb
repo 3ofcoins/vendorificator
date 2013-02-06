@@ -145,9 +145,9 @@ EOF
       if ENV['FIXTURES_DIR']
         require 'vcr'
         VCR.configure do |c|
-          c.cassette_library_dir = File.join(ENV['FIXTURES_DIR'], 'vcr_cassettes')
+          c.cassette_library_dir = File.join(ENV['FIXTURES_DIR'], 'vcr')
           c.default_cassette_options = { :record => :new_episodes }
-          c.hook_into :fakeweb
+          c.hook_into :webmock
         end
         VCR.use_cassette(ENV['VCR_CASSETTE'] || 'vendorificator') do
           super(*args)
