@@ -23,6 +23,8 @@ VCR.configure do |config|
   config.hook_into :webmock
 end
 
+Vendorificator::Config[:root_dir] = Pathname.new(__FILE__).dirname
+
 class MiniTest::Spec
   before :each do
     @saved_configuration = Vendorificator::Config.configuration.dup
