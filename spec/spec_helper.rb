@@ -12,7 +12,7 @@ begin
   require 'minitest/ansi'
 rescue LoadError                # that's fine, we'll live without it
 else
-  MiniTest::ANSI.use!
+  MiniTest::ANSI.use! if STDOUT.tty?
 end
 
 require 'vendorificator'
