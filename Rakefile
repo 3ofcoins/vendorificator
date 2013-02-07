@@ -26,14 +26,10 @@ rescue LoadError
   end
 end
 
-task :bundle do
-  sh 'bundle list'
-end
-
 desc "Run Minitest specs"
 Rake::TestTask.new :spec do |task|
   task.libs << 'spec'
   task.test_files = FileList['spec/**/*_spec.rb']
 end
 
-task :default => [:bundle, :spec, :features]
+task :default => [:spec, :features]
