@@ -40,7 +40,7 @@ module Vendorificator
     end
 
     def initialize(name, args={}, &block)
-      @category = args.delete(:category)
+      @category = args.delete(:category) if args.key?(:category)
 
       @name = name
       @args = args
@@ -53,7 +53,11 @@ module Vendorificator
     end
 
     def category
-      @category || self.class.category
+      if instance_variable_defined?(:@category)
+        @category
+      else
+        self.class.category
+      end
     end
 
     def branch_name
