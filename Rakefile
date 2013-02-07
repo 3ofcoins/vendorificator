@@ -17,9 +17,8 @@ begin
   require 'cucumber'
   require 'cucumber/rake/task'
 
-  Cucumber::Rake::Task.new(:features) do |t|
-    t.cucumber_opts = "--format pretty --verbose"
-  end
+  desc 'Run Cucumber features'
+  Cucumber::Rake::Task.new(:features)
 rescue LoadError
   desc 'Cucumber rake task not available'
   task :features do
