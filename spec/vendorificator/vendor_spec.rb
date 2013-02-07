@@ -60,6 +60,20 @@ module Vendorificator
       it 'can be reset to nil by option' do
         assert { Vendor::Categorized.new('test', :category => nil).category == nil }
       end
+
+      it 'is inserted into paths and other names' do
+        uncategorized = Vendor.new('test')
+        categorized   = Vendor.new('test', :category => :cat)
+
+        deny { uncategorized.branch_name.include? 'cat' }
+        assert { categorized.branch_name.include? 'cat' }
+
+        deny { uncategorized.path.include? 'cat' }
+        assert { categorized.path.include? 'cat' }
+
+        deny { uncategorized.tag_name.include? 'cat' }
+        assert { categorized.tag_name.include? 'cat' }
+      end
     end
   end
 end
