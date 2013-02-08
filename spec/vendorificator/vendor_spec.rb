@@ -22,27 +22,19 @@ module Vendorificator
 
     describe '.install!' do
       it "creates a method inside Vendorificator::Config" do
-        deny { Vendorificator::Config.respond_to?(:categorized) }
+        deny { conf.respond_to?(:categorized) }
 
         Vendor::Categorized.install!
-        assert { Vendorificator::Config.respond_to?(:categorized) }
-
-        # Clean up and make sure it has worked
-        class << Vendorificator::Config ; remove_method :categorized ; end
-        deny { Vendorificator::Config.respond_to?(:categorized) }
+        assert { conf.respond_to?(:categorized) }
       end
 
       it "uses @method_name for method's name if set" do
-        deny { Vendorificator::Config.respond_to?(:custom) }
-        deny { Vendorificator::Config.respond_to?(:whatever) }
+        deny { conf.respond_to?(:custom) }
+        deny { conf.respond_to?(:whatever) }
 
         Vendor::Custom.install!
-        deny   { Vendorificator::Config.respond_to?(:custom) }
-        assert { Vendorificator::Config.respond_to?(:whatever) }
-
-        # Clean up and make sure it has worked
-        class << Vendorificator::Config ; remove_method :whatever ; end
-        deny { Vendorificator::Config.respond_to?(:whatever) }
+        deny   { conf.respond_to?(:custom) }
+        assert { conf.respond_to?(:whatever) }
       end
     end
 
