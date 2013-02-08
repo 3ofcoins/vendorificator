@@ -119,7 +119,7 @@ module Vendorificator
     end
 
     def version
-      @args[:version] || merged_version || upstream_version
+      @args[:version] || (!conf[:use_upstream_version] && merged_version) || upstream_version
     end
 
     def upstream_version

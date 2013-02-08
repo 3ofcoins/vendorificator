@@ -33,8 +33,10 @@ module Vendorificator
     end
 
     desc :sync, "Download new or updated vendor files"
+    method_option :update, :type => :boolean, :default => false
     def sync
       ensure_clean_repo!
+      conf[:use_upstream_version] = options[:update]
       Vendorificator::Config.each_module(*modules) do |mod|
         say_status :module, mod.name
         begin
@@ -47,8 +49,10 @@ module Vendorificator
     end
 
     desc "status", "List known vendor modules and their status"
+    method_option :update, :type => :boolean, :default => false
     def status
       say_status 'WARNING', 'Git repository is not clean', :red unless repo.clean?
+      conf[:use_upstream_version] = options[:update]
       Vendorificator::Config.each_module(*modules) do |mod|
         status_line = mod.to_s
 
