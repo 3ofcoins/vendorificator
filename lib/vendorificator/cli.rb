@@ -11,16 +11,30 @@ module Vendorificator
 
     default_task :help
 
-    class_option :file, :aliases => '-f', :type => :string, :banner => 'PATH'
-    class_option :debug, :aliases => '-d', :type => :boolean, :default => false
-    class_option :quiet, :aliases => ['-q'], :default => false, :type => :boolean
-    class_option :modules, :type => :string, :default => '',
+    class_option :file,    :aliases => '-f', :type => :string,
+      :banner => 'PATH'
+    class_option :debug,   :aliases => '-d', :type => :boolean, :default => false
+    class_option :quiet,   :aliases => '-q', :type => :boolean, :default => false
+    class_option :modules, :aliases => '-m', :type => :string,  :default => '',
       :banner => 'mod1,mod2,...,modN',
       :desc => 'Run only for specified modules (name or path, comma separated)'
+    class_option :version,                   :type => :boolean
+    class_option :help,    :aliases => '-h', :type => :boolean
 
-    def initialize(*args)
+    def initialize(args=[], options={}, config={})
       super
-      Grit.debug = true if options[:debug]
+
+      if self.options[:version]
+        say "Vendorificator #{Vendorificator::VERSION}"
+        exit
+      end
+
+      if self.options[:help] && config[:current_task].name != 'help'
+        invoke :help, [ config[:current_task].name ]
+        exit
+      end
+
+      Grit.debug = true if self.options[:debug]
       Vendorificator::Config.from_file(find_vendorfile)
       Vendorificator::Config[:shell] = shell
 
