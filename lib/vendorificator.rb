@@ -5,6 +5,7 @@ require "vendorificator/version"
 require 'vendorificator/config'
 
 require 'vendorificator/vendor'
+require 'vendorificator/vendor/download'
 require 'vendorificator/vendor/archive'
 require 'vendorificator/vendor/git'
 require 'vendorificator/vendor/chef_cookbook'
