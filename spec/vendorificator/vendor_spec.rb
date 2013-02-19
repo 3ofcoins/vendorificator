@@ -40,22 +40,22 @@ module Vendorificator
 
     describe '#category' do
       it 'defaults to class attribute' do
-        assert { Vendor.new('test').category == nil }
-        assert { Vendor::Categorized.new('test').category == :test }
+        assert { Vendor.new(nil, 'test').category == nil }
+        assert { Vendor::Categorized.new(nil, 'test').category == :test }
       end
 
       it 'can be overriden by option' do
-        assert { Vendor.new('test', :category => :foo).category == :foo }
-        assert { Vendor::Categorized.new('test', :category => :foo).category == :foo }
+        assert { Vendor.new(nil, 'test', :category => :foo).category == :foo }
+        assert { Vendor::Categorized.new(nil, 'test', :category => :foo).category == :foo }
       end
 
       it 'can be reset to nil by option' do
-        assert { Vendor::Categorized.new('test', :category => nil).category == nil }
+        assert { Vendor::Categorized.new(nil, 'test', :category => nil).category == nil }
       end
 
       it 'is inserted into paths and other names' do
-        uncategorized = Vendor.new('test')
-        categorized   = Vendor.new('test', :category => :cat)
+        uncategorized = Vendor.new(nil, 'test')
+        categorized   = Vendor.new(nil, 'test', :category => :cat)
 
         deny { uncategorized.branch_name.include? 'cat' }
         assert { categorized.branch_name.include? 'cat' }

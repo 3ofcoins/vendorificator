@@ -11,7 +11,7 @@ class Vendorificator::Vendor::Archive < Vendorificator::Vendor
   arg_reader :url, :strip_root, :type, :checksum, :filename, :basename, :extname, :unpack
   attr_reader :conjured_checksum
 
-  def initialize(name, args={}, &block)
+  def initialize(environment, name, args={}, &block)
     no_url_given = !args[:url]
 
     args[:url] ||= name
@@ -48,7 +48,7 @@ class Vendorificator::Vendor::Archive < Vendorificator::Vendor
 
     name = args[:basename] if no_url_given
 
-    super(name, args, &block)
+    super(environment, name, args, &block)
   end
 
   def conjure!

@@ -17,7 +17,7 @@ module Vendorificator
         _cls = self # for self is obscured in define_method block's body
         ( class << Vendorificator::Config ; self ; end ).
             send(:define_method, @method_name ) do |name, *args, &block|
-          mod = _cls.new(name.to_s, *args, &block)
+          mod = _cls.new(self.environment, name.to_s, *args, &block)
           self[:modules] << mod
           mod
         end
@@ -32,14 +32,15 @@ module Vendorificator
       end
     end
 
-    attr_reader :name, :args, :block
+    attr_reader :environment, :name, :args, :block
     arg_reader :version, :path
 
     def path
       args[:path] || _join(category, name)
     end
 
-    def initialize(name, args={}, &block)
+    def initialize(environment, name, args={}, &block)
+      @environment = environment
       @category = args.delete(:category) if args.key?(:category)
 
       @name = name

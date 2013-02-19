@@ -28,7 +28,7 @@ module Vendorificator::Hooks
       else
         deps = cbmd.dependencies.map(&:first)
         deps.reject! { |n| ignored.include?(n) } if ignored.respond_to?(:include?)
-        deps.map! { |n| Vendorificator::Vendor::ChefCookbook.new(n) }
+        deps.map! { |n| Vendorificator::Vendor::ChefCookbook.new(environment, n) }
         super + deps
       end
     end

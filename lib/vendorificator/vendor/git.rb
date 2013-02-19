@@ -5,12 +5,12 @@ class Vendorificator::Vendor::Git < Vendorificator::Vendor
   arg_reader :repository, :revision, :branch
   attr_reader :git, :conjured_revision
 
-  def initialize(name, args={}, &block)
+  def initialize(environment, name, args={}, &block)
     unless args.include?(:repository)
       args[:repository] = name
       name = name.split('/').last.sub(/\.git$/, '')
     end
-    super(name, args, &block)
+    super(environment, name, args, &block)
   end
 
   def conjure!

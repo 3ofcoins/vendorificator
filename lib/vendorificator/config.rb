@@ -7,6 +7,8 @@ module Vendorificator
   class Config
     extend Mixlib::Config
 
+    attr_reader :environment
+
     configure do |c|
       c[:basedir] = 'vendor'
       c[:branch_prefix] = 'vendor'

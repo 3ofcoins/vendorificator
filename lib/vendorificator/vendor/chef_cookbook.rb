@@ -13,11 +13,11 @@ class Vendorificator::Vendor::ChefCookbook < Vendorificator::Vendor::Archive
 
   API_PREFIX = 'http://cookbooks.opscode.com/api/v1/cookbooks/'
 
-  def initialize(name, args={}, &block)
+  def initialize(environment, name, args={}, &block)
     args[:url] ||= true         # to avoid having name treated as url
     args[:filename] ||= "#{name}.tgz"
 
-    super(name, args, &block)
+    super(environment, name, args, &block)
   end
 
   def api_data(v=nil)
