@@ -1,12 +1,9 @@
 require 'fileutils'
-
-require 'grit'
-
 require 'vendorificator/vendor'
 
 class Vendorificator::Vendor::Git < Vendorificator::Vendor
   arg_reader :repository, :revision, :branch
-  attr_reader :module_repo, :conjured_revision
+  attr_reader :git, :conjured_revision
 
   def initialize(name, args={}, &block)
     unless args.include?(:repository)
@@ -18,17 +15,18 @@ class Vendorificator::Vendor::Git < Vendorificator::Vendor
 
   def conjure!
     shell.say_status :clone, repository
-    Grit::Git.new('.').clone({}, repository, '.')
-    @module_repo = Grit::Repo.new('.')
+    MiniGit.git :clone, repository, '.'
+    @git = MiniGit.new('.')
 
     if revision
-      module_repo.git.checkout({:b => 'vendorified'}, revision)
+      git.checkout({:b => 'vendorified'}, revision)
     elsif branch
-      module_repo.git.checkout({:b => 'vendorified'}, "origin/#{branch}")
+      git.checkout({:b => 'vendorified'}, "origin/#{branch}")
     end
 
     super
-    @conjured_revision = module_repo.head.commit.id
+
+    @conjured_revision = git.capturing.rev_parse('HEAD').strip
     FileUtils::rm_rf '.git'
   end
 
