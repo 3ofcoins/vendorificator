@@ -82,7 +82,9 @@ module Vendorificator
     end
 
     def head
-      repo.get_head(branch_name)
+      environment.git.capturing.show_ref({:verify => true, :hash => true}, "refs/heads/#{branch_name}").strip
+    rescue MiniGit::GitError
+      nil
     end
 
     def tag
@@ -91,9 +93,8 @@ module Vendorificator
 
     def merged
       unless @_has_merged
-        if head
-          merged = repo.git.
-            merge_base({}, head.commit.sha, repo.head.commit.sha).strip
+        if ( head = self.head )
+          merged = environment.git.capturing.merge_base(head, 'HEAD').strip
           @merged = merged unless merged.empty?
         end
         @_has_merged = true
@@ -104,7 +105,7 @@ module Vendorificator
     def merged_tag
       unless @_has_merged_tag
         if merged
-          tag = repo.git.describe( {
+          tag = environment.git.capturing.describe( {
               :exact_match => true,
               :match => _join(tag_name_base, '*') },
             merged).strip
@@ -130,8 +131,8 @@ module Vendorificator
     def updatable?
       return nil if self.status == :up_to_date
       return false if !head
-      return false if head && merged == head.commit.sha
-      head_tag = repo.tags.find { |t| t.name == repo.recent_tag_name(head.name) }
+      return false if head && merged == head
+      head_tag = repo.tags.find { |t| t.name == repo.recent_tag_name(branch_name) }
       return head_tag || true
     end
 
@@ -168,18 +169,18 @@ module Vendorificator
         # If our branch exists, check it out; otherwise, create a new
         # orphaned branch.
         if self.head
-          repo.git.checkout( {}, branch_name )
-          repo.git.rm( { :r => true, :f => true }, '.') if options[:clean]
+          environment.git.checkout branch_name
+          environment.git.rm( { :r => true, :f => true }, '.') if options[:clean]
         else
-          repo.git.checkout( { :orphan => true }, branch_name )
-          repo.git.rm( { :r => true, :f => true }, '.')
+          environment.git.checkout( { :orphan => true }, branch_name )
+          environment.git.rm( { :r => true, :f => true }, '.')
         end
       end
 
       yield
     ensure
       # We should make sure we're back on original branch
-      repo.git.checkout( {}, orig_head.name ) if defined?(orig_head) rescue nil
+      environment.git.checkout orig_head.name if defined?(orig_head) rescue nil
     end
 
     def run!

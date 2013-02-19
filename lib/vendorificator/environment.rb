@@ -61,7 +61,7 @@ module Vendorificator
         compact ]
 
       config.each_module do |mod|
-        ours = mod.head && mod.head.commit.sha
+        ours = mod.head
         theirs = remote_branches[mod.branch_name]
         if theirs
           if not ours
