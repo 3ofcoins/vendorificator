@@ -14,8 +14,26 @@ module Vendorificator
       config.from_file(self.class.find_vendorfile(vendorfile))
     end
 
+    def say_status(*args)
+      shell.say_status(*args) if shell
+    end
+
+    # Main MiniGit instance
     def git
       @git ||= MiniGit::new(config[:vendorfile])
+    end
+
+    # Git helpers
+    def remotes
+      @remotes ||= git.capturing.remote.lines.map(&:strip)
+    end
+
+    def current_branch
+      git.capturing.ref_parse({:abbrev_ref => true}, 'HEAD').strip
+    end
+
+    def fast_forwardable?(to, from)
+      git.capturing.merge_base(to, from).strip == from
     end
 
     def clean?
@@ -26,6 +44,43 @@ module Vendorificator
       true
     rescue MiniGit::GitError
       false
+    end
+
+    def pull(remote, options={})
+      raise RuntimeError, "Unknown remote #{remote}" unless remotes.include?(remote)
+
+      git.fetch(remote)
+      git.fetch({:tags => true}, remote)
+
+      ref_rx = /^refs\/remotes\/#{Regexp.quote(remote)}\//
+      remote_branches = Hash[ git.capturing.show_ref.
+        lines.
+        map(&:split).
+        map { |sha, name| name =~ ref_rx ? [$', sha] : nil }.
+        compact ]
+
+      config.each_module do |mod|
+        ours = mod.head && mod.head.commit.sha
+        theirs = remote_branches[mod.branch_name]
+        if theirs
+          if not ours
+            say_status 'new', mod.branch_name, :yellow
+            git.branch({:track=>true}, mod.branch_name, remote_head.name) unless options[:dry_run]
+          elsif ours == theirs
+            say_status 'unchanged', mod.branch_name
+          elsif fast_forwardable?(theirs, ours)
+            say_status 'updated', mod.name, :yellow
+            mod.in_branch { git.merge({:ff_only => true}, theirs) } unless options[:dry_run]
+          elsif fast_forwardable?(ours, theirs)
+            say_status 'older', mod.branch_name
+          else
+            say_status 'complicated', mod.branch_name, :red
+          end
+        else
+          say_status 'unknown', mod.branch_name
+        end
+      end
+
     end
 
     def self.find_vendorfile(given=nil)

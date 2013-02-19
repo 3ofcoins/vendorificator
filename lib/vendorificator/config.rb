@@ -1,8 +1,7 @@
 require 'pathname'
 
+require 'grit'
 require 'mixlib/config'
-
-require 'vendorificator/repo'
 
 module Vendorificator
   class Config
@@ -35,7 +34,7 @@ module Vendorificator
       @repo ||= begin
                   git_root_path = self[:repo_dir] || _find_git_root
                   raise "Can't find Git repository" unless git_root_path
-                  Vendorificator::Repo.new( git_root_path.to_s )
+                  Grit::Repo.new( git_root_path.to_s )
                 end
     end
 

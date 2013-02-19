@@ -80,7 +80,7 @@ module Vendorificator
       remotes = options[:remote] ? options[:remote].split(',') : environment.config[:remotes]
       remotes.each do |remote|
         indent 'remote', remote do
-          environment.config.repo.pull(remote, options)
+          environment.pull(remote, options)
         end
       end
     end
