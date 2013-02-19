@@ -2,17 +2,6 @@ require 'grit'
 
 module Vendorificator
   class Repo < Grit::Repo
-    # True if repository doesn't contain uncommitted changes.
-    def clean?
-      # copy code from http://stackoverflow.com/a/3879077/16390
-      git.native :update_index, {}, '-q', '--ignore-submodules', '--refresh'
-      git.native :diff_files, {:raise => true}, '--quiet', '--ignore-submodules', '--'
-      git.native :diff_index, {:raise => true}, '--cached', '--quiet', 'HEAD', '--ignore-submodules', '--'
-      true
-    rescue Grit::Git::CommandFailed
-      false
-    end
-
     # Update vendor branches & tags from an upstream repository
     def pull(remote, options={})
       raise RuntimeError, "Unknown remote #{remote}" unless remote_list.include?(remote)

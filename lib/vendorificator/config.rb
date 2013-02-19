@@ -17,6 +17,8 @@ module Vendorificator
 
     def self.from_file(filename)
       pathname = Pathname.new(filename).cleanpath.expand_path
+
+      self[:vendorfile_path] = pathname
       self[:root_dir] =
         if ( pathname.basename.to_s == 'vendor.rb' &&
                pathname.dirname.basename.to_s == 'config' )
@@ -25,7 +27,7 @@ module Vendorificator
         else
           pathname.dirname
         end
-      self[:vendorfile_path] = pathname
+
       super(pathname.to_s)
     end
 
