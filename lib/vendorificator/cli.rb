@@ -34,7 +34,7 @@ module Vendorificator
         exit
       end
 
-      @environment = Vendorificator::Environment.new(options[:file])
+      @environment = Vendorificator::Environment.new(self.options[:file])
       environment.shell = shell
 
       class << shell
@@ -44,7 +44,7 @@ module Vendorificator
         end
       end
 
-      Grit.debug = true if options[:debug]
+      Grit.debug = true if self.options[:debug]
     end
 
     desc :sync, "Download new or updated vendor files"
