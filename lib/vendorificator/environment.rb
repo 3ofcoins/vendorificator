@@ -11,8 +11,7 @@ module Vendorificator
 
     def initialize(vendorfile=nil)
       @config = Vendorificator::Config
-      environment = self
-      config.instance_eval { @environment = environment }
+      config.environment = self
       config.from_file(self.class.find_vendorfile(vendorfile))
     end
 
