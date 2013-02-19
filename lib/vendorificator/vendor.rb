@@ -73,11 +73,11 @@ module Vendorificator
     end
 
     def work_subdir
-      File.join(Vendorificator::Config[:basedir], path)
+      _join(Vendorificator::Config[:basedir], path)
     end
 
     def work_dir
-      File.join(Vendorificator::Config[:root_dir], work_subdir)
+      _join(Vendorificator::Config[:root_dir], work_subdir)
     end
 
     def head
