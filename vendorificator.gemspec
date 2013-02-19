@@ -24,6 +24,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'cucumber'
   gem.add_development_dependency 'git'
   gem.add_development_dependency 'mixlib-shellout'
+  gem.add_development_dependency 'mocha'
   gem.add_development_dependency 'chef', '>= 10.16.0'
   gem.add_development_dependency 'vcr'
   gem.add_development_dependency 'webmock'

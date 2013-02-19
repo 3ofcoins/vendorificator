@@ -5,6 +5,7 @@ Bundler.setup
 require 'minitest/spec'
 require 'minitest/autorun'
 require 'vcr'
+require 'mocha/setup'
 require 'wrong'
 require 'wrong/adapters/minitest'
 

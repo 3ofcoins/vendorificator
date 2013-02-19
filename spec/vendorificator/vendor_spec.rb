@@ -54,8 +54,10 @@ module Vendorificator
       end
 
       it 'is inserted into paths and other names' do
-        uncategorized = Vendor.new(nil, 'test')
-        categorized   = Vendor.new(nil, 'test', :category => :cat)
+        env = stub(:git => stub(:capturing => stub(:show_ref => 'cafe', :merge_base => 'cafe', :describe => '')))
+
+        uncategorized = Vendor.new(env, 'test')
+        categorized   = Vendor.new(env, 'test', :category => :cat)
 
         deny { uncategorized.branch_name.include? 'cat' }
         assert { categorized.branch_name.include? 'cat' }
