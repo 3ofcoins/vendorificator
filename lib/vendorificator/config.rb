@@ -40,29 +40,6 @@ module Vendorificator
                 end
     end
 
-    def self.each_module(*modules)
-      module_paths = modules.map { |m| File.expand_path(m) }
-
-      # We don't use self[:modules].each here, because mod.run! is
-      # explicitly allowed to append to Config[:modules], and #each
-      # fails to catch up on some Ruby implementations.
-      i = 0
-      while true
-        break if i >= Vendorificator::Config[:modules].length
-        mod = Vendorificator::Config[:modules][i]
-        yield mod if
-          modules.empty? ||
-          modules.include?(mod.name) ||
-          module_paths.include?(mod.work_dir)
-        i += 1
-
-        # Add dependencies
-        work_dirs = Vendorificator::Config[:modules].map(&:work_dir)
-        Vendorificator::Config[:modules] +=
-          mod.dependencies.reject { |dep| work_dirs.include?(dep.work_dir) }
-      end
-    end
-
     def self._find_git_root
       self[:root_dir].ascend do |dir|
         return dir if dir.join('.git').exist?

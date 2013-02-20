@@ -52,7 +52,7 @@ module Vendorificator
     def sync
       ensure_clean!
       environment.config[:use_upstream_version] = options[:update]
-      environment.config.each_module(*modules) do |mod|
+      Vendorificator::Vendor.each(*modules) do |mod|
         say_status :module, mod.name
         begin
           shell.padding += 1
@@ -68,7 +68,7 @@ module Vendorificator
     def status
       say_status 'WARNING', 'Git repository is not clean', :red unless environment.clean?
       environment.config[:use_upstream_version] = options[:update]
-      environment.config.each_module(*modules) do |mod|
+      Vendorificator::Vendor.each(*modules) do |mod|
         status_line = mod.to_s
 
         updatable = mod.updatable?
@@ -112,7 +112,7 @@ module Vendorificator
     vendor git diff --stat @MERGED@ -- @PATH@  # 'vendor diff', as diffstat
 EOF
     def git(command, *args)
-      environment.config.each_module(*modules) do |mod|
+      Vendorificator::Vendor.each(*modules) do |mod|
         unless mod.merged
           say_status 'unmerged', mod.to_s, :red unless options[:only_changed]
           next

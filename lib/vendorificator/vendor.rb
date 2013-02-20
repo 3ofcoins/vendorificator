@@ -30,14 +30,48 @@ module Vendorificator
           end
         end
       end
+
+      def [](*key)
+        return key.map { |k| self[k] }.flatten if key.length > 1
+
+        key = key.first
+        
+        if key.is_a?(Fixnum)
+          self.instances[key]
+        else
+          instances.select { |i| i === key }
+        end
+      end
+
+      def each(*modules)
+        modpaths = modules.map { |m| File.expand_path(m) }
+
+        # We don't use instances.each here, because Vendor#run! is
+        # explicitly allowed to append to instantiate new
+        # dependencies, and #each fails to catch up on some Ruby
+        # implementations.
+        i = 0
+        while true
+          break if i >= instances.length
+          mod = instances[i]
+          yield mod if modules.empty? ||
+            modules.include?(mod.name) ||
+            modpaths.include?(mod.work_dir)
+          i += 1
+        end
+      end
+
+      def instances
+        Vendorificator::Vendor.instance_eval { @instances ||= [] }
+      end
+
+      def compute_dependencies!
+        self.instances.each(&:compute_dependencies!)
+      end
     end
 
     attr_reader :environment, :name, :args, :block
-    arg_reader :version, :path
-
-    def path
-      args[:path] || _join(category, name)
-    end
+    arg_reader :version
 
     def initialize(environment, name, args={}, &block)
       @environment = environment
@@ -46,6 +80,16 @@ module Vendorificator
       @name = name
       @args = args
       @block = block
+
+      self.class.instances << self
+    end
+
+    def ===(other)
+      other === self.name or File.expand_path(other.to_s) == self.work_dir
+    end
+
+    def path
+      args[:path] || _join(category, name)
     end
 
     def shell
@@ -192,6 +236,7 @@ module Vendorificator
       when :unpulled, :unmerged
         shell.say_status 'merging', self.to_s, :yellow
         repo.git.merge({}, tag.name)
+        compute_dependencies!
 
       when :outdated, :new
         shell.say_status 'fetching', self.to_s, :yellow
@@ -218,6 +263,7 @@ module Vendorificator
           end
           # Merge back to the original branch
           repo.git.merge( {}, branch_name )
+          compute_dependencies!
         ensure
           shell.padding -= 1
         end
@@ -247,7 +293,7 @@ module Vendorificator
       block.call(self) if block
     end
 
-    def dependencies ; [] ; end
+    def compute_dependencies! ; end
 
     private
 

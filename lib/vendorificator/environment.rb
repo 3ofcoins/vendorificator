@@ -13,6 +13,7 @@ module Vendorificator
       @config = Vendorificator::Config
       config.environment = self
       config.from_file(self.class.find_vendorfile(vendorfile))
+      Vendorificator::Vendor.compute_dependencies!
     end
 
     def say_status(*args)
@@ -60,7 +61,7 @@ module Vendorificator
         map { |sha, name| name =~ ref_rx ? [$', sha] : nil }.
         compact ]
 
-      config.each_module do |mod|
+      Vendorificator::Vendor.each do |mod|
         ours = mod.head
         theirs = remote_branches[mod.branch_name]
         if theirs
