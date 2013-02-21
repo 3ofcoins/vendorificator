@@ -209,7 +209,7 @@ module Vendorificator
 
       # We want to be in repository's root now, as we may need to
       # remove stuff and don't want to have removed directory as cwd.
-      Dir::chdir repo.working_dir do
+      Dir::chdir environment.git.git_work_tree do
         # If our branch exists, check it out; otherwise, create a new
         # orphaned branch.
         if self.head
@@ -235,7 +235,7 @@ module Vendorificator
 
       when :unpulled, :unmerged
         shell.say_status 'merging', self.to_s, :yellow
-        repo.git.merge({}, tag.name)
+        environment.git.merge({}, tag.name)
         compute_dependencies!
 
       when :outdated, :new
@@ -256,13 +256,13 @@ module Vendorificator
             end
 
             # Commit and tag the conjured module
-            repo.add(work_dir)
-            repo.commit_index(conjure_commit_message)
-            repo.git.tag( { :a => true, :m => tag_message }, tag_name )
+            environment.git.add work_dir
+            environment.git.commit :m => conjure_commit_message
+            environment.git.tag( { :a => true, :m => tag_message }, tag_name )
             shell.say_status :tag, tag_name
           end
           # Merge back to the original branch
-          repo.git.merge( {}, branch_name )
+          environment.git.merge( {}, branch_name )
           compute_dependencies!
         ensure
           shell.padding -= 1
