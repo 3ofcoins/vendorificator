@@ -22,7 +22,7 @@ module Vendorificator
 
     # Main MiniGit instance
     def git
-      @git ||= MiniGit::new(config[:vendorfile])
+      @git ||= MiniGit::new(config[:vendorfile_path])
     end
 
     # Git helpers
