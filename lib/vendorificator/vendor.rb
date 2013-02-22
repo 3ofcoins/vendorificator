@@ -131,8 +131,10 @@ module Vendorificator
       nil
     end
 
-    def tag
-      repo.tags.find { |t| t.name == tag_name }
+    def tagged_sha1
+      @tagged_sha1 ||= environment.git.capturing.show_ref({:s => true}, "refs/tags/#{tag_name}").strip
+    rescue MiniGit::GitError
+      nil
     end
 
     def merged
@@ -186,16 +188,16 @@ module Vendorificator
 
       # If there's a branch but no tag, it's a known module that's not
       # been updated for the new definition yet.
-      return :outdated unless tag
+      return :outdated unless tagged_sha1
 
       # Well, this is awkward: branch is in config and exists, but is
       # not merged into current branch at all.
       return :unmerged unless merged
 
       # Merge base is tagged with our tag. We're good.
-      return :up_to_date if tag.commit.sha == merged
+      return :up_to_date if tagged_sha1 == merged
 
-      return :unpulled if repo.fast_forwardable?(tag.commit.sha, merged)
+      return :unpulled if environment.fast_forwardable?(tagged_sha1, merged)
 
       return :unknown
     end
@@ -235,7 +237,7 @@ module Vendorificator
 
       when :unpulled, :unmerged
         shell.say_status 'merging', self.to_s, :yellow
-        environment.git.merge({}, tag.name)
+        environment.git.merge({}, tagged_sha1)
         compute_dependencies!
 
       when :outdated, :new
