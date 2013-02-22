@@ -178,8 +178,7 @@ module Vendorificator
       return nil if self.status == :up_to_date
       return false if !head
       return false if head && merged == head
-      head_tag = repo.tags.find { |t| t.name == repo.recent_tag_name(branch_name) }
-      return head_tag || true
+      environment.git.describe({:abbrev => 0, :always => true}, branch_name)
     end
 
     def status
