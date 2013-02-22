@@ -11,7 +11,6 @@ module Vendorificator
     configure do |c|
       c[:basedir] = 'vendor'
       c[:branch_prefix] = 'vendor'
-      c[:modules] = []
       c[:remotes] = %w(origin)
     end
 

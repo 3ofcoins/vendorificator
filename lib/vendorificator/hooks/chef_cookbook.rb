@@ -11,7 +11,7 @@ module Vendorificator::Hooks
       # Dependencies
       ign = self.args.key?(:ignore_dependencies) ?
         args[:ignore_dependencies] :
-          Vendorificator::Config[:chef_cookbook_ignore_dependencies]
+          environment.config[:chef_cookbook_ignore_dependencies]
 
       if !ign || ign.respond_to?(:include?)
         metadata = File.join(self.work_dir, 'metadata.rb')

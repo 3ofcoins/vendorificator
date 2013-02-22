@@ -54,7 +54,13 @@ module Vendorificator
       end
 
       it 'is inserted into paths and other names' do
-        env = stub(:git => stub(:capturing => stub(:rev_parse => 'cafe', :merge_base => 'cafe', :describe => '')))
+        env = stub(
+          :git => stub(
+            :capturing => stub(
+              :rev_parse => 'cafe',
+              :merge_base => 'cafe',
+              :describe => '')),
+          :config => Vendorificator::Config)
 
         uncategorized = Vendor.new(env, 'test')
         categorized   = Vendor.new(env, 'test', :category => :cat)

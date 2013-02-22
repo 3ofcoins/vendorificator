@@ -17,9 +17,7 @@ module Vendorificator
         _cls = self # for self is obscured in define_method block's body
         ( class << Vendorificator::Config ; self ; end ).
             send(:define_method, @method_name ) do |name, *args, &block|
-          mod = _cls.new(self.environment, name.to_s, *args, &block)
-          self[:modules] << mod
-          mod
+          _cls.new(self.environment, name.to_s, *args, &block)
         end
       end
 
@@ -94,7 +92,7 @@ module Vendorificator
 
     def shell
       @shell ||=
-        Vendorificator::Config[:shell] || Thor::Shell::Basic.new
+        environment.config[:shell] || Thor::Shell::Basic.new
     end
 
     def category
@@ -106,7 +104,7 @@ module Vendorificator
     end
 
     def branch_name
-      _join(Vendorificator::Config[:branch_prefix], category, name)
+      _join(environment.config[:branch_prefix], category, name)
     end
 
     def to_s
@@ -118,11 +116,11 @@ module Vendorificator
     end
 
     def work_subdir
-      _join(Vendorificator::Config[:basedir], path)
+      _join(environment.config[:basedir], path)
     end
 
     def work_dir
-      _join(Vendorificator::Config[:root_dir], work_subdir)
+      _join(environment.config[:root_dir], work_subdir)
     end
 
     def head
@@ -167,7 +165,7 @@ module Vendorificator
     end
 
     def version
-      @args[:version] || (!conf[:use_upstream_version] && merged_version) || upstream_version
+      @args[:version] || (!environment.config[:use_upstream_version] && merged_version) || upstream_version
     end
 
     def upstream_version
@@ -297,10 +295,6 @@ module Vendorificator
     def compute_dependencies! ; end
 
     private
-
-    def conf
-      Vendorificator::Config
-    end
 
     def _join(*parts)
       parts.compact.map(&:to_s).join('/')
