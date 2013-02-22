@@ -126,13 +126,13 @@ module Vendorificator
     end
 
     def head
-      environment.git.capturing.show_ref({:verify => true, :hash => true}, "refs/heads/#{branch_name}").strip
+      environment.git.capturing.rev_parse({:verify => true}, "refs/heads/#{branch_name}").strip
     rescue MiniGit::GitError
       nil
     end
 
     def tagged_sha1
-      @tagged_sha1 ||= environment.git.capturing.show_ref({:s => true}, "refs/tags/#{tag_name}").strip
+      @tagged_sha1 ||= environment.git.capturing.rev_parse({:verify => true}, "refs/tags/#{tag_name}^{commit}").strip
     rescue MiniGit::GitError
       nil
     end
