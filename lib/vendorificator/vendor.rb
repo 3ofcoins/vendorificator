@@ -207,7 +207,7 @@ module Vendorificator
     end
 
     def in_branch(options={}, &block)
-      orig_head = repo.head
+      orig_branch = environment.current_branch
 
       # We want to be in repository's root now, as we may need to
       # remove stuff and don't want to have removed directory as cwd.
@@ -225,8 +225,8 @@ module Vendorificator
 
       yield
     ensure
-      # We should make sure we're back on original branch
-      environment.git.checkout orig_head.name if defined?(orig_head) rescue nil
+      # We should try to ensure we're back on original branch
+      environment.git.checkout orig_branch if defined?(orig_branch) rescue nil
     end
 
     def run!
