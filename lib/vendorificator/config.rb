@@ -1,6 +1,5 @@
 require 'pathname'
 
-require 'grit'
 require 'mixlib/config'
 
 module Vendorificator
@@ -31,20 +30,5 @@ module Vendorificator
 
       super(pathname.to_s)
     end
-
-    def self.repo
-      @repo ||= begin
-                  git_root_path = self[:repo_dir] || _find_git_root
-                  raise "Can't find Git repository" unless git_root_path
-                  Grit::Repo.new( git_root_path.to_s )
-                end
-    end
-
-    def self._find_git_root
-      self[:root_dir].ascend do |dir|
-        return dir if dir.join('.git').exist?
-      end
-    end
-    private_class_method :_find_git_root
   end
 end

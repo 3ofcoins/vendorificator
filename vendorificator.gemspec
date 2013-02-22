@@ -16,7 +16,6 @@ Gem::Specification.new do |gem|
   gem.version       = Vendorificator::VERSION
 
   gem.add_dependency 'escape'
-  gem.add_dependency 'grit'
   gem.add_dependency 'thor', '>= 0.17.0'
   gem.add_dependency 'mixlib-config'
   gem.add_dependency 'minigit'

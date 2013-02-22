@@ -43,8 +43,6 @@ module Vendorificator
           false
         end
       end
-
-      Grit.debug = true if self.options[:debug]
     end
 
     desc :sync, "Download new or updated vendor files"

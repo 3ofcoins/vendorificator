@@ -302,10 +302,6 @@ module Vendorificator
       Vendorificator::Config
     end
 
-    def repo
-      Vendorificator::Config.repo
-    end
-
     def _join(*parts)
       parts.compact.map(&:to_s).join('/')
     end
