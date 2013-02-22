@@ -31,7 +31,7 @@ module Vendorificator
     end
 
     def current_branch
-      git.capturing.ref_parse({:abbrev_ref => true}, 'HEAD').strip
+      git.capturing.rev_parse({:abbrev_ref => true}, 'HEAD').strip
     end
 
     def fast_forwardable?(to, from)
