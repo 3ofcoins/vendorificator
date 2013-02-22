@@ -5,31 +5,45 @@ module Vendorificator::Hooks
       super
     end
 
-    # Add required Chef cookbooks to vendor modules
-    def dependencies
-      ignored =
-        args.key?(:ignore_dependencies) ?
-          args[:ignore_dependencies] :
-            Vendorificator::Config[:chef_cookbook_ignore_dependencies]
-      metadata = File.join(self.work_dir, 'metadata.rb')
+    def compute_dependencies!
+      super
 
-      unless File.exist?(metadata)
-        shell.say_status 'WARNING', "Metadata of #{name} does not exist at #{metadata}, could not gather dependencies", :red
-        return super
-      end
+      # Dependencies
+      ign = self.args.key?(:ignore_dependencies) ?
+        args[:ignore_dependencies] :
+          environment.config[:chef_cookbook_ignore_dependencies]
 
-      cbmd = Chef::Cookbook::Metadata.new
-      cbmd.from_file(metadata)
+      if !ign || ign.respond_to?(:include?)
+        metadata = File.join(self.work_dir, 'metadata.rb')
 
-      if ignored && !ignored.respond_to?(:include?)
-        # ignored is a truthy value that's not a set-like thing, so we
-        # ignore all dependencies altogether.
-        super
-      else
+        unless File.exist?(metadata)
+          shell.say_status 'WARNING', "Metadata of #{name} does not exist at #{metadata}, could not gather dependencies", :red
+          return super
+        end
+
+        cbmd = Chef::Cookbook::Metadata.new
+        cbmd.from_file(metadata)
+
+        basedir = Pathname.new(work_dir).dirname
+
+        # All of cookbook's dependencies
         deps = cbmd.dependencies.map(&:first)
-        deps.reject! { |n| ignored.include?(n) } if ignored.respond_to?(:include?)
-        deps.map! { |n| Vendorificator::Vendor::ChefCookbook.new(n) }
-        super + deps
+
+        # Reject ignored dependencies, if there's a list
+        deps.reject! { |dep| ign.include?(dep) } if ign
+
+        # Reject dependencies that already have a module
+        deps.reject! do |dep|
+          dir = basedir.join(dep).to_s
+          Vendorificator::Vendor.instances.any? do |vi|
+            vi.work_dir == dir
+          end
+        end
+
+        # Create module for the dependencies
+        deps.each do |dep|
+          Vendorificator::Vendor::ChefCookbook.new(environment, dep)
+        end
       end
     end
   end

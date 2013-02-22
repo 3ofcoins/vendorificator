@@ -9,13 +9,13 @@ class Vendorificator::Vendor::Download < Vendorificator::Vendor
   arg_reader :url
   attr_reader :conjured_checksum
 
-  def initialize(name, args={}, &block)
+  def initialize(environment, name, args={}, &block)
     no_url_given = !args[:url]
 
     args[:url] ||= name
     name = URI::parse(args[:url]).path.split('/').last if no_url_given
 
-    super(name, args, &block)
+    super(environment, name, args, &block)
   end
 
   def path

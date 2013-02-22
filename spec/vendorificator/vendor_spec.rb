@@ -40,22 +40,30 @@ module Vendorificator
 
     describe '#category' do
       it 'defaults to class attribute' do
-        assert { Vendor.new('test').category == nil }
-        assert { Vendor::Categorized.new('test').category == :test }
+        assert { Vendor.new(nil, 'test').category == nil }
+        assert { Vendor::Categorized.new(nil, 'test').category == :test }
       end
 
       it 'can be overriden by option' do
-        assert { Vendor.new('test', :category => :foo).category == :foo }
-        assert { Vendor::Categorized.new('test', :category => :foo).category == :foo }
+        assert { Vendor.new(nil, 'test', :category => :foo).category == :foo }
+        assert { Vendor::Categorized.new(nil, 'test', :category => :foo).category == :foo }
       end
 
       it 'can be reset to nil by option' do
-        assert { Vendor::Categorized.new('test', :category => nil).category == nil }
+        assert { Vendor::Categorized.new(nil, 'test', :category => nil).category == nil }
       end
 
       it 'is inserted into paths and other names' do
-        uncategorized = Vendor.new('test')
-        categorized   = Vendor.new('test', :category => :cat)
+        env = stub(
+          :git => stub(
+            :capturing => stub(
+              :rev_parse => 'cafe',
+              :merge_base => 'cafe',
+              :describe => '')),
+          :config => Vendorificator::Config)
+
+        uncategorized = Vendor.new(env, 'test')
+        categorized   = Vendor.new(env, 'test', :category => :cat)
 
         deny { uncategorized.branch_name.include? 'cat' }
         assert { categorized.branch_name.include? 'cat' }

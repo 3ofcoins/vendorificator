@@ -4,7 +4,7 @@ require 'vendorificator'
 
 module Vendorificator
   class CLI < Thor
-    include Vendorificator
+    attr_reader :environment
 
     check_unknown_options! :except => [:git, :diff, :log]
     stop_on_unknown_option! :git, :diff, :log
@@ -34,9 +34,8 @@ module Vendorificator
         exit
       end
 
-      Grit.debug = true if self.options[:debug]
-      Vendorificator::Config.from_file(find_vendorfile)
-      Vendorificator::Config[:shell] = shell
+      @environment = Vendorificator::Environment.new(self.options[:file])
+      environment.shell = shell
 
       class << shell
         # Make say_status always say it.
@@ -49,9 +48,9 @@ module Vendorificator
     desc :sync, "Download new or updated vendor files"
     method_option :update, :type => :boolean, :default => false
     def sync
-      ensure_clean_repo!
-      conf[:use_upstream_version] = options[:update]
-      Vendorificator::Config.each_module(*modules) do |mod|
+      ensure_clean!
+      environment.config[:use_upstream_version] = options[:update]
+      Vendorificator::Vendor.each(*modules) do |mod|
         say_status :module, mod.name
         begin
           shell.padding += 1
@@ -65,9 +64,9 @@ module Vendorificator
     desc "status", "List known vendor modules and their status"
     method_option :update, :type => :boolean, :default => false
     def status
-      say_status 'WARNING', 'Git repository is not clean', :red unless repo.clean?
-      conf[:use_upstream_version] = options[:update]
-      Vendorificator::Config.each_module(*modules) do |mod|
+      say_status 'WARNING', 'Git repository is not clean', :red unless environment.clean?
+      environment.config[:use_upstream_version] = options[:update]
+      Vendorificator::Vendor.each(*modules) do |mod|
         status_line = mod.to_s
 
         updatable = mod.updatable?
@@ -88,11 +87,11 @@ module Vendorificator
     method_option :remote, :aliases => ['-r'], :default => nil
     method_option :dry_run, :aliases => ['-n'], :default => false, :type => :boolean
     def pull
-      ensure_clean_repo!
-      remotes = options[:remote] ? options[:remote].split(',') : conf[:remotes]
+      ensure_clean!
+      remotes = options[:remote] ? options[:remote].split(',') : environment.config[:remotes]
       remotes.each do |remote|
         indent 'remote', remote do
-          repo.pull(remote, options)
+          environment.pull(remote, options)
         end
       end
     end
@@ -110,9 +109,8 @@ module Vendorificator
     vendor git log @MERGED@..HEAD -- @PATH@    # basic 'vendor log'
     vendor git diff --stat @MERGED@ -- @PATH@  # 'vendor diff', as diffstat
 EOF
-    method_option :only_changed, :default => false, :type => :boolean
     def git(command, *args)
-      Vendorificator::Config.each_module(*modules) do |mod|
+      Vendorificator::Vendor.each(*modules) do |mod|
         unless mod.merged
           say_status 'unmerged', mod.to_s, :red unless options[:only_changed]
           next
@@ -124,26 +122,19 @@ EOF
             gsub('@PATH@', mod.work_dir)
         end
 
-        output = repo.git.native(command, {}, *actual_args)
-        if output.empty?
-          say_status 'unchanged', mod.to_s, :green unless options[:only_changed]
-        else
-          say_status 'changed', mod.to_s, :yellow
-        end
-        puts output unless options[:quiet] || output.empty?
+        say_status command, mod.to_s
+        output = environment.git.git(command, *actual_args)
       end
     end
 
     desc "diff [OPTIONS] [GIT OPTIONS]",
          "Show differences between work tree and upstream module(s)"
-    method_option :only_changed, :default => false, :type => :boolean
     def diff(*args)
       invoke :git, %w'diff' + args + %w'@MERGED@ -- @PATH@'
     end
 
     desc "log [OPTIONS] [GIT OPTIONS]",
          "Show git log of commits added to upstream module(s)"
-    method_option :only_changed, :default => false, :type => :boolean
     def log(*args)
       invoke :git, %w'log' + args + %w'@MERGED@..HEAD -- @PATH@'
     end
@@ -189,14 +180,6 @@ EOF
       options[:modules].split(',').map(&:strip)
     end
 
-    def conf
-      Vendorificator::Config
-    end
-
-    def repo
-      Vendorificator::Config.repo
-    end
-
     def fail!(message, exception_message='I give up.')
       say_status('FATAL', message, :red)
       raise Thor::Error, 'I give up.'
@@ -210,30 +193,8 @@ EOF
       shell.padding -= 1
     end
 
-    # Find proper Vendorfile
-    def find_vendorfile
-      given = options.file || ENV['VENDORFILE']
-      return Pathname.new(given).expand_path if given && !given.empty?
-
-      Pathname.pwd.ascend do |dir|
-        vf = dir.join('Vendorfile')
-        return vf if vf.exist?
-
-        vf = dir.join('config/vendor.rb')
-        return vf if vf.exist?
-
-        # avoid stepping above the tmp directory when testing
-        if ENV['VENDORIFICATOR_SPEC_RUN'] &&
-            dir.join('vendorificator.gemspec').exist?
-          raise RuntimeError, "Vendorfile not found"
-        end
-      end
-
-      raise RuntimeError, "Vendorfile not found"
-    end
-
-    def ensure_clean_repo!
-      unless repo.clean?
+    def ensure_clean!
+      unless environment.clean?
         fail!('Repository is not clean.')
       end
     end
