@@ -33,7 +33,7 @@ module Vendorificator
         return key.map { |k| self[k] }.flatten if key.length > 1
 
         key = key.first
-        
+
         if key.is_a?(Fixnum)
           self.instances[key]
         else
@@ -252,7 +252,11 @@ module Vendorificator
               ensure
                 shell.padding -= 1
               end
+
+              subdir = args[:subdirectory]
+              make_subdir_root subdir if subdir && !subdir.empty?
             end
+
 
             # Commit and tag the conjured module
             environment.git.add work_dir
@@ -298,6 +302,16 @@ module Vendorificator
 
     def _join(*parts)
       parts.compact.map(&:to_s).join('/')
+    end
+
+    def make_subdir_root(subdir_path)
+      tmpdir = Pathname.pwd.dirname.join("#{Pathname.pwd.basename}.tmp")
+      FileUtils::mv Pathname.pwd.join(subdir_path).to_s, tmpdir.to_s
+      curdir = Pathname.pwd
+      Dir.chdir('..') do
+        curdir.rmtree
+        tmpdir.rename(curdir)
+      end
     end
 
     install!
