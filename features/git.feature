@@ -5,7 +5,7 @@ Scenario: Vendorificating a git repo
     """ruby
     git "file://#{ENV['FIXTURES_DIR']}/git/testrepo"
     """
-  When I run "vendor sync"
+  When I successfully run `vendor sync`
   Then following has been conjured:
     | Name      | testrepo                                 |
     | Version   | 10e9ac58c77bc229d8c59a5b4eb7422916453148 |
@@ -17,7 +17,7 @@ Scenario: Vendorificating a subdirectory from a git repo
     git "file://#{ENV['FIXTURES_DIR']}/git/testrepo",
         :subdirectory => 'test'
     """
-  When I run "vendor sync"
+  When I successfully run `vendor sync`
   Then following has been conjured:
     | Name          | testrepo                                 |
     | Version       | 10e9ac58c77bc229d8c59a5b4eb7422916453148 |
