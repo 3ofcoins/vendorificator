@@ -18,7 +18,9 @@ begin
   require 'cucumber/rake/task'
 
   desc 'Run Cucumber features'
-  Cucumber::Rake::Task.new(:features)
+  Cucumber::Rake::Task.new(:features) do |t|
+    t.fork = false
+  end
 rescue LoadError
   desc 'Cucumber rake task not available'
   task :features do
