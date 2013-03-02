@@ -305,13 +305,17 @@ module Vendorificator
     end
 
     def make_subdir_root(subdir_path)
-      tmpdir = Pathname.pwd.dirname.join("#{Pathname.pwd.basename}.tmp")
-      FileUtils::mv Pathname.pwd.join(subdir_path).to_s, tmpdir.to_s
       curdir = Pathname.pwd
-      Dir.chdir('..') do
-        curdir.rmtree
-        tmpdir.rename(curdir)
-      end
+      tmpdir = Pathname.pwd.dirname.join("#{Pathname.pwd.basename}.tmp")
+      subdir = Pathname.pwd.join(subdir_path)
+
+      Dir.chdir('..')
+
+      subdir.rename(tmpdir.to_s)
+      curdir.rmtree
+      tmpdir.rename(curdir.to_s)
+    ensure
+      Dir.chdir(curdir.to_s) if curdir.exist?
     end
 
     install!

@@ -23,7 +23,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'aruba'
   gem.add_development_dependency 'cucumber'
   gem.add_development_dependency 'mocha'
-  gem.add_development_dependency 'chef', '>= 10.16.0'
+  gem.add_development_dependency 'chef', '>= 10.16.0' unless RUBY_ENGINE == 'jruby'
   gem.add_development_dependency 'vcr'
   gem.add_development_dependency 'webmock'
   gem.add_development_dependency 'wrong', '>= 0.7.0'
