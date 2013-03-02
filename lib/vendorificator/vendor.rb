@@ -213,10 +213,10 @@ module Vendorificator
         # orphaned branch.
         if self.head
           environment.git.checkout branch_name
-          environment.git.rm( { :r => true, :f => true, :q => true }, '.') if options[:clean]
+          environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean]
         else
           environment.git.checkout( { :orphan => true }, branch_name )
-          environment.git.rm( { :r => true, :f => true, :q => true }, '.')
+          environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
         end
       end
 
