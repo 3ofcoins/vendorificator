@@ -4,7 +4,6 @@ source 'https://rubygems.org'
 gemspec
 
 group :development do
-  gem "ZenTest", "4.8.3"
   git "git://github.com/mpasternacki/wrong.git",
       :ref => 'ad025241e5772373264d1bf62168e2bf3780ccf9' do
     gem 'wrong'
