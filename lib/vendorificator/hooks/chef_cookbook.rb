@@ -11,7 +11,7 @@ module Vendorificator::Hooks
     def initialize(*args)
       begin
         require 'chef/cookbook/metadata' unless defined?(Chef::Cookbook::Metadata)
-        @metadata_clas = Chef::Cookbook::Metadata
+        @metadata_class = Chef::Cookbook::Metadata
       rescue LoadError
         # FIXME: warn
         @metadata_class = FakeMetadata
