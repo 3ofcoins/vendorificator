@@ -18,7 +18,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'escape'
   gem.add_dependency 'thor', '>= 0.17.0'
   gem.add_dependency 'mixlib-config'
-  gem.add_dependency 'minigit', '>= 0.0.2'
+  gem.add_dependency 'minigit', '>= 0.0.3'
 
   gem.add_development_dependency 'aruba'
   gem.add_development_dependency 'cucumber'
