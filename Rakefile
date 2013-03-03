@@ -34,4 +34,8 @@ Rake::TestTask.new :spec do |task|
   task.test_files = FileList['spec/**/*_spec.rb']
 end
 
+# https://github.com/jruby/jruby/issues/405
+mkdir_p 'tmp'
+ENV['TMPDIR'] ||= File.join(Dir.pwd, 'tmp')
+
 task :default => [:spec, :features]
