@@ -32,4 +32,6 @@ class MiniGit
   include Vendorificator::TestSupport::MiniGit::MiniGitExt
 end
 
+MiniGit.debug = true if ENV['DEBUG']
+
 World(Vendorificator::TestSupport::MiniGit)

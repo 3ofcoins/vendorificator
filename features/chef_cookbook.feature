@@ -1,8 +1,6 @@
 Feature: Chef cookbooks from Opscode Community website
 
 Scenario: A single cookbook, without dependencies
-
-Scenario: Version & checksum
   Given a repository with following Vendorfile:
     """ruby
     chef_cookbook 'apt'
