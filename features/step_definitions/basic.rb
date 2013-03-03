@@ -10,6 +10,9 @@ Given /^a repository with following Vendorfile:$/ do |vendorfile_contents|
   create_dir 'working-repository'
   cd 'working-repository'
   run_simple 'git init'
+  # Configure Git username & email to unclutter console output
+  run_simple 'git config user.name Cucumber'
+  run_simple 'git config user.email cucumber@`hostname --fqdn`'
   write_file('README', 'Lorem ipsum dolor sit amet')
   write_file('Vendorfile', vendorfile_contents)
   run_simple 'git add .'
