@@ -10,11 +10,6 @@ module Vendorificator::Hooks
 
     def initialize(*args)
       begin
-        require 'chef/cookbook/metadata' unless defined?(Chef::Cookbook::Metadata)
-        @metadata_class = Chef::Cookbook::Metadata
-      rescue LoadError
-        # FIXME: warn
-        @metadata_class = FakeMetadata
       end
       super
     end
@@ -35,7 +30,7 @@ module Vendorificator::Hooks
           return super
         end
 
-        cbmd = metadata_class.new
+        cbmd = Vendorificator::Hooks::ChefCookbookDependencies.metadata_class.new
         cbmd.from_file(metadata)
 
         basedir = Pathname.new(work_dir).dirname
@@ -62,6 +57,16 @@ module Vendorificator::Hooks
     end
 
     private
-    attr_reader :metadata_class
+
+    def self.metadata_class
+      @metadata_class ||=
+        begin
+          require 'chef/cookbook/metadata' unless defined?(Chef::Cookbook::Metadata)
+          Chef::Cookbook::Metadata
+        rescue LoadError
+          # FIXME: warn
+          FakeMetadata
+        end
+    end
   end
 end
