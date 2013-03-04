@@ -234,7 +234,7 @@ module Vendorificator
 
       when :unpulled, :unmerged
         shell.say_status 'merging', self.to_s, :yellow
-        environment.git.merge({}, tagged_sha1)
+        environment.git.merge({:no_edit => true, :no_ff => true}, tagged_sha1)
         compute_dependencies!
 
       when :outdated, :new
