@@ -24,7 +24,7 @@ module Vendorificator
       it "creates a method inside Vendorificator::Config" do
         deny { conf.respond_to?(:categorized) }
 
-        Vendor::Categorized.install!
+        Vendor::Categorized.install!(conf)
         assert { conf.respond_to?(:categorized) }
       end
 
@@ -32,7 +32,7 @@ module Vendorificator
         deny { conf.respond_to?(:custom) }
         deny { conf.respond_to?(:whatever) }
 
-        Vendor::Custom.install!
+        Vendor::Custom.install!(conf)
         deny   { conf.respond_to?(:custom) }
         assert { conf.respond_to?(:whatever) }
       end
@@ -60,7 +60,7 @@ module Vendorificator
               :rev_parse => 'cafe',
               :merge_base => 'cafe',
               :describe => '')),
-          :config => Vendorificator::Config)
+          :config => Vendorificator::Config.new)
 
         uncategorized = Vendor.new(env, 'test')
         categorized   = Vendor.new(env, 'test', :category => :cat)

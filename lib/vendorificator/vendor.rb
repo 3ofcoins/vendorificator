@@ -12,10 +12,10 @@ module Vendorificator
 
       # Define a method on Vendorificator::Config to add the
       # vendor module to the module definition list.
-      def install!
+      def install!(config)
         @method_name ||= self.name.split('::').last.downcase.to_sym
         _cls = self # for self is obscured in define_method block's body
-        ( class << Vendorificator::Config ; self ; end ).
+        ( class << config ; self ; end ).
             send(:define_method, @method_name ) do |name, *args, &block|
           _cls.new(self.environment, name.to_s, *args, &block)
         end
@@ -337,6 +337,5 @@ module Vendorificator
       Dir.chdir(curdir.to_s) if curdir.exist?
     end
 
-    install!
   end
 end

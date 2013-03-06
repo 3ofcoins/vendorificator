@@ -48,5 +48,4 @@ class Vendorificator::Vendor::Git < Vendorificator::Vendor
     rv
   end
 
-  install!
 end

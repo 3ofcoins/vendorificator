@@ -10,9 +10,10 @@ module Vendorificator
     attr_accessor :shell
 
     def initialize(vendorfile=nil)
-      @config = Vendorificator::Config
-      config.environment = self
-      config.from_file(self.class.find_vendorfile(vendorfile))
+      @config = Vendorificator::Config.new
+      @config.environment = self
+      @config.read_file(self.class.find_vendorfile(vendorfile).to_s)
+      Vendorificator::Vendor.install!(config)
       Vendorificator::Vendor.compute_dependencies!
     end
 

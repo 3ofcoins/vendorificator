@@ -39,6 +39,4 @@ class Vendorificator::Vendor::Download < Vendorificator::Vendor
     rv << "Version: #{args[:version]}" if args[:version]
     rv
   end
-
-  install!
 end

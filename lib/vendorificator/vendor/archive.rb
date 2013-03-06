@@ -86,5 +86,4 @@ class Vendorificator::Vendor::Archive < Vendorificator::Vendor
     rv
   end
 
-  install!
 end

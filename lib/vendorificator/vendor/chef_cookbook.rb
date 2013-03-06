@@ -54,5 +54,4 @@ class Vendorificator::Vendor::ChefCookbook < Vendorificator::Vendor::Archive
     "Conjured cookbook #{name} version #{version}\nOrigin: #{url}\nChecksum: #{conjured_checksum}\n"
   end
 
-  install!
 end
