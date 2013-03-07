@@ -13,15 +13,13 @@ Then /^(?:the )?following has( not)? been conjured:$/ do |not_p, table|
     end
 
     if mod['With file']
-      mod['With file'].lines.each do |path|
-        step "file \"vendor/#{mod['Name']}/#{path.strip}\" #{exists_p}"
-      end
+      check_file_presence(mod['With file'].lines.
+        map { |ln| File.join('vendor', mod['Name'], ln.strip) }, !not_p)
     end
 
     if mod['Without file']
-      mod['Without file'].lines.each do |path|
-        step "file \"vendor/#{mod['Name']}/#{path.strip}\" does not exist"
-      end
+      check_file_presence(mod['Without file'].lines.
+          map { |ln| File.join('vendor', mod['Name'], ln.strip) }, !!not_p)
     end
   end
 end

@@ -17,9 +17,7 @@ module Vendorificator
         _cls = self # for self is obscured in define_method block's body
         ( class << Vendorificator::Config ; self ; end ).
             send(:define_method, @method_name ) do |name, *args, &block|
-          mod = _cls.new(name.to_s, *args, &block)
-          self[:modules] << mod
-          mod
+          _cls.new(self.environment, name.to_s, *args, &block)
         end
       end
 
@@ -30,26 +28,71 @@ module Vendorificator
           end
         end
       end
+
+      def [](*key)
+        return key.map { |k| self[k] }.flatten if key.length > 1
+
+        key = key.first
+
+        if key.is_a?(Fixnum)
+          self.instances[key]
+        else
+          instances.select { |i| i === key }
+        end
+      end
+
+      def each(*modules)
+        modpaths = modules.map { |m| File.expand_path(m) }
+
+        # We don't use instances.each here, because Vendor#run! is
+        # explicitly allowed to append to instantiate new
+        # dependencies, and #each fails to catch up on some Ruby
+        # implementations.
+        i = 0
+        while true
+          break if i >= instances.length
+          mod = instances[i]
+          yield mod if modules.empty? ||
+            modules.include?(mod.name) ||
+            modpaths.include?(mod.work_dir)
+          i += 1
+        end
+      end
+
+      def instances
+        Vendorificator::Vendor.instance_eval { @instances ||= [] }
+      end
+
+      def compute_dependencies!
+        self.instances.each(&:compute_dependencies!)
+      end
     end
 
-    attr_reader :name, :args, :block
-    arg_reader :version, :path
+    attr_reader :environment, :name, :args, :block
+    arg_reader :version
 
-    def path
-      args[:path] || _join(category, name)
-    end
-
-    def initialize(name, args={}, &block)
+    def initialize(environment, name, args={}, &block)
+      @environment = environment
       @category = args.delete(:category) if args.key?(:category)
 
       @name = name
       @args = args
       @block = block
+
+      self.class.instances << self
+    end
+
+    def ===(other)
+      other === self.name or File.expand_path(other.to_s) == self.work_dir
+    end
+
+    def path
+      args[:path] || _join(category, name)
     end
 
     def shell
       @shell ||=
-        Vendorificator::Config[:shell] || Thor::Shell::Basic.new
+        environment.config[:shell] || Thor::Shell::Basic.new
     end
 
     def category
@@ -61,7 +104,7 @@ module Vendorificator
     end
 
     def branch_name
-      _join(Vendorificator::Config[:branch_prefix], category, name)
+      _join(environment.config[:branch_prefix], category, name)
     end
 
     def to_s
@@ -73,26 +116,29 @@ module Vendorificator
     end
 
     def work_subdir
-      File.join(Vendorificator::Config[:basedir], path)
+      _join(environment.config[:basedir], path)
     end
 
     def work_dir
-      File.join(Vendorificator::Config[:root_dir], work_subdir)
+      _join(environment.config[:root_dir], work_subdir)
     end
 
     def head
-      repo.get_head(branch_name)
+      environment.git.capturing.rev_parse({:verify => true}, "refs/heads/#{branch_name}").strip
+    rescue MiniGit::GitError
+      nil
     end
 
-    def tag
-      repo.tags.find { |t| t.name == tag_name }
+    def tagged_sha1
+      @tagged_sha1 ||= environment.git.capturing.rev_parse({:verify => true}, "refs/tags/#{tag_name}^{commit}").strip
+    rescue MiniGit::GitError
+      nil
     end
 
     def merged
       unless @_has_merged
-        if head
-          merged = repo.git.
-            merge_base({}, head.commit.sha, repo.head.commit.sha).strip
+        if ( head = self.head )
+          merged = environment.git.capturing.merge_base(head, 'HEAD').strip
           @merged = merged unless merged.empty?
         end
         @_has_merged = true
@@ -103,7 +149,7 @@ module Vendorificator
     def merged_tag
       unless @_has_merged_tag
         if merged
-          tag = repo.git.describe( {
+          tag = environment.git.capturing.describe( {
               :exact_match => true,
               :match => _join(tag_name_base, '*') },
             merged).strip
@@ -119,7 +165,7 @@ module Vendorificator
     end
 
     def version
-      @args[:version] || (!conf[:use_upstream_version] && merged_version) || upstream_version
+      @args[:version] || (!environment.config[:use_upstream_version] && merged_version) || upstream_version
     end
 
     def upstream_version
@@ -129,9 +175,8 @@ module Vendorificator
     def updatable?
       return nil if self.status == :up_to_date
       return false if !head
-      return false if head && merged == head.commit.sha
-      head_tag = repo.tags.find { |t| t.name == repo.recent_tag_name(head.name) }
-      return head_tag || true
+      return false if head && merged == head
+      environment.git.describe({:abbrev => 0, :always => true}, branch_name)
     end
 
     def status
@@ -140,16 +185,16 @@ module Vendorificator
 
       # If there's a branch but no tag, it's a known module that's not
       # been updated for the new definition yet.
-      return :outdated unless tag
+      return :outdated unless tagged_sha1
 
       # Well, this is awkward: branch is in config and exists, but is
       # not merged into current branch at all.
       return :unmerged unless merged
 
       # Merge base is tagged with our tag. We're good.
-      return :up_to_date if tag.commit.sha == merged
+      return :up_to_date if tagged_sha1 == merged
 
-      return :unpulled if repo.fast_forwardable?(tag.commit.sha, merged)
+      return :unpulled if environment.fast_forwardable?(tagged_sha1, merged)
 
       return :unknown
     end
@@ -159,26 +204,26 @@ module Vendorificator
     end
 
     def in_branch(options={}, &block)
-      orig_head = repo.head
+      orig_branch = environment.current_branch
 
       # We want to be in repository's root now, as we may need to
       # remove stuff and don't want to have removed directory as cwd.
-      Dir::chdir repo.working_dir do
+      Dir::chdir environment.git.git_work_tree do
         # If our branch exists, check it out; otherwise, create a new
         # orphaned branch.
         if self.head
-          repo.git.checkout( {}, branch_name )
-          repo.git.rm( { :r => true, :f => true }, '.') if options[:clean]
+          environment.git.checkout branch_name
+          environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean]
         else
-          repo.git.checkout( { :orphan => true }, branch_name )
-          repo.git.rm( { :r => true, :f => true }, '.')
+          environment.git.checkout( { :orphan => true }, branch_name )
+          environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
         end
       end
 
       yield
     ensure
-      # We should make sure we're back on original branch
-      repo.git.checkout( {}, orig_head.name ) if defined?(orig_head) rescue nil
+      # We should try to ensure we're back on original branch
+      environment.git.checkout orig_branch if defined?(orig_branch) rescue nil
     end
 
     def run!
@@ -189,7 +234,8 @@ module Vendorificator
 
       when :unpulled, :unmerged
         shell.say_status 'merging', self.to_s, :yellow
-        repo.git.merge({}, tag.name)
+        environment.git.merge({:no_edit => true, :no_ff => true}, tagged_sha1)
+        compute_dependencies!
 
       when :outdated, :new
         shell.say_status 'fetching', self.to_s, :yellow
@@ -206,16 +252,21 @@ module Vendorificator
               ensure
                 shell.padding -= 1
               end
+
+              subdir = args[:subdirectory]
+              make_subdir_root subdir if subdir && !subdir.empty?
             end
 
+
             # Commit and tag the conjured module
-            repo.add(work_dir)
-            repo.commit_index(conjure_commit_message)
-            repo.git.tag( { :a => true, :m => tag_message }, tag_name )
+            environment.git.add work_dir
+            environment.git.commit :m => conjure_commit_message
+            environment.git.tag( { :a => true, :m => tag_message }, tag_name )
             shell.say_status :tag, tag_name
           end
           # Merge back to the original branch
-          repo.git.merge( {}, branch_name )
+          environment.git.merge( {}, branch_name )
+          compute_dependencies!
         ensure
           shell.padding -= 1
         end
@@ -245,20 +296,26 @@ module Vendorificator
       block.call(self) if block
     end
 
-    def dependencies ; [] ; end
+    def compute_dependencies! ; end
 
     private
 
-    def conf
-      Vendorificator::Config
-    end
-
-    def repo
-      Vendorificator::Config.repo
-    end
-
     def _join(*parts)
       parts.compact.map(&:to_s).join('/')
+    end
+
+    def make_subdir_root(subdir_path)
+      curdir = Pathname.pwd
+      tmpdir = Pathname.pwd.dirname.join("#{Pathname.pwd.basename}.tmp")
+      subdir = Pathname.pwd.join(subdir_path)
+
+      Dir.chdir('..')
+
+      subdir.rename(tmpdir.to_s)
+      curdir.rmtree
+      tmpdir.rename(curdir.to_s)
+    ensure
+      Dir.chdir(curdir.to_s) if curdir.exist?
     end
 
     install!

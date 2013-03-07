@@ -4,11 +4,13 @@ Feature: smoke test of the test suite
   I want to make sure that test environment itself does not emit smoke.
 
   Scenario: The default environment
-    Given nothing in particular
-    When nothing happens
-    Then the README file exists
+    Given a repository with following Vendorfile:
+      """
+      """
+    Then a file named "README" should exist
+    And a 0 byte file named "Vendorfile" should exist
     And git repository is clean
-    And git history has one commit
+    And git history has 1 commit
     And I'm on "master" branch
     And no other branch exists
-    
+

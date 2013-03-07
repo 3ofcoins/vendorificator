@@ -12,16 +12,16 @@ Background:
     """
 
 Scenario: status new module
-  When I run "vendor status"
-  Then command output includes /new\s+generated\/0.23/
+  When I successfully run `vendor status`
+  Then the last output should match /new\s+generated\/0.23/
 
 Scenario: status up-to-date module
-  When I run "vendor sync"
-  And I run "vendor status"
-  Then command output includes /up to date\s+generated\/0.23/
+  When I successfully run `vendor sync`
+  And I successfully run `vendor status`
+  Then the last output should match /up to date\s+generated\/0.23/
 
 Scenario: status outdated modules
-  When I run "vendor sync"
+  When I successfully run `vendor sync`
   And I change Vendorfile to:
     """ruby
     vendor 'generated', :version => '0.42' do |v|
@@ -29,8 +29,8 @@ Scenario: status outdated modules
       File.open('VERSION', 'w') { |f| f.puts v.version }
     end
     """
-  And I run "vendor status"
-  Then command output includes /outdated\s+generated\/0.42/
+  And I successfully run `vendor status`
+  Then the last output should match /outdated\s+generated\/0.42/
 
 Scenario: Module's dependencies are statused if they are known
   When I change Vendorfile to:
@@ -38,10 +38,10 @@ Scenario: Module's dependencies are statused if they are known
     require 'vendorificator/vendor/chef_cookbook'
     chef_cookbook 'memcached'
     """
-  And I run "vendor status"
-  Then command output includes /new\s+memcached/
-  And command output does not include "runit"
-  When I run "vendor sync"
-  And I run "vendor status"
-  Then command output includes /up to date\s+memcached/
-  And command output includes /up to date\s+runit/
+  And I successfully run `vendor status`
+  Then the last output should match /new\s+memcached/
+  And the last output should not match "runit"
+  When I successfully run `vendor sync`
+  And I successfully run `vendor status`
+  Then the last output should match /up to date\s+memcached/
+  And the last output should match /up to date\s+runit/

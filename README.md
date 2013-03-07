@@ -129,6 +129,15 @@ vendor 'generated', :version => '0.23' do |mod|
 end
 ```
 
+#### download
+
+Downloads a single file:
+
+```ruby
+download 'socks.el', :url => 'http://cvs.savannah.gnu.org/viewvc/*checkout*/w3/lisp/socks.el?root=w3&revision=HEAD'
+download 'http://mumble.net/~campbell/emacs/paredit.el'
+```
+
 #### archive
 
 Archive takes a tar.gz, tar.bz2, or zip file, downloads it, and

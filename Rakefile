@@ -18,7 +18,9 @@ begin
   require 'cucumber/rake/task'
 
   desc 'Run Cucumber features'
-  Cucumber::Rake::Task.new(:features)
+  Cucumber::Rake::Task.new(:features) do |t|
+    t.fork = false
+  end
 rescue LoadError
   desc 'Cucumber rake task not available'
   task :features do
@@ -31,5 +33,9 @@ Rake::TestTask.new :spec do |task|
   task.libs << 'spec'
   task.test_files = FileList['spec/**/*_spec.rb']
 end
+
+# https://github.com/jruby/jruby/issues/405
+mkdir_p 'tmp'
+ENV['TMPDIR'] ||= File.join(Dir.pwd, 'tmp')
 
 task :default => [:spec, :features]
