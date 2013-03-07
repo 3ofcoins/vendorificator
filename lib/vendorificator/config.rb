@@ -12,7 +12,11 @@ module Vendorificator
         :remotes => %w(origin)
       }.merge(params)
       @modules = {
-        :git => Vendor::Git
+        :git => Vendor::Git,
+        :archive => Vendor::Archive,
+        :chef_cookbook => Vendor::ChefCookbook,
+        :download => Vendor::Download,
+        :vendor => Vendor
       }
     end
 

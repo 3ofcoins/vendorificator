@@ -23,7 +23,9 @@ Scenario: Dependency hook
 Scenario: Ignored dependency
   Given a repository with following Vendorfile:
     """ruby
-    chef_cookbook_ignore_dependencies ['runit']
+    configure do |c|
+      c[:chef_cookbook_ignore_dependencies] = ['runit']
+    end
     chef_cookbook 'memcached'
     """
   When I successfully run `vendor sync`
@@ -37,7 +39,9 @@ Scenario: Ignored dependency
 Scenario: Ignored all dependencies
   Given a repository with following Vendorfile:
     """ruby
-    chef_cookbook_ignore_dependencies true
+    configure do |c|
+      c[:chef_cookbook_ignore_dependencies] = true
+    end
     chef_cookbook 'chef-server'
     """
   When I successfully run `vendor sync`
