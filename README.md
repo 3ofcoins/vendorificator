@@ -181,10 +181,11 @@ Downloads snapshot of a Git repository. Takes the same options as
    sets name to its basename then), just like `:url` for `archive`
    (e.g. `git "git://github.com/github/testrepo.git"` will be cloned
    from that repository, and named `testrepo`).
- * `:branch`, `:revision` -- what to check out when repository is
-   cloned.
+ * `:branch`, `:revision`, `:tag` -- what to check out when repository
+   is cloned.
 
-Git module's `:version` defaults to the conjured revision.
+Git module's `:version` defaults to the `:tag` if given, or the
+conjured revision otherwise.
 
 Example:
 
