@@ -205,25 +205,44 @@ module Vendorificator
 
     def in_branch(options={}, &block)
       orig_branch = environment.current_branch
+      stash_message = "vendorificator-#{environment.git.capturing.rev_parse('HEAD').strip}-#{branch_name}-#{Time.now.to_i}"
 
       # We want to be in repository's root now, as we may need to
       # remove stuff and don't want to have removed directory as cwd.
       Dir::chdir environment.git.git_work_tree do
-        # If our branch exists, check it out; otherwise, create a new
-        # orphaned branch.
-        if self.head
-          environment.git.checkout branch_name
-          environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean]
-        else
-          environment.git.checkout( { :orphan => true }, branch_name )
-          environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
+        begin
+          # Stash all local changes
+          environment.git.stash :save, {:all => true, :quiet => true}, stash_message
+
+          # If our branch exists, check it out; otherwise, create a new
+          # orphaned branch.
+          if self.head
+            environment.git.checkout branch_name
+            environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean]
+          else
+            environment.git.checkout( { :orphan => true }, branch_name )
+            environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
+          end
+
+          yield
+        ensure
+          # We should try to ensure we're back on original branch and
+          # local changes have been applied
+          begin
+            environment.git.checkout orig_branch
+            stash = environment.git.capturing.
+              stash(:list, {:grep => stash_message, :fixed_strings => true}).lines.map(&:strip)
+            if stash.length > 1
+              shell.say_status 'WARNING', "more than one stash matches #{stash_message}, it's weird", :yellow
+              stash.each { |ln| shell.say_status '-', ln, :yellow }
+            end
+            environment.git.stash :pop, {:quiet => true}, stash.first.sub(/:.*/, '') unless stash.empty?
+          rescue => e
+            shell.say_status 'ERROR', "Cannot revert branch from #{self.head} back to #{orig_branch}: #{e}", :red
+            raise
+          end
         end
       end
-
-      yield
-    ensure
-      # We should try to ensure we're back on original branch
-      environment.git.checkout orig_branch if defined?(orig_branch) rescue nil
     end
 
     def run!
