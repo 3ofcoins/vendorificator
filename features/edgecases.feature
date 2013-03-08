@@ -27,3 +27,8 @@ Scenario: module with a .gitignore file
     """
   And I successfully run `vendor sync`
   Then the file "vendor/ignore/files.txt" should not contain "ignored.txt"
+  And the file "vendor/ignore/ignored.txt" should contain exactly:
+    """
+    whatever
+    """
+  And git repository is clean
