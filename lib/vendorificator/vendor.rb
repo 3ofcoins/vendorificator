@@ -265,7 +265,7 @@ module Vendorificator
             shell.say_status :tag, tag_name
           end
           # Merge back to the original branch
-          environment.git.merge( {}, branch_name )
+          environment.git.merge( {:no_edit => true, :no_ff => true}, branch_name )
           compute_dependencies!
         ensure
           shell.padding -= 1
