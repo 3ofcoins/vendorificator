@@ -55,3 +55,7 @@ class Vendorificator::Vendor::ChefCookbook < Vendorificator::Vendor::Archive
   end
 
 end
+
+class Vendorificator::Config
+  option 'chef_cookbook_ignore_dependencies'
+end

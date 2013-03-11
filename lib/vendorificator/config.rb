@@ -5,6 +5,14 @@ module Vendorificator
     attr_accessor :environment
     attr_accessor :modules
 
+    class << self
+      def option(name, default = nil, &block)
+        define_method name do |value|
+          @configuration[name.to_sym] = value
+        end
+      end
+    end
+
     def initialize(params = {})
       @configuration = {
         :basedir => 'vendor',
