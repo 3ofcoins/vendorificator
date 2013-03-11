@@ -19,3 +19,4 @@ tmp
 /.rbx
 /log
 .DS_Store
+features/fixtures/vcr
