@@ -3,16 +3,20 @@ require 'pathname'
 module Vendorificator
   class Config
     attr_accessor :environment
-    attr_accessor :modules
 
     @defaults = {
       :basedir => 'vendor',
       :branch_prefix => 'vendor',
       :remotes => %w(origin)
     }
+    @modules = {}
 
     def self.defaults
-      @defaults ||= {}
+      @defaults
+    end
+
+    def self.modules
+      @modules
     end
 
     def self.option(name, default = nil, &block)
@@ -22,15 +26,12 @@ module Vendorificator
       @defaults[name.to_sym] = default if default
     end
 
+    def self.register_module(name, klass)
+      @modules[name.to_sym] = klass
+    end
+
     def initialize(params = {})
       @configuration = self.class.defaults.merge(params)
-      @modules = {
-        :git => Vendor::Git,
-        :archive => Vendor::Archive,
-        :chef_cookbook => Vendor::ChefCookbook,
-        :download => Vendor::Download,
-        :vendor => Vendor
-      }
     end
 
     def read_file(filename)
@@ -59,9 +60,13 @@ module Vendorificator
       @configuration[key] = value
     end
 
+    def modules
+      self.class.modules
+    end
+
     def method_missing(method_symbol, *args, &block)
-      if @modules.keys.include? method_symbol
-        @modules[method_symbol].new(environment, args.delete_at(0).to_s, *args, &block)
+      if modules.keys.include? method_symbol
+        modules[method_symbol].new(environment, args.delete_at(0).to_s, *args, &block)
       else
         super
       end

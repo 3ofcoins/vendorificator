@@ -338,4 +338,6 @@ module Vendorificator
     end
 
   end
+
+  Config.register_module :vendor, Vendor
 end
