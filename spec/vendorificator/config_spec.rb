@@ -28,4 +28,20 @@ module Vendorificator
       config[:new_value].must_equal 'new value'
     end
   end
+
+  describe 'extensions' do
+    before do
+      class Config
+        option :custom_option, :default_value
+      end
+    end
+
+    it 'allows to define custom options' do
+      Config.new.methods.must_include :custom_option
+    end
+
+    it 'sets a default value for custom option' do
+      Config.new[:custom_option].must_equal :default_value
+    end
+  end
 end

@@ -5,20 +5,25 @@ module Vendorificator
     attr_accessor :environment
     attr_accessor :modules
 
-    class << self
-      def option(name, default = nil, &block)
-        define_method name do |value|
-          @configuration[name.to_sym] = value
-        end
+    @defaults = {
+      :basedir => 'vendor',
+      :branch_prefix => 'vendor',
+      :remotes => %w(origin)
+    }
+
+    def self.defaults
+      @defaults ||= {}
+    end
+
+    def self.option(name, default = nil, &block)
+      define_method name do |value|
+        @configuration[name.to_sym] = value
       end
+      @defaults[name.to_sym] = default if default
     end
 
     def initialize(params = {})
-      @configuration = {
-        :basedir => 'vendor',
-        :branch_prefix => 'vendor',
-        :remotes => %w(origin)
-      }.merge(params)
+      @configuration = self.class.defaults.merge(params)
       @modules = {
         :git => Vendor::Git,
         :archive => Vendor::Archive,
