@@ -1,15 +1,5 @@
 # -*- encoding: utf-8 -*-
 require File.expand_path('../lib/vendorificator/version', __FILE__)
-require 'minigit'
-
-version = MiniGit::Capturing.
-  describe( :match => 'v[0-9]*.[0-9]*.[0-9]*',
-            :dirty => '.wip' ).
-  strip.sub(/^v/, '').gsub('-', '.')
-
-unless version.start_with?(Vendorificator::VERSION)
-  raise ValueError, "Declared version is #{Vendorificator::VERSION.inspect}, but Git description is #{version.inspect}"
-end
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Maciej Pasternacki"]
@@ -23,7 +13,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "vendorificator"
   gem.require_paths = ["lib"]
-  gem.version       = version
+  gem.version       = Vendorificator::VERSION
 
   gem.add_dependency 'escape'
   gem.add_dependency 'thor', '>= 0.17.0'
