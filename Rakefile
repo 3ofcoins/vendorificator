@@ -3,7 +3,6 @@ require "rubygems"
 require "bundler"
 Bundler.setup
 
-require "bundler/gem_tasks"
 require 'rake/testtask'
 
 namespace :relish do
