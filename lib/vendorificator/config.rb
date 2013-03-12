@@ -4,11 +4,7 @@ module Vendorificator
   class Config
     attr_accessor :environment
 
-    @defaults = {
-      :basedir => 'vendor',
-      :branch_prefix => 'vendor',
-      :remotes => %w(origin)
-    }
+    @defaults = {}
     @modules = {}
 
     def self.defaults
@@ -72,5 +68,8 @@ module Vendorificator
       end
     end
 
+    option :basedir, 'vendor'
+    option :branch_prefix, 'vendor'
+    option :remotes, %w(origin)
   end
 end
