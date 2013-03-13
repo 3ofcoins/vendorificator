@@ -33,6 +33,15 @@ module Vendorificator
         assert { Config.new.methods.include? :custom_option }
       end
 
+      it 'allows to get custom_option value via method' do
+        assert { Config.new.custom_option == :default_value }
+      end
+
+      it 'allows to set custom_option via method' do
+        config.custom_option :custom_value
+        assert { config[:custom_option] == :custom_value }
+      end
+
       it 'sets a default value for custom option' do
         assert { Config.new[:custom_option] == :default_value }
       end

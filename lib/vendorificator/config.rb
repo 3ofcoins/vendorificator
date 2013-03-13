@@ -16,8 +16,14 @@ module Vendorificator
     end
 
     def self.option(name, default = nil, &block)
-      define_method name do |value|
-        @configuration[name.to_sym] = value
+      define_method name do |*args|
+        if args.size == 0
+          @configuration[name.to_sym]
+        elsif args.size == 1
+          @configuration[name.to_sym] = args.first
+        else
+          raise 'Unsupported number of arguments (expected 0 or 1).'
+        end
       end
       @defaults[name.to_sym] = default if default
     end
