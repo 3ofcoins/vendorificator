@@ -13,7 +13,6 @@ module Vendorificator
       @config = Vendorificator::Config.new
       @config.environment = self
       @config.read_file(self.class.find_vendorfile(vendorfile).to_s)
-      Vendorificator::Vendor.install!(config)
       Vendorificator::Vendor.compute_dependencies!
     end
 

@@ -10,17 +10,6 @@ module Vendorificator
     class << self
       attr_accessor :category, :method_name
 
-      # Define a method on Vendorificator::Config to add the
-      # vendor module to the module definition list.
-      def install!(config)
-        @method_name ||= self.name.split('::').last.downcase.to_sym
-        _cls = self # for self is obscured in define_method block's body
-        ( class << config ; self ; end ).
-            send(:define_method, @method_name ) do |name, *args, &block|
-          _cls.new(self.environment, name.to_s, *args, &block)
-        end
-      end
-
       def arg_reader(*names)
         names.each do |name|
           define_method(name) do
