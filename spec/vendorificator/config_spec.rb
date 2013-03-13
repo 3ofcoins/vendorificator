@@ -6,20 +6,20 @@ module Vendorificator
 
     describe '#initialize' do
       it' creates a Config object' do
-        config.is_a? Config
+        assert { config.is_a? Config }
       end
 
       it 'allows to overwrite the default configuration' do
         config = Config.new(:basedir => 'different/basedir')
-        config[:basedir].must_equal 'different/basedir'
+        assert { config[:basedir] == 'different/basedir' }
       end
     end
 
     it 'allows to set and get values' do
-      config[:new_value].must_equal nil
+      assert { config[:new_value] == nil }
       config[:new_value] = 'new value'
 
-      config[:new_value].must_equal 'new value'
+      assert { config[:new_value] == 'new value' }
     end
 
     describe 'extensions' do
@@ -30,25 +30,25 @@ module Vendorificator
       end
 
       it 'allows to define custom options' do
-        Config.new.methods.must_include :custom_option
+        assert { Config.new.methods.include? :custom_option }
       end
 
       it 'sets a default value for custom option' do
-        Config.new[:custom_option].must_equal :default_value
+        assert { Config.new[:custom_option] == :default_value }
       end
     end
 
     describe 'options' do
       it 'have default values' do
-        config[:basedir].must_equal 'vendor'
-        config[:branch_prefix].must_equal 'vendor'
-        config[:remotes].must_equal %w(origin)
+        assert { config[:basedir] == 'vendor' }
+        assert { config[:branch_prefix] == 'vendor' }
+        assert { config[:remotes] == %w(origin) }
       end
 
       it 'can be set' do
-        config.methods.must_include :basedir
-        config.methods.must_include :branch_prefix
-        config.methods.must_include :remotes
+        assert { config.methods.include? :basedir }
+        assert { config.methods.include? :branch_prefix }
+        assert { config.methods.include? :remotes }
       end
     end
   end
