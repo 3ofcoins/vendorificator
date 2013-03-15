@@ -5,7 +5,7 @@ module Vendorificator
     describe 'config extensions' do
       describe 'options' do
         it 'registers chef_cookbook_ignore_dependencies' do
-          assert { Config.new.methods.include? :chef_cookbook_ignore_dependencies }
+          assert { includes_method? Config.new, :chef_cookbook_ignore_dependencies }
         end
       end
     end

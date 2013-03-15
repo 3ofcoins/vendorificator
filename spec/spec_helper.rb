@@ -28,4 +28,8 @@ class MiniTest::Spec
   def conf
     @conf ||= Vendorificator::Config.new
   end
+
+  def includes_method?(obj, method)
+    (obj.methods.include? method.to_sym) || (obj.methods.include? method.to_s)
+  end
 end

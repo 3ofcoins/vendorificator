@@ -30,7 +30,7 @@ module Vendorificator
       end
 
       it 'allows to define custom options' do
-        assert { Config.new.methods.include? :custom_option }
+        assert { includes_method? Config.new, :custom_option }
       end
 
       it 'allows to get custom_option value via method' do
@@ -55,9 +55,9 @@ module Vendorificator
       end
 
       it 'can be set' do
-        assert { config.methods.include? :basedir }
-        assert { config.methods.include? :branch_prefix }
-        assert { config.methods.include? :remotes }
+        assert { includes_method? config, :basedir }
+        assert { includes_method? config, :branch_prefix }
+        assert { includes_method? config, :remotes }
       end
     end
   end
