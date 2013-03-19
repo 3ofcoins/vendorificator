@@ -1,5 +1,15 @@
-require 'thor'
+if ENV['COVERAGE']
+  require 'pathname'
+  require 'simplecov'
+  SimpleCov.start do
+    add_group 'Vendors', 'lib/vendorificator/vendor'
+    root Pathname.new(__FILE__).dirname.dirname.dirname.realpath.to_s
+    use_merging
+  end
+  SimpleCov.command_name "vendor##{$$}@#{DateTime.now.to_s}"
+end
 
+require 'thor'
 require 'vendorificator'
 
 module Vendorificator

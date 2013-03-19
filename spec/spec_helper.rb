@@ -16,6 +16,16 @@ else
   MiniTest::ANSI.use! if STDOUT.tty?
 end
 
+if ENV['COVERAGE']
+  require 'simplecov'
+  SimpleCov.start do
+    add_filter '/spec/'
+    add_group 'Vendors', 'lib/vendorificator/vendor'
+    use_merging
+  end
+  SimpleCov.command_name 'rake spec'
+end
+
 require 'vendorificator'
 
 VCR.configure do |config|

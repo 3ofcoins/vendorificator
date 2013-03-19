@@ -44,3 +44,12 @@ mkdir_p 'tmp'
 ENV['TMPDIR'] ||= File.join(Dir.pwd, 'tmp')
 
 task :default => [:info, :spec, :features]
+
+if ENV['COVERAGE']
+  task :clean_coverage do
+    rm_rf 'coverage'
+  end
+
+  task :spec => :clean_coverage
+  task :features => :clean_coverage
+end
