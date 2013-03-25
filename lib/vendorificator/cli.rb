@@ -34,6 +34,10 @@ module Vendorificator
     def initialize(args=[], options={}, config={})
       super
 
+      if self.options[:debug]
+        MiniGit.debug = true
+      end
+
       if self.options[:version]
         say "Vendorificator #{Vendorificator::VERSION}"
         exit
