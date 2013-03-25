@@ -38,16 +38,26 @@ module Vendorificator
       git.capturing.merge_base(to, from).strip == from
     end
 
-    def clean?
-      # copy code from http://stackoverflow.com/a/3879077/16390
-      git.update_index :q => true, :ignore_submodules => true, :refresh => true
-      git.diff_files '--quiet', '--ignore-submodules', '--'
-      git.diff_index '--cached', '--quiet', 'HEAD', '--ignore-submodules', '--'
-      true
-    rescue MiniGit::GitError
-      false
+    # Public: Pulls all the remotes specified in options[:remote] or the config.
+    #
+    # options - The Hash of options.
+    #
+    # Returns nothing.
+    def pull_all(options = {})
+      ensure_clean!
+      remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
+      remotes.each do |remote|
+        indent 'remote', remote do
+          pull(remote, options)
+        end
+      end
     end
 
+    # Public: Pulls a single remote.
+    #
+    # options - The Hash of options.
+    #
+    # Returns nothing.
     def pull(remote, options={})
       raise RuntimeError, "Unknown remote #{remote}" unless remotes.include?(remote)
 
@@ -82,7 +92,26 @@ module Vendorificator
           say_status 'unknown', mod.branch_name
         end
       end
+    end
 
+    # Public: Runs all the vendor modules.
+    #
+    # options - The Hash of options.
+    #
+    # Returns nothing.
+    def sync(options = {})
+      ensure_clean!
+      config[:use_upstream_version] = options[:update]
+
+      Vendorificator::Vendor.each(*options[:modules]) do |mod|
+        say_status :module, mod.name
+        begin
+          shell.padding += 1
+          mod.run!
+        ensure
+          shell.padding -= 1
+        end
+      end
     end
 
     def self.find_vendorfile(given=nil)
@@ -107,5 +136,30 @@ module Vendorificator
 
       raise ArgumentError, "Vendorfile not found"
     end
+
+    # Private: Checks if the repository is clean.
+    #
+    # Returns boolean answer to the question.
+    def clean?
+      # copy code from http://stackoverflow.com/a/3879077/16390
+      git.update_index '-q', '--ignore-submodules', '--refresh'
+      git.diff_files '--quiet', '--ignore-submodules', '--'
+      git.diff_index '--cached', '--quiet', 'HEAD', '--ignore-submodules', '--'
+      true
+    rescue MiniGit::GitError
+      false
+    end
+
+    private
+
+    # Private: Aborts on a dirty repository.
+    #
+    # Returns nothing.
+    def ensure_clean!
+      unless clean?
+        fail!('Repository is not clean.')
+      end
+    end
+
   end
 end

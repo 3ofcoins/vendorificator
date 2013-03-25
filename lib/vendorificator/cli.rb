@@ -58,17 +58,7 @@ module Vendorificator
     desc :sync, "Download new or updated vendor files"
     method_option :update, :type => :boolean, :default => false
     def sync
-      ensure_clean!
-      environment.config[:use_upstream_version] = options[:update]
-      Vendorificator::Vendor.each(*modules) do |mod|
-        say_status :module, mod.name
-        begin
-          shell.padding += 1
-          mod.run!
-        ensure
-          shell.padding -= 1
-        end
-      end
+      environment.sync options.merge(:modules => modules)
     end
 
     desc "status", "List known vendor modules and their status"
@@ -97,14 +87,9 @@ module Vendorificator
     method_option :remote, :aliases => ['-r'], :default => nil
     method_option :dry_run, :aliases => ['-n'], :default => false, :type => :boolean
     def pull
-      ensure_clean!
-      remotes = options[:remote] ? options[:remote].split(',') : environment.config[:remotes]
-      remotes.each do |remote|
-        indent 'remote', remote do
-          environment.pull(remote, options)
-        end
-      end
+      environment.pull_all options
     end
+
     desc "git GIT_COMMAND [GIT_ARGS [...]]",
          "Run a git command for specified modules"
     long_desc <<EOF
@@ -203,11 +188,6 @@ EOF
       shell.padding -= 1
     end
 
-    def ensure_clean!
-      unless environment.clean?
-        fail!('Repository is not clean.')
-      end
-    end
   end
 end
 
