@@ -59,6 +59,8 @@ module Vendorificator
     method_option :update, :type => :boolean, :default => false
     def sync
       environment.sync options.merge(:modules => modules)
+    rescue DirtyRepoError
+      fail! 'Repository is not clean.'
     end
 
     desc "status", "List known vendor modules and their status"
@@ -88,6 +90,8 @@ module Vendorificator
     method_option :dry_run, :aliases => ['-n'], :default => false, :type => :boolean
     def pull
       environment.pull_all options
+    rescue DirtyRepoError
+      fail! 'Repository is not clean.'
     end
 
     desc "git GIT_COMMAND [GIT_ARGS [...]]",

@@ -137,7 +137,7 @@ module Vendorificator
       raise ArgumentError, "Vendorfile not found"
     end
 
-    # Private: Checks if the repository is clean.
+    # Public: Checks if the repository is clean.
     #
     # Returns boolean answer to the question.
     def clean?
@@ -156,9 +156,7 @@ module Vendorificator
     #
     # Returns nothing.
     def ensure_clean!
-      unless clean?
-        fail!('Repository is not clean.')
-      end
+      raise DirtyRepoError unless clean?
     end
 
   end
