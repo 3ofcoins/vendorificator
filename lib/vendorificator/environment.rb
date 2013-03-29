@@ -7,13 +7,16 @@ require 'vendorificator/config'
 module Vendorificator
   class Environment
     attr_reader :config
-    attr_accessor :shell
+    attr_accessor :shell, :vendor_instances
 
     def initialize(vendorfile=nil)
+      @vendor_instances = []
+
       @config = Vendorificator::Config.new
       @config.environment = self
       @config.read_file(self.class.find_vendorfile(vendorfile).to_s)
-      Vendorificator::Vendor.compute_dependencies!
+
+      self.each_vendor_instance{ |mod| mod.compute_dependencies! }
     end
 
     def say_status(*args)
@@ -53,7 +56,7 @@ module Vendorificator
       end
     end
 
-    # Public: Pulls a single remote.
+    # Public: Pulls a single remote and updates
     #
     # options - The Hash of options.
     #
@@ -71,7 +74,7 @@ module Vendorificator
         map { |sha, name| name =~ ref_rx ? [$', sha] : nil }.
         compact ]
 
-      Vendorificator::Vendor.each do |mod|
+      each_vendor_instance do |mod|
         ours = mod.head
         theirs = remote_branches[mod.branch_name]
         if theirs
@@ -103,14 +106,34 @@ module Vendorificator
       ensure_clean!
       config[:use_upstream_version] = options[:update]
 
-      Vendorificator::Vendor.each(*options[:modules]) do |mod|
+      each_vendor_instance(*options[:modules]) do |mod|
         say_status :module, mod.name
-        begin
-          shell.padding += 1
+        indent do
           mod.run!
-        ensure
-          shell.padding -= 1
         end
+      end
+    end
+
+    # Public: Goes through all the Vendor instances and runs the block
+    #
+    # modules - ?
+    #
+    # Returns nothing.
+    def each_vendor_instance(*modules)
+      modpaths = modules.map { |m| File.expand_path(m) }
+
+      # We don't use instances.each here, because Vendor#run! is
+      # explicitly allowed to append to instantiate new
+      # dependencies, and #each fails to catch up on some Ruby
+      # implementations.
+      i = 0
+      while true
+        break if i >= @vendor_instances.length
+        mod = @vendor_instances[i]
+        yield mod if modules.empty? ||
+          modules.include?(mod.name) ||
+          modpaths.include?(mod.work_dir)
+        i += 1
       end
     end
 
@@ -157,6 +180,17 @@ module Vendorificator
     # Returns nothing.
     def ensure_clean!
       raise DirtyRepoError unless clean?
+    end
+
+    # Private: Indents the output.
+    #
+    # Returns nothing.
+    def indent(*args, &block)
+      say_status *args unless args.empty?
+      shell.padding += 1 if shell
+      yield
+    ensure
+      shell.padding -= 1 if shell
     end
 
   end

@@ -68,7 +68,7 @@ module Vendorificator
     def status
       say_status 'WARNING', 'Git repository is not clean', :red unless environment.clean?
       environment.config[:use_upstream_version] = options[:update]
-      Vendorificator::Vendor.each(*modules) do |mod|
+      environment.each_vendor_instance(*modules) do |mod|
         status_line = mod.to_s
 
         updatable = mod.updatable?
@@ -109,7 +109,7 @@ module Vendorificator
     vendor git diff --stat @MERGED@ -- @PATH@  # 'vendor diff', as diffstat
 EOF
     def git(command, *args)
-      Vendorificator::Vendor.each(*modules) do |mod|
+      environment.each_vendor_instance(*modules) do |mod|
         unless mod.merged
           say_status 'unmerged', mod.to_s, :red unless options[:only_changed]
           next
@@ -182,14 +182,6 @@ EOF
     def fail!(message, exception_message='I give up.')
       say_status('FATAL', message, :red)
       raise Thor::Error, 'I give up.'
-    end
-
-    def indent(*args, &block)
-      say_status *args unless args.empty?
-      shell.padding += 1
-      yield
-    ensure
-      shell.padding -= 1
     end
 
   end

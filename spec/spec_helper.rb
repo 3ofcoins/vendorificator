@@ -39,6 +39,10 @@ class MiniTest::Spec
     @conf ||= Vendorificator::Config.new
   end
 
+  def basic_environment
+    @basic_environment ||= Vendorificator::Environment.new
+  end
+
   def includes_method?(obj, method)
     (obj.methods.include? method.to_sym) || (obj.methods.include? method.to_s)
   end
