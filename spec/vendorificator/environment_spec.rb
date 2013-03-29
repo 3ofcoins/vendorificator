@@ -3,10 +3,9 @@ require 'spec_helper'
 module Vendorificator
   describe Environment do
     before do
-      ENV['VENDORFILE'] = 'spec/vendorificator/fixtures/vendorfiles/vendor.rb'
       MiniGit.any_instance.stubs(:fetch)
     end
-    let(:environment){ Environment.new }
+    let(:environment){ Environment.new 'spec/vendorificator/fixtures/vendorfiles/vendor.rb' }
 
     describe '#clean' do
       it 'returns false for dirty repo' do
@@ -42,16 +41,14 @@ module Vendorificator
     end
 
     describe '#pull' do
-
       it 'does stuff' do
         environment.pull('origin')
       end
     end
 
     describe '#vendor_instances' do
-      before do
-        ENV['VENDORFILE'] = 'spec/vendorificator/fixtures/vendorfiles/empty_vendor.rb'
-      end
+      let(:environment){ Environment.new 'spec/vendorificator/fixtures/vendorfiles/empty_vendor.rb' }
+
       it 'is initialized on a new environment' do
         assert { environment.vendor_instances == [] }
       end
@@ -60,7 +57,6 @@ module Vendorificator
         environment.vendor_instances << :foo
         assert { environment.vendor_instances == [:foo] }
       end
-
     end
 
   end

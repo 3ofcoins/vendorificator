@@ -40,7 +40,9 @@ class MiniTest::Spec
   end
 
   def basic_environment
-    @basic_environment ||= Vendorificator::Environment.new
+    @basic_environment ||= Vendorificator::Environment.new(
+      'spec/vendorificator/fixtures/vendorfiles/empty_vendor.rb'
+    )
   end
 
   def includes_method?(obj, method)
