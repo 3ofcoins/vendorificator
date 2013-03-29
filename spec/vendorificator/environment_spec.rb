@@ -41,7 +41,12 @@ module Vendorificator
     end
 
     describe '#pull' do
-      it 'does stuff' do
+      it "creates a branch if it doesn't exist" do
+        environment.git.capturing.stubs(:show_ref).
+          returns("602315 refs/remotes/origin/vendor/test")
+        environment.vendor_instances = [ stub(:branch_name => 'vendor/test', :head => nil)]
+
+        environment.git.expects(:branch).with({:track => true}, 'vendor/test', '602315')
         environment.pull('origin')
       end
     end

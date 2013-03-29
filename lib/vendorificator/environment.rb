@@ -14,7 +14,7 @@ module Vendorificator
 
       @config = Vendorificator::Config.new
       @config.environment = self
-      @config.read_file(self.class.find_vendorfile(vendorfile).to_s)
+      @config.read_file(find_vendorfile(vendorfile).to_s)
 
       self.each_vendor_instance{ |mod| mod.compute_dependencies! }
     end
@@ -56,7 +56,7 @@ module Vendorificator
       end
     end
 
-    # Public: Pulls a single remote and updates
+    # Public: Pulls a single remote and updates the branches.
     #
     # options - The Hash of options.
     #
@@ -80,7 +80,7 @@ module Vendorificator
         if theirs
           if not ours
             say_status 'new', mod.branch_name, :yellow
-            git.branch({:track=>true}, mod.branch_name, remote_head.name) unless options[:dry_run]
+            git.branch({:track => true}, mod.branch_name, theirs) unless options[:dry_run]
           elsif ours == theirs
             say_status 'unchanged', mod.branch_name
           elsif fast_forwardable?(theirs, ours)
@@ -137,7 +137,27 @@ module Vendorificator
       end
     end
 
-    def self.find_vendorfile(given=nil)
+    # Public: Checks if the repository is clean.
+    #
+    # Returns boolean answer to the question.
+    def clean?
+      # copy code from http://stackoverflow.com/a/3879077/16390
+      git.update_index '-q', '--ignore-submodules', '--refresh'
+      git.diff_files '--quiet', '--ignore-submodules', '--'
+      git.diff_index '--cached', '--quiet', 'HEAD', '--ignore-submodules', '--'
+      true
+    rescue MiniGit::GitError
+      false
+    end
+
+    private
+
+    # Private: Finds the vendorfile to use.
+    #
+    # given - the optional String containing vendorfile path.
+    #
+    # Returns a String containing the vendorfile path.
+    def find_vendorfile(given=nil)
       given = [ given, ENV['VENDORFILE'] ].find do |candidate|
         candidate && !(candidate.respond_to?(:empty?) && candidate.empty?)
       end
@@ -159,21 +179,6 @@ module Vendorificator
 
       raise ArgumentError, "Vendorfile not found"
     end
-
-    # Public: Checks if the repository is clean.
-    #
-    # Returns boolean answer to the question.
-    def clean?
-      # copy code from http://stackoverflow.com/a/3879077/16390
-      git.update_index '-q', '--ignore-submodules', '--refresh'
-      git.diff_files '--quiet', '--ignore-submodules', '--'
-      git.diff_index '--cached', '--quiet', 'HEAD', '--ignore-submodules', '--'
-      true
-    rescue MiniGit::GitError
-      false
-    end
-
-    private
 
     # Private: Aborts on a dirty repository.
     #
