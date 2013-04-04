@@ -35,6 +35,10 @@ VCR.configure do |config|
 end
 
 class MiniTest::Spec
+  before do
+    Vendorificator::Environment.any_instance.stubs(:git).returns(stub)
+  end
+
   def conf
     @conf ||= Vendorificator::Config.new
   end
