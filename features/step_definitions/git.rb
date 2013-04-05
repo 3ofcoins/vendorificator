@@ -37,3 +37,7 @@ end
 Then /^tag matching (#{PATTERN}) does not exist$/ do |pat|
   deny { git.tags.any? { |t| t =~ pat } }
 end
+
+Then(/^there's a git log message including "(.*?)"$/) do |message|
+  assert { git.log.lines.any? { |ln| ln.include?(message) } }
+end
