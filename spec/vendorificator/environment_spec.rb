@@ -50,6 +50,18 @@ module Vendorificator
         environment.git.expects(:branch).with({:track => true}, 'vendor/test', '602315')
         environment.pull('origin')
       end
+
+      it "handles fast forwardable branches" do
+        Environment.any_instance.unstub(:git)
+        environment.git.capturing.stubs(:show_ref).
+          returns("602315 refs/remotes/origin/vendor/test")
+        environment.vendor_instances = [stub(
+          :branch_name => 'vendor/test', :head => '123456', :in_branch => true, :name => 'test'
+        )]
+
+        environment.expects(:fast_forwardable?).returns(true)
+        environment.pull('origin')
+      end
     end
 
     describe '#vendor_instances' do
