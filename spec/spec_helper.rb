@@ -35,8 +35,18 @@ VCR.configure do |config|
 end
 
 class MiniTest::Spec
+  before do
+    Vendorificator::Environment.any_instance.stubs(:git).returns(stub)
+  end
+
   def conf
     @conf ||= Vendorificator::Config.new
+  end
+
+  def basic_environment
+    @basic_environment ||= Vendorificator::Environment.new(
+      'spec/vendorificator/fixtures/vendorfiles/empty_vendor.rb'
+    )
   end
 
   def includes_method?(obj, method)

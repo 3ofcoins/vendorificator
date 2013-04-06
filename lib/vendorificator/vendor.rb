@@ -29,32 +29,6 @@ module Vendorificator
           instances.select { |i| i === key }
         end
       end
-
-      def each(*modules)
-        modpaths = modules.map { |m| File.expand_path(m) }
-
-        # We don't use instances.each here, because Vendor#run! is
-        # explicitly allowed to append to instantiate new
-        # dependencies, and #each fails to catch up on some Ruby
-        # implementations.
-        i = 0
-        while true
-          break if i >= instances.length
-          mod = instances[i]
-          yield mod if modules.empty? ||
-            modules.include?(mod.name) ||
-            modpaths.include?(mod.work_dir)
-          i += 1
-        end
-      end
-
-      def instances
-        Vendorificator::Vendor.instance_eval { @instances ||= [] }
-      end
-
-      def compute_dependencies!
-        self.instances.each(&:compute_dependencies!)
-      end
     end
 
     attr_reader :environment, :name, :args, :block
@@ -68,7 +42,7 @@ module Vendorificator
       @args = args
       @block = block
 
-      self.class.instances << self
+      @environment.vendor_instances << self
     end
 
     def ===(other)
