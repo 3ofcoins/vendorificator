@@ -44,7 +44,7 @@ module Vendorificator::Hooks
         # Reject dependencies that already have a module
         deps.reject! do |dep|
           dir = basedir.join(dep).to_s
-          Vendorificator::Vendor.instances.any? do |vi|
+          environment.vendor_instances.any? do |vi|
             vi.work_dir == dir
           end
         end
