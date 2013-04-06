@@ -190,13 +190,3 @@ EOF
 
   end
 end
-
-# Monkey patch over https://github.com/wycats/thor/pull/298
-class Thor::Options
-  alias_method :_orig_current_is_switch?, :current_is_switch?
-  def current_is_switch?
-    rv = _orig_current_is_switch?
-    @parsing_options = false if !rv[0] && @stop_on_unknown && @parsing_options
-    rv
-  end
-end
