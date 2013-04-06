@@ -4,8 +4,9 @@
 
  - Add `:tag` option for `git` submodule
  - Better stashing of local changes when syncing
- - Refactor implementation of configuration
  - Verbosity tweaks
+ - Refactor implementation of configuration, other internal refactors
+ - Improved test coverage
 
 ## 0.2.0
 
