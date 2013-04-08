@@ -1,6 +1,6 @@
 require 'net/http'
 require 'uri'
-require 'json'
+require 'multi_json'
 
 require 'vendorificator/vendor/archive'
 require 'vendorificator/hooks/chef_cookbook'
@@ -28,7 +28,7 @@ module Vendorificator
         begin
           url = "#{API_PREFIX}#{name}"
           url << "/versions/#{v}" if v
-          JSON::load(Net::HTTP.get_response(URI.parse(url)).body)
+          MultiJson::load(Net::HTTP.get_response(URI.parse(url)).body)
         end
     end
 
