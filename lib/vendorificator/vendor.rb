@@ -266,7 +266,7 @@ module Vendorificator
     end
 
     def git
-      git
+      environment.git
     end
 
     def config

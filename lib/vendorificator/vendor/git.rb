@@ -4,7 +4,7 @@ require 'vendorificator/vendor'
 module Vendorificator
   class Vendor::Git < Vendor
     arg_reader :repository, :revision, :tag, :branch
-    attr_reader :git, :conjured_revision
+    attr_reader :conjured_revision
 
     def initialize(environment, name, args={}, &block)
       args[:version] ||= args[:tag] if args[:tag]
@@ -22,17 +22,17 @@ module Vendorificator
     def conjure!
       shell.say_status :clone, repository
       MiniGit.git :clone, repository, '.'
-      @git = MiniGit.new('.')
+      local_git = MiniGit.new('.')
 
       if tag||revision
-        git.checkout({:b => 'vendorified'}, tag||revision)
+        local_git.checkout({:b => 'vendorified'}, tag||revision)
       elsif branch
-        git.checkout({:b => 'vendorified'}, "origin/#{branch}")
+        local_git.checkout({:b => 'vendorified'}, "origin/#{branch}")
       end
 
       super
 
-      @conjured_revision = git.capturing.rev_parse('HEAD').strip
+      @conjured_revision = local_git.capturing.rev_parse('HEAD').strip
       FileUtils::rm_rf '.git'
     end
 
