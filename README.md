@@ -123,9 +123,9 @@ block).
 Example:
 
 ```ruby
-vendor 'generated', :version => '0.23' do |mod|
-  File.open('README') { |f| f.puts "Hello, World!" }
-  File.open('VERSION') { |f| f.puts mod.version }
+vendor 'generated', :version => '0.23' do |v|
+  File.open('README', 'w') { |f| f.puts "Hello, World!" }
+  File.open('VERSION', 'w') { |f| f.puts v.version }
 end
 ```
 
@@ -160,7 +160,7 @@ unpacks it as contents of the module. It takes same options as
    disables this behaviour.
  * `:checksum` -- if set to SHA256 checksum of the file, it will be
    checked on download.
-   
+
 Archive's `:version` defaults to file name.
 
 Example:
@@ -209,7 +209,7 @@ always enough), plus:
    completely. If an array, don't download dependencies that are in
    the array. Default for that is `chef_cookbook_ignore_dependencies`
    setting.
-   
+
 Examples:
 
 ```ruby
