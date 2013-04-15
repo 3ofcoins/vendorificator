@@ -1,33 +1,81 @@
 require 'pathname'
 
-require 'mixlib/config'
-
 module Vendorificator
   class Config
-    extend Mixlib::Config
-
     attr_accessor :environment
 
-    configure do |c|
-      c[:basedir] = 'vendor'
-      c[:branch_prefix] = 'vendor'
-      c[:remotes] = %w(origin)
+    @defaults = {}
+    @modules = {}
+
+    def self.defaults
+      @defaults
     end
 
-    def self.from_file(filename)
+    def self.modules
+      @modules
+    end
+
+    def self.option(name, default = nil, &block)
+      define_method name do |*args|
+        if args.size == 0
+          @configuration[name.to_sym]
+        elsif args.size == 1
+          @configuration[name.to_sym] = args.first
+        else
+          raise 'Unsupported number of arguments (expected 0 or 1).'
+        end
+      end
+      @defaults[name.to_sym] = default if default
+    end
+
+    def self.register_module(name, klass)
+      @modules[name.to_sym] = klass
+    end
+
+    def initialize(params = {})
+      @configuration = self.class.defaults.merge(params)
+    end
+
+    def read_file(filename)
       pathname = Pathname.new(filename).cleanpath.expand_path
 
-      self[:vendorfile_path] = pathname
-      self[:root_dir] =
-        if ( pathname.basename.to_s == 'vendor.rb' &&
-               pathname.dirname.basename.to_s == 'config' )
-          # Correctly recognize root dir if main config is 'config/vendor.rb'
+      @configuration[:vendorfile_path] = pathname
+      @configuration[:root_dir] = if pathname.basename.to_s == 'vendor.rb' &&
+                          pathname.dirname.basename.to_s == 'config'
           pathname.dirname.dirname
         else
           pathname.dirname
         end
 
-      super(pathname.to_s)
+      instance_eval(IO.read(filename), filename, 1)
     end
+
+    def configure(&block)
+      block.call @configuration
+    end
+
+    def [](key)
+      @configuration[key]
+    end
+
+    def []=(key, value)
+      @configuration[key] = value
+    end
+
+    def modules
+      self.class.modules
+    end
+
+    def method_missing(method_symbol, *args, &block)
+      if modules.keys.include? method_symbol
+        modules[method_symbol].new(environment, args.delete_at(0).to_s, *args, &block)
+      else
+        super
+      end
+    end
+
+    option :basedir, 'vendor'
+    option :branch_prefix, 'vendor'
+    option :remotes, %w(origin)
   end
 end

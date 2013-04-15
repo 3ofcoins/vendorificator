@@ -10,17 +10,6 @@ module Vendorificator
     class << self
       attr_accessor :category, :method_name
 
-      # Define a method on Vendorificator::Config to add the
-      # vendor module to the module definition list.
-      def install!
-        @method_name ||= self.name.split('::').last.downcase.to_sym
-        _cls = self # for self is obscured in define_method block's body
-        ( class << Vendorificator::Config ; self ; end ).
-            send(:define_method, @method_name ) do |name, *args, &block|
-          _cls.new(self.environment, name.to_s, *args, &block)
-        end
-      end
-
       def arg_reader(*names)
         names.each do |name|
           define_method(name) do
@@ -40,32 +29,6 @@ module Vendorificator
           instances.select { |i| i === key }
         end
       end
-
-      def each(*modules)
-        modpaths = modules.map { |m| File.expand_path(m) }
-
-        # We don't use instances.each here, because Vendor#run! is
-        # explicitly allowed to append to instantiate new
-        # dependencies, and #each fails to catch up on some Ruby
-        # implementations.
-        i = 0
-        while true
-          break if i >= instances.length
-          mod = instances[i]
-          yield mod if modules.empty? ||
-            modules.include?(mod.name) ||
-            modpaths.include?(mod.work_dir)
-          i += 1
-        end
-      end
-
-      def instances
-        Vendorificator::Vendor.instance_eval { @instances ||= [] }
-      end
-
-      def compute_dependencies!
-        self.instances.each(&:compute_dependencies!)
-      end
     end
 
     attr_reader :environment, :name, :args, :block
@@ -79,7 +42,7 @@ module Vendorificator
       @args = args
       @block = block
 
-      self.class.instances << self
+      @environment.vendor_instances << self
     end
 
     def ===(other)
@@ -124,13 +87,13 @@ module Vendorificator
     end
 
     def head
-      environment.git.capturing.rev_parse({:verify => true}, "refs/heads/#{branch_name}").strip
+      environment.git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/heads/#{branch_name}").strip
     rescue MiniGit::GitError
       nil
     end
 
     def tagged_sha1
-      @tagged_sha1 ||= environment.git.capturing.rev_parse({:verify => true}, "refs/tags/#{tag_name}^{commit}").strip
+      @tagged_sha1 ||= environment.git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/tags/#{tag_name}^{commit}").strip
     rescue MiniGit::GitError
       nil
     end
@@ -205,25 +168,44 @@ module Vendorificator
 
     def in_branch(options={}, &block)
       orig_branch = environment.current_branch
+      stash_message = "vendorificator-#{environment.git.capturing.rev_parse('HEAD').strip}-#{branch_name}-#{Time.now.to_i}"
 
       # We want to be in repository's root now, as we may need to
       # remove stuff and don't want to have removed directory as cwd.
       Dir::chdir environment.git.git_work_tree do
-        # If our branch exists, check it out; otherwise, create a new
-        # orphaned branch.
-        if self.head
-          environment.git.checkout branch_name
-          environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean]
-        else
-          environment.git.checkout( { :orphan => true }, branch_name )
-          environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
+        begin
+          # Stash all local changes
+          environment.git.stash :save, {:all => true, :quiet => true}, stash_message
+
+          # If our branch exists, check it out; otherwise, create a new
+          # orphaned branch.
+          if self.head
+            environment.git.checkout branch_name
+            environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean]
+          else
+            environment.git.checkout( { :orphan => true }, branch_name )
+            environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
+          end
+
+          yield
+        ensure
+          # We should try to ensure we're back on original branch and
+          # local changes have been applied
+          begin
+            environment.git.checkout orig_branch
+            stash = environment.git.capturing.
+              stash(:list, {:grep => stash_message, :fixed_strings => true}).lines.map(&:strip)
+            if stash.length > 1
+              shell.say_status 'WARNING', "more than one stash matches #{stash_message}, it's weird", :yellow
+              stash.each { |ln| shell.say_status '-', ln, :yellow }
+            end
+            environment.git.stash :pop, {:quiet => true}, stash.first.sub(/:.*/, '') unless stash.empty?
+          rescue => e
+            shell.say_status 'ERROR', "Cannot revert branch from #{self.head} back to #{orig_branch}: #{e}", :red
+            raise
+          end
         end
       end
-
-      yield
-    ensure
-      # We should try to ensure we're back on original branch
-      environment.git.checkout orig_branch if defined?(orig_branch) rescue nil
     end
 
     def run!
@@ -265,7 +247,7 @@ module Vendorificator
             shell.say_status :tag, tag_name
           end
           # Merge back to the original branch
-          environment.git.merge( {}, branch_name )
+          environment.git.merge( {:no_edit => true, :no_ff => true}, branch_name )
           compute_dependencies!
         ensure
           shell.padding -= 1
@@ -318,6 +300,7 @@ module Vendorificator
       Dir.chdir(curdir.to_s) if curdir.exist?
     end
 
-    install!
   end
+
+  Config.register_module :vendor, Vendor
 end
