@@ -1,3 +1,5 @@
+# Note that due to git operations involved, most of the Vendor class is tested
+# with cucumber features instead.
 require 'spec_helper'
 
 module Vendorificator
