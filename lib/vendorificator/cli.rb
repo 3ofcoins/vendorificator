@@ -98,6 +98,14 @@ module Vendorificator
       fail! 'Repository is not clean.'
     end
 
+    desc :push, "Push local changes back to the remote repository"
+    method_option :remote, :aliases => ['-r'], :default => nil
+    def push
+      environment.push options
+    rescue DirtyRepoError
+      fail! 'Repository is not clean.'
+    end
+
     desc "git GIT_COMMAND [GIT_ARGS [...]]",
          "Run a git command for specified modules"
     long_desc <<EOF

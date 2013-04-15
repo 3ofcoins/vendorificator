@@ -97,6 +97,14 @@ module Vendorificator
       end
     end
 
+    # Public: Push changes to all remotes.
+    #
+    # Returns nothing.
+    def push(options = {})
+      git.push :all => true
+      git.push :tags => true
+    end
+
     # Public: Runs all the vendor modules.
     #
     # options - The Hash of options.
