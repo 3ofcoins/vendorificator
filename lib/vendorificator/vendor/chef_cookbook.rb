@@ -1,6 +1,6 @@
 require 'net/http'
 require 'uri'
-require 'multi_json'
+autoload :MultiJson, 'multi_json'
 
 require 'vendorificator/vendor/archive'
 require 'vendorificator/hooks/chef_cookbook'
