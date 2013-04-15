@@ -19,6 +19,17 @@ Given /^a repository with following Vendorfile:$/ do |vendorfile_contents|
   run_simple 'git commit -m "New repo"'
 end
 
+Given /^a remote repository$/ do
+  create_dir '../remote-repository'
+  cd '../remote-repository'
+  run_simple 'git init --bare'
+  # Configure Git username & email to unclutter console output
+  run_simple 'git config user.name Cucumber'
+  run_simple 'git config user.email cucumber@`hostname --fqdn`'
+  cd '../working-repository'
+  run_simple 'git remote add origin ../remote-repository'
+end
+
 When /^I change Vendorfile to:$/ do |vendorfile_contents|
   write_file('Vendorfile', vendorfile_contents)
   run_simple 'git commit -m "Updated Vendorfile" Vendorfile'
