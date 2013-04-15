@@ -1,6 +1,6 @@
 Feature: Module status
 
-The `status` subcommand statuss all known modules and their status.
+The `status` subcommand displays all known modules and their status.
 
 Background:
   Given a repository with following Vendorfile:
