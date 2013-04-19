@@ -17,18 +17,6 @@ module Vendorificator
           end
         end
       end
-
-      def [](*key)
-        return key.map { |k| self[k] }.flatten if key.length > 1
-
-        key = key.first
-
-        if key.is_a?(Fixnum)
-          self.instances[key]
-        else
-          instances.select { |i| i === key }
-        end
-      end
     end
 
     attr_reader :environment, :name, :args, :block
@@ -54,20 +42,15 @@ module Vendorificator
     end
 
     def shell
-      @shell ||=
-        environment.config[:shell] || Thor::Shell::Basic.new
+      @shell ||= config[:shell] || Thor::Shell::Basic.new
     end
 
     def category
-      if instance_variable_defined?(:@category)
-        @category
-      else
-        self.class.category
-      end
+      defined?(@category) ? @category : self.class.category
     end
 
     def branch_name
-      _join(environment.config[:branch_prefix], category, name)
+      _join(config[:branch_prefix], category, name)
     end
 
     def to_s
@@ -79,21 +62,15 @@ module Vendorificator
     end
 
     def work_subdir
-      _join(environment.config[:basedir], path)
+      _join(config[:basedir], path)
     end
 
     def work_dir
-      _join(environment.config[:root_dir], work_subdir)
+      _join(config[:root_dir], work_subdir)
     end
 
     def head
-      environment.git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/heads/#{branch_name}").strip
-    rescue MiniGit::GitError
-      nil
-    end
-
-    def tagged_sha1
-      @tagged_sha1 ||= environment.git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/tags/#{tag_name}^{commit}").strip
+      git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/heads/#{branch_name}").strip
     rescue MiniGit::GitError
       nil
     end
@@ -101,7 +78,7 @@ module Vendorificator
     def merged
       unless @_has_merged
         if ( head = self.head )
-          merged = environment.git.capturing.merge_base(head, 'HEAD').strip
+          merged = git.capturing.merge_base(head, 'HEAD').strip
           @merged = merged unless merged.empty?
         end
         @_has_merged = true
@@ -112,7 +89,7 @@ module Vendorificator
     def merged_tag
       unless @_has_merged_tag
         if merged
-          tag = environment.git.capturing.describe( {
+          tag = git.capturing.describe( {
               :exact_match => true,
               :match => _join(tag_name_base, '*') },
             merged).strip
@@ -128,7 +105,7 @@ module Vendorificator
     end
 
     def version
-      @args[:version] || (!environment.config[:use_upstream_version] && merged_version) || upstream_version
+      @args[:version] || (!config[:use_upstream_version] && merged_version) || upstream_version
     end
 
     def upstream_version
@@ -139,7 +116,7 @@ module Vendorificator
       return nil if self.status == :up_to_date
       return false if !head
       return false if head && merged == head
-      environment.git.describe({:abbrev => 0, :always => true}, branch_name)
+      git.describe({:abbrev => 0, :always => true}, branch_name)
     end
 
     def status
@@ -164,7 +141,7 @@ module Vendorificator
 
     def push(remotes)
       remotes.each do |remote|
-        environment.git.push remote, branch_name
+        git.push remote, branch_name
       end
     end
 
@@ -174,23 +151,23 @@ module Vendorificator
 
     def in_branch(options={}, &block)
       orig_branch = environment.current_branch
-      stash_message = "vendorificator-#{environment.git.capturing.rev_parse('HEAD').strip}-#{branch_name}-#{Time.now.to_i}"
+      stash_message = "vendorificator-#{git.capturing.rev_parse('HEAD').strip}-#{branch_name}-#{Time.now.to_i}"
 
       # We want to be in repository's root now, as we may need to
       # remove stuff and don't want to have removed directory as cwd.
-      Dir::chdir environment.git.git_work_tree do
+      Dir::chdir git.git_work_tree do
         begin
           # Stash all local changes
-          environment.git.stash :save, {:all => true, :quiet => true}, stash_message
+          git.stash :save, {:all => true, :quiet => true}, stash_message
 
           # If our branch exists, check it out; otherwise, create a new
           # orphaned branch.
           if self.head
-            environment.git.checkout branch_name
-            environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean]
+            git.checkout branch_name
+            git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean]
           else
-            environment.git.checkout( { :orphan => true }, branch_name )
-            environment.git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
+            git.checkout( { :orphan => true }, branch_name )
+            git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
           end
 
           yield
@@ -198,14 +175,14 @@ module Vendorificator
           # We should try to ensure we're back on original branch and
           # local changes have been applied
           begin
-            environment.git.checkout orig_branch
-            stash = environment.git.capturing.
+            git.checkout orig_branch
+            stash = git.capturing.
               stash(:list, {:grep => stash_message, :fixed_strings => true}).lines.map(&:strip)
             if stash.length > 1
               shell.say_status 'WARNING', "more than one stash matches #{stash_message}, it's weird", :yellow
               stash.each { |ln| shell.say_status '-', ln, :yellow }
             end
-            environment.git.stash :pop, {:quiet => true}, stash.first.sub(/:.*/, '') unless stash.empty?
+            git.stash :pop, {:quiet => true}, stash.first.sub(/:.*/, '') unless stash.empty?
           rescue => e
             shell.say_status 'ERROR', "Cannot revert branch from #{self.head} back to #{orig_branch}: #{e}", :red
             raise
@@ -222,7 +199,7 @@ module Vendorificator
 
       when :unpulled, :unmerged
         shell.say_status 'merging', self.to_s, :yellow
-        environment.git.merge({:no_edit => true, :no_ff => true}, tagged_sha1)
+        git.merge({:no_edit => true, :no_ff => true}, tagged_sha1)
         compute_dependencies!
 
       when :outdated, :new
@@ -247,13 +224,13 @@ module Vendorificator
 
 
             # Commit and tag the conjured module
-            environment.git.add work_dir
-            environment.git.commit :m => conjure_commit_message
-            environment.git.tag( { :a => true, :m => tag_message }, tag_name )
+            git.add work_dir
+            git.commit :m => conjure_commit_message
+            git.tag( { :a => true, :m => tag_message }, tag_name )
             shell.say_status :tag, tag_name
           end
           # Merge back to the original branch
-          environment.git.merge( {:no_edit => true, :no_ff => true}, branch_name )
+          git.merge( {:no_edit => true, :no_ff => true}, branch_name )
           compute_dependencies!
         ensure
           shell.padding -= 1
@@ -287,6 +264,20 @@ module Vendorificator
     def compute_dependencies! ; end
 
     private
+
+    def tagged_sha1
+      @tagged_sha1 ||= git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/tags/#{tag_name}^{commit}").strip
+    rescue MiniGit::GitError
+      nil
+    end
+
+    def git
+      environment.git
+    end
+
+    def config
+      environment.config
+    end
 
     def _join(*parts)
       parts.compact.map(&:to_s).join('/')
