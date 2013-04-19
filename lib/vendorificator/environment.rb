@@ -99,9 +99,15 @@ module Vendorificator
 
     # Public: Push changes to all remotes.
     #
+    # options - The Hash containing options
+    #
     # Returns nothing.
     def push(options = {})
-      git.push :all => true
+      ensure_clean!
+      remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
+      each_vendor_instance do |mod|
+        mod.push remotes
+      end
       git.push :tags => true
     end
 

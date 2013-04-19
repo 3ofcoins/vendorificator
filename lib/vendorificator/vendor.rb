@@ -162,6 +162,12 @@ module Vendorificator
       return :unknown
     end
 
+    def push(remotes)
+      remotes.each do |remote|
+        environment.git.push remote, branch_name
+      end
+    end
+
     def needed?
       return self.status != :up_to_date
     end
