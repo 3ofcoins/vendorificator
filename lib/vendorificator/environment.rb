@@ -97,17 +97,27 @@ module Vendorificator
       end
     end
 
-    # Public: Push changes to all remotes.
+    # Public: Push changes on module branches.
     #
     # options - The Hash containing options
     #
     # Returns nothing.
     def push(options = {})
       ensure_clean!
-      remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
+
+      pushable = []
       each_vendor_instance do |mod|
-        mod.push remotes
+        pushable << {:branch => mod.branch_name, :tag => mod.tag_name}
       end
+
+      remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
+      remotes.each do |remote|
+        branches = pushable.map do |b|
+          ["+refs/heads/#{b[:branch]}", "+refs/tags/#{b[:tag]}"]
+        end.flatten
+        git.push remote, branches
+      end
+
       git.push :tags => true
     end
 
@@ -136,10 +146,9 @@ module Vendorificator
     def each_vendor_instance(*modules)
       modpaths = modules.map { |m| File.expand_path(m) }
 
-      # We don't use instances.each here, because Vendor#run! is
-      # explicitly allowed to append to instantiate new
-      # dependencies, and #each fails to catch up on some Ruby
-      # implementations.
+      # We don't use @vendor_instances.each here, because Vendor#run! is
+      # explicitly allowed to append to instantiate new dependencies, and #each
+      # fails to catch up on some Ruby implementations.
       i = 0
       while true
         break if i >= @vendor_instances.length
