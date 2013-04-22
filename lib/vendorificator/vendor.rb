@@ -257,12 +257,24 @@ module Vendorificator
 
     def compute_dependencies! ; end
 
+    def pushable_refs
+      branch = "+refs/heads/#{branch_name}"
+      #tags = "+refs/tags/#{tag_name}"
+      tags = created_tags
+      [branch, tags]
+    end
+
     private
 
     def tagged_sha1
       @tagged_sha1 ||= git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/tags/#{tag_name}^{commit}").strip
     rescue MiniGit::GitError
       nil
+    end
+
+    def created_tags
+      git.capturing.show_ref.split("\n").map{ |line| line.split(' ')[1] }.
+        select{ |ref| ref =~ /\Arefs\/tags/ }
     end
 
     def git

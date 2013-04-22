@@ -106,17 +106,10 @@ module Vendorificator
       ensure_clean!
 
       pushable = []
-      each_vendor_instance do |mod|
-        pushable << {:branch => mod.branch_name, :tag => mod.tag_name}
-      end
+      each_vendor_instance{ |mod| pushable += mod.pushable_refs }
 
       remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
-      remotes.each do |remote|
-        branches = pushable.map do |b|
-          ["+refs/heads/#{b[:branch]}", "+refs/tags/#{b[:tag]}"]
-        end.flatten
-        git.push remote, branches
-      end
+      remotes.each{ |remote| git.push remote, pushable }
 
       git.push :tags => true
     end

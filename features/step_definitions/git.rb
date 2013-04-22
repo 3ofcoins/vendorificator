@@ -45,3 +45,7 @@ end
 Then /^branch "(.*?)" exists in the remote repo$/ do |branch_name|
   assert { remote_git.heads.include?(branch_name) }
 end
+
+Then /^tag "(.*?)" exists in the remote repo$/ do |tag_name|
+  assert { remote_git.tags.include?(tag_name) }
+end
