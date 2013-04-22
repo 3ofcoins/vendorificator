@@ -17,8 +17,8 @@ end
 
 Before do
   @aruba_timeout_seconds = case defined?(RUBY_ENGINE) && RUBY_ENGINE
-                           when 'jruby' then 30
-                           when 'rbx' then 15
-                           else 10
+                           when 'jruby' then 45
+                           when 'rbx' then 30
+                           else 30
                            end
 end
