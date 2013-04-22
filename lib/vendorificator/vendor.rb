@@ -259,9 +259,8 @@ module Vendorificator
 
     def pushable_refs
       branch = "+refs/heads/#{branch_name}"
-      #tags = "+refs/tags/#{tag_name}"
-      tags = created_tags
-      [branch, tags]
+      tags = created_tags.map{ |tag| '+' + tag }
+      [branch, tags].flatten
     end
 
     private
@@ -274,7 +273,7 @@ module Vendorificator
 
     def created_tags
       git.capturing.show_ref.split("\n").map{ |line| line.split(' ')[1] }.
-        select{ |ref| ref =~ /\Arefs\/tags/ }
+        select{ |ref| ref =~ /\Arefs\/tags\/#{tag_name_base}/ }
     end
 
     def git
