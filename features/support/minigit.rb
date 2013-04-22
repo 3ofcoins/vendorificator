@@ -24,6 +24,10 @@ module Vendorificator
       def git
         @git ||= ::MiniGit::Capturing.new(current_dir)
       end
+
+      def remote_git
+        @remote_git ||= ::MiniGit::Capturing.new(current_dir + '/../remote-repository')
+      end
     end
   end
 end
