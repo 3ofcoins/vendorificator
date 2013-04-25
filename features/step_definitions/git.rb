@@ -38,8 +38,14 @@ Then /^tag matching (#{PATTERN}) does not exist$/ do |pat|
   deny { git.tags.any? { |t| t =~ pat } }
 end
 
-Then(/^there's a git log message including "(.*?)"$/) do |message|
+Then /^there's a git log message including "(.*?)"$/ do |message|
   assert { git.log.lines.any? { |ln| ln.include?(message) } }
+end
+
+Then /^there's a git commit note including "(.*?)"$/ do |note|
+  # Not in the assert block, because it raises an exception on failure.
+  contains_note = git.log.lines.any? { |ln| ln.include?(note) }
+  assert { contains_note == true }
 end
 
 Then /^branch "(.*?)" exists in the remote repo$/ do |branch_name|

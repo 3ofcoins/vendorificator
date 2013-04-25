@@ -220,6 +220,7 @@ module Vendorificator
             # Commit and tag the conjured module
             git.add work_dir
             git.commit :m => conjure_commit_message
+            git.notes('add', {:m => 'My fancy git note'}, 'HEAD')
             git.tag( { :a => true, :m => tag_message }, tag_name )
             shell.say_status :tag, tag_name
           end
@@ -272,7 +273,7 @@ module Vendorificator
     end
 
     def created_tags
-      git.capturing.show_ref.split("\n").map{ |line| line.split(' ')[1] }.
+      git.capturing.show_ref.lines.map{ |line| line.split(' ')[1] }.
         select{ |ref| ref =~ /\Arefs\/tags\/#{tag_name_base}/ }
     end
 
