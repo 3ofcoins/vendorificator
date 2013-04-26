@@ -44,7 +44,7 @@ end
 
 Then /^there's a git commit note including "(.*?)"$/ do |note|
   # Not in the assert block, because it raises an exception on failure.
-  contains_note = git.log.lines.any? { |ln| ln.include?(note) }
+  contains_note = git.log(:show_notes => 'vendor').lines.any? { |ln| ln.include?(note) }
   assert { contains_note == true }
 end
 

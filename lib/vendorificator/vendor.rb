@@ -1,7 +1,6 @@
 require 'fileutils'
-
 require 'thor/shell/basic'
-
+require 'yaml'
 require 'vendorificator/config'
 
 module Vendorificator
@@ -73,6 +72,10 @@ module Vendorificator
       git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/heads/#{branch_name}").strip
     rescue MiniGit::GitError
       nil
+    end
+
+    def tag_name
+      _join(tag_name_base, version)
     end
 
     def merged
@@ -216,13 +219,7 @@ module Vendorificator
               make_subdir_root subdir if subdir && !subdir.empty?
             end
 
-
-            # Commit and tag the conjured module
-            git.add work_dir
-            git.commit :m => conjure_commit_message
-            git.notes('add', {:m => 'My fancy git note'}, 'HEAD')
-            git.tag( { :a => true, :m => tag_message }, tag_name )
-            shell.say_status :tag, tag_name
+            commit_and_annotate
           end
           # Merge back to the original branch
           git.merge( {:no_edit => true, :no_ff => true}, branch_name )
@@ -234,22 +231,6 @@ module Vendorificator
       else
         say_status self.status, "I'm unsure what to do.", :red
       end
-    end
-
-    def tag_name_base
-      _join('vendor', category, name)
-    end
-
-    def tag_name
-      _join(tag_name_base, version)
-    end
-
-    def conjure_commit_message
-      "Conjured vendor module #{name} version #{version}"
-    end
-
-    def tag_message
-      conjure_commit_message
     end
 
     def conjure!
@@ -265,6 +246,22 @@ module Vendorificator
     end
 
     private
+
+    def tag_name_base
+      _join('vendor', category, name)
+    end
+
+    def conjure_commit_message
+      "Conjured vendor module #{name} version #{version}"
+    end
+
+    def conjure_note_message
+      {:version => version}.to_yaml
+    end
+
+    def tag_message
+      conjure_commit_message
+    end
 
     def tagged_sha1
       @tagged_sha1 ||= git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/tags/#{tag_name}^{commit}").strip
@@ -303,6 +300,16 @@ module Vendorificator
       Dir.chdir(curdir.to_s) if curdir.exist?
     end
 
+    # Private: Commits and annotates the conjured module.
+    #
+    # Returns nothing.
+    def commit_and_annotate
+      git.add work_dir
+      git.commit :m => conjure_commit_message
+      git.notes({:ref => 'vendor'}, 'add', {:m => conjure_note_message}, 'HEAD')
+      git.tag( { :a => true, :m => tag_message }, tag_name )
+      shell.say_status :tag, tag_name
+    end
   end
 
   Config.register_module :vendor, Vendor

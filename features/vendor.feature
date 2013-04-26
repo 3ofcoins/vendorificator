@@ -14,4 +14,4 @@ Scenario:
     | Version   | 0.23      |
     | With file | README    |
   And the file "vendor/generated/VERSION" should contain "0.23"
-  And there's a git commit note including "My fancy git note"
+  And there's a git commit note including ":version: '0.23'"
