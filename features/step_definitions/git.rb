@@ -42,9 +42,12 @@ Then /^there's a git log message including "(.*?)"$/ do |message|
   assert { git.log.lines.any? { |ln| ln.include?(message) } }
 end
 
-Then /^there's a git commit note including "(.*?)"$/ do |note|
+Then /^there's a git commit note including "(.*?)" in "(.*?)"$/ do |value, key|
   # Not in the assert block, because it raises an exception on failure.
-  contains_note = git.log(:show_notes => 'vendor').lines.any? { |ln| ln.include?(note) }
+  contains_note = git.notes({:ref => 'vendor'}, 'list').lines.any? do |line|
+    note = YAML.load git.show(line.split[0])
+    (note[key] || note[key.to_sym]).include? value
+  end
   assert { contains_note == true }
 end
 
