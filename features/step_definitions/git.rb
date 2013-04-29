@@ -58,3 +58,7 @@ end
 Then /^tag "(.*?)" exists in the remote repo$/ do |tag_name|
   assert { remote_git.tags.include?(tag_name) }
 end
+
+Then /^note "(.*?)" exists in the remote repo$/ do |note_name|
+  assert { remote_git.notes.include?(note_name) }
+end

@@ -109,9 +109,11 @@ module Vendorificator
       each_vendor_instance{ |mod| pushable += mod.pushable_refs }
 
       remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
-      remotes.each{ |remote| git.push remote, pushable }
-
-      git.push :tags => true
+      remotes.each do |remote|
+        git.push remote, pushable
+        git.push remote, :tags => true
+        git.push remote, 'refs/notes/vendor'
+      end
     end
 
     # Public: Runs all the vendor modules.

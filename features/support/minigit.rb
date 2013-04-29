@@ -19,6 +19,12 @@ module Vendorificator
         def tags
           refs(:tags)
         end
+
+        def notes
+          show_ref.lines.
+            map { |ln| ln =~ /[0-9a-f]{40} refs\/notes\// and $'.strip }.
+            compact
+        end
       end
 
       def git
