@@ -20,7 +20,7 @@ module Vendorificator
           refs(:tags)
         end
 
-        def notes
+        def note_refs
           show_ref.lines.
             map { |ln| ln =~ /[0-9a-f]{40} refs\/notes\// and $'.strip }.
             compact
