@@ -28,7 +28,7 @@ module Vendorificator
 
       unless (hooks = Array(args.delete(:hooks))).empty?
         hooks.each do |hook|
-          hook_module = ::Vendorificator::Hooks.const_get(hook)
+          hook_module = hook.is_a?(Module) ? hook : ::Vendorificator::Hooks.const_get(hook)
           klass = class << self; self; end;
           klass.send :include, hook_module
         end
