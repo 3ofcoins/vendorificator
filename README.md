@@ -228,17 +228,15 @@ chef_cookbook 'memcached', ignore_dependencies => ['runit']
 ```
 
 If you get Chef cookbooks from Git or anywhere else than Opscode's
-community website, you can still use dependency resolution by mixing
-in the hook class:
+community website, you can still use dependency resolution by using a :hooks
+option to add it:
 
 ```ruby
-class <<  git 'git://github.com/user/cookbook.git', :category => :cookbooks
-  include Vendorificator::Hooks::ChefCookbookDependencies
+git 'git://github.com/user/cookbook.git',
+  :category => :cookbooks,
+  :hooks => 'ChefCookbookDependencies'
 end
 ```
-
-This is a bit convoluted, but there will soon be an argument to do
-that in a nicer way.
 
 ## Contributing
 
