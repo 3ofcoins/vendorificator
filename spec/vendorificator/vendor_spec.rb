@@ -53,5 +53,23 @@ module Vendorificator
         assert { categorized.tag_name.include? 'cat' }
       end
     end
+
+    describe '#initialize' do
+      it 'adds hooks when you pass a module option' do
+        vendor = Vendor.new(basic_environment, 'test', {:hooks => Hooks::FooHook})
+        assert { includes_method? vendor, :foo_hooked_method }
+      end
+
+      it 'adds hooks via the String option shortcut' do
+        vendor = Vendor.new(basic_environment, 'test', {:hooks => 'FooHook'})
+        assert { includes_method? vendor, :foo_hooked_method }
+      end
+    end
+  end
+
+  module Hooks
+    module FooHook
+      def foo_hooked_method; end
+    end
   end
 end

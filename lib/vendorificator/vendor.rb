@@ -26,6 +26,13 @@ module Vendorificator
       @environment = environment
       @category = args.delete(:category) if args.key?(:category)
 
+      unless (hooks = Array(args.delete(:hooks))).empty?
+        hooks.each do |hook|
+          hook_module = hook.is_a?(Module) ? hook : ::Vendorificator::Hooks.const_get(hook)
+          klass = class << self; self; end;
+          klass.send :include, hook_module
+        end
+      end
       @name = name
       @args = args
       @block = block
