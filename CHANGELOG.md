@@ -2,6 +2,9 @@
 
 ## develop branch
 
+ - New command `vendor push` for pushing managed branches and tags to
+   remote repository
+ - Nicer syntax for mixin hooks
  - Add `:tag` option for `git` submodule
  - Better stashing of local changes when syncing
  - Verbosity tweaks
