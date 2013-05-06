@@ -16,11 +16,10 @@ Gem::Specification.new do |gem|
   gem.version       = Vendorificator::VERSION
 
   gem.add_dependency 'escape'
-  gem.add_dependency 'thor', '>= 0.17.0'
-  gem.add_dependency 'mixlib-config'
+  gem.add_dependency 'thor', '>= 0.18.1'
   gem.add_dependency 'minigit', '>= 0.0.3'
 
-  gem.add_development_dependency 'aruba'
+  gem.add_development_dependency 'aruba', '0.5.1'
   gem.add_development_dependency 'cucumber'
   gem.add_development_dependency 'mocha'
   gem.add_development_dependency 'chef', '>= 10.16.0' unless defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
@@ -28,4 +27,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'webmock'
   gem.add_development_dependency 'wrong', '>= 0.7.0'
   gem.add_development_dependency 'rake'
+  gem.add_development_dependency 'simplecov'
 end

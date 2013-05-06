@@ -4,8 +4,8 @@ source 'https://rubygems.org'
 gemspec
 
 group :development do
-  git "git://github.com/mpasternacki/wrong.git",
-      :ref => 'ad025241e5772373264d1bf62168e2bf3780ccf9' do
+  git "git://github.com/sconover/wrong.git",
+      :ref => '0cbc35a07cb63f6f409bb85da6ad7d107bdab021' do
     gem 'wrong'
   end
   gem 'minitest-ansi'

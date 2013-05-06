@@ -1,5 +1,15 @@
-require 'thor'
+if ENV['COVERAGE']
+  require 'pathname'
+  require 'simplecov'
+  SimpleCov.start do
+    add_group 'Vendors', 'lib/vendorificator/vendor'
+    root Pathname.new(__FILE__).dirname.dirname.dirname.realpath.to_s
+    use_merging
+  end
+  SimpleCov.command_name "vendor##{$$}@#{DateTime.now.to_s}"
+end
 
+require 'thor'
 require 'vendorificator'
 
 module Vendorificator
@@ -23,6 +33,10 @@ module Vendorificator
 
     def initialize(args=[], options={}, config={})
       super
+
+      if self.options[:debug]
+        MiniGit.debug = true
+      end
 
       if self.options[:version]
         say "Vendorificator #{Vendorificator::VERSION}"
@@ -48,17 +62,9 @@ module Vendorificator
     desc :sync, "Download new or updated vendor files"
     method_option :update, :type => :boolean, :default => false
     def sync
-      ensure_clean!
-      environment.config[:use_upstream_version] = options[:update]
-      Vendorificator::Vendor.each(*modules) do |mod|
-        say_status :module, mod.name
-        begin
-          shell.padding += 1
-          mod.run!
-        ensure
-          shell.padding -= 1
-        end
-      end
+      environment.sync options.merge(:modules => modules)
+    rescue DirtyRepoError
+      fail! 'Repository is not clean.'
     end
 
     desc "status", "List known vendor modules and their status"
@@ -66,7 +72,7 @@ module Vendorificator
     def status
       say_status 'WARNING', 'Git repository is not clean', :red unless environment.clean?
       environment.config[:use_upstream_version] = options[:update]
-      Vendorificator::Vendor.each(*modules) do |mod|
+      environment.each_vendor_instance(*modules) do |mod|
         status_line = mod.to_s
 
         updatable = mod.updatable?
@@ -87,14 +93,19 @@ module Vendorificator
     method_option :remote, :aliases => ['-r'], :default => nil
     method_option :dry_run, :aliases => ['-n'], :default => false, :type => :boolean
     def pull
-      ensure_clean!
-      remotes = options[:remote] ? options[:remote].split(',') : environment.config[:remotes]
-      remotes.each do |remote|
-        indent 'remote', remote do
-          environment.pull(remote, options)
-        end
-      end
+      environment.pull_all options
+    rescue DirtyRepoError
+      fail! 'Repository is not clean.'
     end
+
+    desc :push, "Push local changes back to the remote repository"
+    method_option :remote, :aliases => ['-r'], :default => nil
+    def push
+      environment.push options
+    rescue DirtyRepoError
+      fail! 'Repository is not clean.'
+    end
+
     desc "git GIT_COMMAND [GIT_ARGS [...]]",
          "Run a git command for specified modules"
     long_desc <<EOF
@@ -110,7 +121,7 @@ module Vendorificator
     vendor git diff --stat @MERGED@ -- @PATH@  # 'vendor diff', as diffstat
 EOF
     def git(command, *args)
-      Vendorificator::Vendor.each(*modules) do |mod|
+      environment.each_vendor_instance(*modules) do |mod|
         unless mod.merged
           say_status 'unmerged', mod.to_s, :red unless options[:only_changed]
           next
@@ -185,28 +196,5 @@ EOF
       raise Thor::Error, 'I give up.'
     end
 
-    def indent(*args, &block)
-      say_status *args unless args.empty?
-      shell.padding += 1
-      yield
-    ensure
-      shell.padding -= 1
-    end
-
-    def ensure_clean!
-      unless environment.clean?
-        fail!('Repository is not clean.')
-      end
-    end
-  end
-end
-
-# Monkey patch over https://github.com/wycats/thor/pull/298
-class Thor::Options
-  alias_method :_orig_current_is_switch?, :current_is_switch?
-  def current_is_switch?
-    rv = _orig_current_is_switch?
-    @parsing_options = false if !rv[0] && @stop_on_unknown && @parsing_options
-    rv
   end
 end

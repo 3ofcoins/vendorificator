@@ -13,6 +13,11 @@ namespace :relish do
   end
 end
 
+task :info do
+  sh 'which git'
+  sh 'git --version'
+end
+
 begin
   require 'cucumber'
   require 'cucumber/rake/task'
@@ -38,4 +43,13 @@ end
 mkdir_p 'tmp'
 ENV['TMPDIR'] ||= File.join(Dir.pwd, 'tmp')
 
-task :default => [:spec, :features]
+task :default => [:info, :spec, :features]
+
+if ENV['COVERAGE']
+  task :clean_coverage do
+    rm_rf 'coverage'
+  end
+
+  task :spec => :clean_coverage
+  task :features => :clean_coverage
+end

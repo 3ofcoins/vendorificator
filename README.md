@@ -50,8 +50,10 @@ detail.
 
  * `vendor sync` will update all vendor modules that need updating
  * `vendor status` will list all the modules and their status
- * `vendor pull` will pull all vendor branches, tags, and notes from a
-   Git remote
+ * `vendor pull` will pull all vendor branches, tags, and notes from
+   a Git remote
+ * `vendor push` will push all vendor branches, tags, and notes to
+   a Git remote
  * `vendor diff` will show the differences between vendor module's
    pristine branch and curent work tree
  * `vendor log` will show a `git log` of all changes made to a particular
@@ -123,9 +125,9 @@ block).
 Example:
 
 ```ruby
-vendor 'generated', :version => '0.23' do |mod|
-  File.open('README') { |f| f.puts "Hello, World!" }
-  File.open('VERSION') { |f| f.puts mod.version }
+vendor 'generated', :version => '0.23' do |v|
+  File.open('README', 'w') { |f| f.puts "Hello, World!" }
+  File.open('VERSION', 'w') { |f| f.puts v.version }
 end
 ```
 
@@ -160,7 +162,7 @@ unpacks it as contents of the module. It takes same options as
    disables this behaviour.
  * `:checksum` -- if set to SHA256 checksum of the file, it will be
    checked on download.
-   
+
 Archive's `:version` defaults to file name.
 
 Example:
@@ -181,10 +183,11 @@ Downloads snapshot of a Git repository. Takes the same options as
    sets name to its basename then), just like `:url` for `archive`
    (e.g. `git "git://github.com/github/testrepo.git"` will be cloned
    from that repository, and named `testrepo`).
- * `:branch`, `:revision` -- what to check out when repository is
-   cloned.
+ * `:branch`, `:revision`, `:tag` -- what to check out when repository
+   is cloned.
 
-Git module's `:version` defaults to the conjured revision.
+Git module's `:version` defaults to the `:tag` if given, or the
+conjured revision otherwise.
 
 Example:
 
@@ -208,7 +211,7 @@ always enough), plus:
    completely. If an array, don't download dependencies that are in
    the array. Default for that is `chef_cookbook_ignore_dependencies`
    setting.
-   
+
 Examples:
 
 ```ruby
@@ -227,17 +230,15 @@ chef_cookbook 'memcached', ignore_dependencies => ['runit']
 ```
 
 If you get Chef cookbooks from Git or anywhere else than Opscode's
-community website, you can still use dependency resolution by mixing
-in the hook class:
+community website, you can still use dependency resolution by using a :hooks
+option to add it:
 
 ```ruby
-class <<  git 'git://github.com/user/cookbook.git', :category => :cookbooks
-  include Vendorificator::Hooks::ChefCookbookDependencies
+git 'git://github.com/user/cookbook.git',
+  :category => :cookbooks,
+  :hooks => 'ChefCookbookDependencies'
 end
 ```
-
-This is a bit convoluted, but there will soon be an argument to do
-that in a nicer way.
 
 ## Contributing
 

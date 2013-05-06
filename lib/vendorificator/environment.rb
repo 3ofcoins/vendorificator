@@ -7,13 +7,16 @@ require 'vendorificator/config'
 module Vendorificator
   class Environment
     attr_reader :config
-    attr_accessor :shell
+    attr_accessor :shell, :vendor_instances
 
     def initialize(vendorfile=nil)
-      @config = Vendorificator::Config
-      config.environment = self
-      config.from_file(self.class.find_vendorfile(vendorfile))
-      Vendorificator::Vendor.compute_dependencies!
+      @vendor_instances = []
+
+      @config = Vendorificator::Config.new
+      @config.environment = self
+      @config.read_file(find_vendorfile(vendorfile).to_s)
+
+      self.each_vendor_instance{ |mod| mod.compute_dependencies! }
     end
 
     def say_status(*args)
@@ -38,16 +41,26 @@ module Vendorificator
       git.capturing.merge_base(to, from).strip == from
     end
 
-    def clean?
-      # copy code from http://stackoverflow.com/a/3879077/16390
-      git.update_index :q => true, :ignore_submodules => true, :refresh => true
-      git.diff_files '--quiet', '--ignore-submodules', '--'
-      git.diff_index '--cached', '--quiet', 'HEAD', '--ignore-submodules', '--'
-      true
-    rescue MiniGit::GitError
-      false
+    # Public: Pulls all the remotes specified in options[:remote] or the config.
+    #
+    # options - The Hash of options.
+    #
+    # Returns nothing.
+    def pull_all(options = {})
+      ensure_clean!
+      remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
+      remotes.each do |remote|
+        indent 'remote', remote do
+          pull(remote, options)
+        end
+      end
     end
 
+    # Public: Pulls a single remote and updates the branches.
+    #
+    # options - The Hash of options.
+    #
+    # Returns nothing.
     def pull(remote, options={})
       raise RuntimeError, "Unknown remote #{remote}" unless remotes.include?(remote)
 
@@ -61,13 +74,13 @@ module Vendorificator
         map { |sha, name| name =~ ref_rx ? [$', sha] : nil }.
         compact ]
 
-      Vendorificator::Vendor.each do |mod|
+      each_vendor_instance do |mod|
         ours = mod.head
         theirs = remote_branches[mod.branch_name]
         if theirs
           if not ours
             say_status 'new', mod.branch_name, :yellow
-            git.branch({:track=>true}, mod.branch_name, remote_head.name) unless options[:dry_run]
+            git.branch({:track => true}, mod.branch_name, theirs) unless options[:dry_run]
           elsif ours == theirs
             say_status 'unchanged', mod.branch_name
           elsif fast_forwardable?(theirs, ours)
@@ -82,10 +95,85 @@ module Vendorificator
           say_status 'unknown', mod.branch_name
         end
       end
-
     end
 
-    def self.find_vendorfile(given=nil)
+    # Public: Push changes on module branches.
+    #
+    # options - The Hash containing options
+    #
+    # Returns nothing.
+    def push(options = {})
+      ensure_clean!
+
+      pushable = []
+      each_vendor_instance{ |mod| pushable += mod.pushable_refs }
+
+      remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
+      remotes.each{ |remote| git.push remote, pushable }
+
+      git.push :tags => true
+    end
+
+    # Public: Runs all the vendor modules.
+    #
+    # options - The Hash of options.
+    #
+    # Returns nothing.
+    def sync(options = {})
+      ensure_clean!
+      config[:use_upstream_version] = options[:update]
+
+      each_vendor_instance(*options[:modules]) do |mod|
+        say_status :module, mod.name
+        indent do
+          mod.run!
+        end
+      end
+    end
+
+    # Public: Goes through all the Vendor instances and runs the block
+    #
+    # modules - ?
+    #
+    # Returns nothing.
+    def each_vendor_instance(*modules)
+      modpaths = modules.map { |m| File.expand_path(m) }
+
+      # We don't use @vendor_instances.each here, because Vendor#run! is
+      # explicitly allowed to append to instantiate new dependencies, and #each
+      # fails to catch up on some Ruby implementations.
+      i = 0
+      while true
+        break if i >= @vendor_instances.length
+        mod = @vendor_instances[i]
+        yield mod if modules.empty? ||
+          modules.include?(mod.name) ||
+          modpaths.include?(mod.work_dir)
+        i += 1
+      end
+    end
+
+    # Public: Checks if the repository is clean.
+    #
+    # Returns boolean answer to the question.
+    def clean?
+      # copy code from http://stackoverflow.com/a/3879077/16390
+      git.update_index '-q', '--ignore-submodules', '--refresh'
+      git.diff_files '--quiet', '--ignore-submodules', '--'
+      git.diff_index '--cached', '--quiet', 'HEAD', '--ignore-submodules', '--'
+      true
+    rescue MiniGit::GitError
+      false
+    end
+
+    private
+
+    # Private: Finds the vendorfile to use.
+    #
+    # given - the optional String containing vendorfile path.
+    #
+    # Returns a String containing the vendorfile path.
+    def find_vendorfile(given=nil)
       given = [ given, ENV['VENDORFILE'] ].find do |candidate|
         candidate && !(candidate.respond_to?(:empty?) && candidate.empty?)
       end
@@ -107,5 +195,24 @@ module Vendorificator
 
       raise ArgumentError, "Vendorfile not found"
     end
+
+    # Private: Aborts on a dirty repository.
+    #
+    # Returns nothing.
+    def ensure_clean!
+      raise DirtyRepoError unless clean?
+    end
+
+    # Private: Indents the output.
+    #
+    # Returns nothing.
+    def indent(*args, &block)
+      say_status *args unless args.empty?
+      shell.padding += 1 if shell
+      yield
+    ensure
+      shell.padding -= 1 if shell
+    end
+
   end
 end

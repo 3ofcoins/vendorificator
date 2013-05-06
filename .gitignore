@@ -17,4 +17,7 @@ test/tmp
 test/version_tmp
 tmp
 /.rbx
+/.ruby-version
+/.ruby-gemset
 /log
+.DS_Store
