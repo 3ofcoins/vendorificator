@@ -1,6 +1,6 @@
 # Changes
 
-## develop branch
+## 0.3.0
 
  - New command `vendor push` for pushing managed branches and tags to
    remote repository
