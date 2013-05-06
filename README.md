@@ -50,8 +50,10 @@ detail.
 
  * `vendor sync` will update all vendor modules that need updating
  * `vendor status` will list all the modules and their status
- * `vendor pull` will pull all vendor branches, tags, and notes from a
-   Git remote
+ * `vendor pull` will pull all vendor branches, tags, and notes from
+   a Git remote
+ * `vendor push` will push all vendor branches, tags, and notes to
+   a Git remote
  * `vendor diff` will show the differences between vendor module's
    pristine branch and curent work tree
  * `vendor log` will show a `git log` of all changes made to a particular
