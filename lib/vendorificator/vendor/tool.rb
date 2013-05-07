@@ -1,6 +1,5 @@
 require 'fileutils'
 require 'tempfile'
-require 'awesome_print'
 
 require 'vendorificator/vendor'
 
