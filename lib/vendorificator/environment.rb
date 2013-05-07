@@ -9,12 +9,15 @@ module Vendorificator
     attr_reader :config
     attr_accessor :shell, :vendor_instances
 
-    def initialize(vendorfile=nil)
+    def initialize(vendorfile=nil, &block)
       @vendor_instances = []
 
       @config = Vendorificator::Config.new
       @config.environment = self
-      @config.read_file(find_vendorfile(vendorfile).to_s)
+      if vendorfile || !block_given?
+        @config.read_file(find_vendorfile(vendorfile).to_s)
+      end
+      @config.instance_eval(&block) if block_given?
 
       self.each_vendor_instance{ |mod| mod.compute_dependencies! }
     end
@@ -166,6 +169,11 @@ module Vendorificator
       false
     end
 
+    # Public: Returns module with given name
+    def [](name)
+      vendor_instances.find { |v| v.name == name }
+    end
+
     private
 
     # Private: Finds the vendorfile to use.
@@ -213,6 +221,5 @@ module Vendorificator
     ensure
       shell.padding -= 1 if shell
     end
-
   end
 end
