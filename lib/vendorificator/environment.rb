@@ -169,6 +169,11 @@ module Vendorificator
       false
     end
 
+    # Public: Returns module with given name
+    def [](name)
+      vendor_instances.find { |v| v.name == name }
+    end
+
     private
 
     # Private: Finds the vendorfile to use.
@@ -216,6 +221,5 @@ module Vendorificator
     ensure
       shell.padding -= 1 if shell
     end
-
   end
 end
