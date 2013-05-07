@@ -280,7 +280,7 @@ module Vendorificator
 
     def created_tags
       git.capturing.show_ref.split("\n").map{ |line| line.split(' ')[1] }.
-        select{ |ref| ref =~ /\Arefs\/tags\/#{tag_name_base}/ }
+        select{ |ref| ref =~ /\Arefs\/tags\/#{tag_name_base}\// }
     end
 
     def git
