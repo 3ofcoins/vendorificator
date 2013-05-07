@@ -19,6 +19,16 @@ Given /^a repository with following Vendorfile:$/ do |vendorfile_contents|
   run_simple 'git commit -m "New repo"'
 end
 
+Given /^I have following Gemfile:$/ do |gemfile_contents|
+  write_file('Gemfile', gemfile_contents)
+  saving_env do
+    unset_bundler_env_vars
+    run_simple 'bundle'
+  end
+  run_simple 'git add Gemfile Gemfile.lock'
+  run_simple 'git commit -m bundle'
+end
+
 Given /^a remote repository$/ do
   create_dir '../remote-repository'
   cd '../remote-repository'

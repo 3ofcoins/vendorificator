@@ -1,3 +1,4 @@
+
 Then /^the last output should match (#{PATTERN})$/ do |expected|
   assert { last_output =~ expected }
 end
@@ -11,6 +12,8 @@ Then /^it should fail$/ do
 end
 
 Then /^I successfully run `(.*)` with bundler disabled/ do |command|
-  unset_bundler_env_vars
-  step "I successfully run `#{command}`"
+  saving_env do
+    unset_bundler_env_vars
+    step "I successfully run `#{command}`"
+  end
 end

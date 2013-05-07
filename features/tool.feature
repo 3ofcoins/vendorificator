@@ -9,23 +9,36 @@ Background:
     end
 
     tool 'bundler',
-         :path => 'vendor/cache',
+         :path => 'cache', # Hardcoded, meh
          :specs => [ 'Gemfile', 'Gemfile.lock' ],
          :command => 'bundle package --all'
     """
-  And a file named "Gemfile" with:
+
+@wip
+Scenario: Use Gem bundler to download rubygems, and Vendorificator to vendor them
+  Given I have following Gemfile:
     """ruby
     source "file://#{ENV['FIXTURES_DIR']}/rubygems"
     gem "hello"
     """
-  And I successfully run `bundle` with bundler disabled
-  And I successfully run `git add Gemfile Gemfile.lock`
-  And I successfully run `git commit -m Bundler`
-
-@wip
-@announce
-Scenario: Use Gem bundler to download rubygems, and Vendorificator to vendor them
   When I successfully run `vendor sync`
   Then following has been conjured:
-    | Name      | bundler         |
-    | With file | hello-0.0.1.gem |
+    | Name         | bundler         |
+    | Path         | cache           |
+    | With file    | hello-0.0.1.gem |
+    | Without file | first-0.gem     |
+
+@wip
+Scenario: Bundler correctly downloads and caches dependencies
+  Given I have following Gemfile:
+    """ruby
+    source "file://#{ENV['FIXTURES_DIR']}/rubygems"
+    gem "first"
+    """
+  When I successfully run `vendor sync`
+  Then following has been conjured:
+    | Name         | bundler         |
+    | Path         | cache           |
+    | Without file | hello-0.0.1.gem |
+    | With file    | first-0.gem     |
+    | With file    | second-0.gem    |

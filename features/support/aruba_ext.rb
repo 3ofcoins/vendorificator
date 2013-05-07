@@ -16,6 +16,14 @@ module Vendorificator
       def last_output
         last_stdout + last_stderr
       end
+
+      def saving_env
+        _cached_original_env, @original_env = @original_env, {}
+        yield
+      ensure
+        restore_env
+        @original_env = _cached_original_env
+      end
     end
   end
 end
