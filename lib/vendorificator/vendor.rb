@@ -265,9 +265,9 @@ module Vendorificator
     def compute_dependencies! ; end
 
     def pushable_refs
-      branch = "+refs/heads/#{branch_name}"
-      tags = created_tags.map{ |tag| '+' + tag }
-      [branch, tags].flatten
+      created_tags.
+        map { |tag| '+' << tag }.
+        unshift("+refs/heads/#{branch_name}")
     end
 
     private
