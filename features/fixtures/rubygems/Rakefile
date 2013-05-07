@@ -1,0 +1,46 @@
+require 'bundler/setup'
+require 'rake/clean'
+
+CLEAN.include   'src/*.gem'
+CLOBBER.include '*.4.8'
+CLOBBER.include '*.4.8.gz'
+CLOBBER.include '*.4.8.Z'
+CLOBBER.include 'gems/'
+CLOBBER.include 'quick/'
+
+# Target directory
+directory 'gems'
+
+# Run `gem` command without bundler's environment to avoid indexing
+# whole bundle
+def gem(command, dir='.')
+  Dir.chdir(dir) do
+    Bundler.with_clean_env do
+      sh "gem #{command}"
+    end
+  end
+end
+
+# Build all gems in src/
+GEMS = Dir['src/*.gemspec'].map do |gemspec|
+  gem_name = File.basename(gemspec, '.gemspec')
+  gem_filename = "#{gem_name}-0.gem"
+
+  file "gems/#{gem_filename}" => [ gemspec, 'gems' ] do
+    gem "build #{File.basename(gemspec)}", 'src'
+    mv "src/#{gem_filename}", "gems/#{gem_filename}"
+  end
+end
+
+# Fetch a "Hello, World" gem
+GEMS << file("gems/hello-0.0.1.gem" => 'gems') do
+  gem 'fetch hello', 'gems'
+end
+
+# Regenerate index
+file 'specs.4.8' => GEMS do
+  gem "generate_index"
+end
+
+#
+task :default => 'specs.4.8'
