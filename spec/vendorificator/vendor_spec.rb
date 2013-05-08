@@ -60,8 +60,8 @@ module Vendorificator
         @vendor.stubs(:version).returns('0.23')
       end
 
-      it 'contains the vendorificator version' do
-        assert { @vendor.metadata.keys.include? :vendorificator_version }
+      it 'contains the module version' do
+        assert { @vendor.metadata[:version] == '0.23' }
       end
     end
   end

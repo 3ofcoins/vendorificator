@@ -188,7 +188,7 @@ module Vendorificator
       end
     end
 
-    def run!
+    def run!(options = {})
       case status
 
       when :up_to_date
@@ -219,7 +219,7 @@ module Vendorificator
               make_subdir_root subdir if subdir && !subdir.empty?
             end
 
-            commit_and_annotate
+            commit_and_annotate(options[:metadata])
           end
           # Merge back to the original branch
           git.merge( {:no_edit => true, :no_ff => true}, branch_name )
@@ -247,7 +247,6 @@ module Vendorificator
 
     def metadata
       {
-        :vendorificator_version => ::Vendorificator::VERSION,
         :version => version
       }
     end
@@ -306,10 +305,15 @@ module Vendorificator
     # Private: Commits and annotates the conjured module.
     #
     # Returns nothing.
-    def commit_and_annotate
+    def commit_and_annotate(environment_metadata = nil)
       git.add work_dir
       git.commit :m => conjure_commit_message
-      git.notes({:ref => 'vendor'}, 'add', {:m => metadata.to_yaml}, 'HEAD')
+      git.notes(
+        {:ref => 'vendor'},
+        'add',
+        {:m => metadata.merge(environment_metadata).to_yaml},
+        'HEAD'
+      )
       git.tag( { :a => true, :m => tag_message }, tag_name )
       shell.say_status :tag, tag_name
     end

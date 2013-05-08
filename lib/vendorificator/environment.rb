@@ -125,11 +125,12 @@ module Vendorificator
     def sync(options = {})
       ensure_clean!
       config[:use_upstream_version] = options[:update]
+      metadata = metadata_snapshot
 
       each_vendor_instance(*options[:modules]) do |mod|
         say_status :module, mod.name
         indent do
-          mod.run!
+          mod.run!(:metadata => metadata)
         end
       end
     end
@@ -167,6 +168,15 @@ module Vendorificator
       true
     rescue MiniGit::GitError
       false
+    end
+
+    def metadata_snapshot
+      {
+        :vendorificator_version => ::Vendorificator::VERSION,
+        :current_branch => git.rev_parse({:abbrev_ref => true}, 'HEAD'),
+        :current_sha => git.rev_parse('HEAD'),
+        :git_describe => (git.describe rescue '')
+      }
     end
 
     private
