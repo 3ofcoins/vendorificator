@@ -1,3 +1,5 @@
+require 'shellwords'
+
 module Vendorificator
   module TestSupport
     module ArubaExt
@@ -17,12 +19,10 @@ module Vendorificator
         last_stdout + last_stderr
       end
 
-      def saving_env
-        _cached_original_env, @original_env = @original_env, {}
-        yield
-      ensure
-        restore_env
-        @original_env = _cached_original_env
+      def without_bundler(cmd)
+        cmd = %w[ RUBYOPT BUNDLE_PATH BUNDLE_BIN_PATH BUNDLE_GEMFILE
+                ].map { |v| "unset #{v} ; " }.join << cmd
+        "sh -c #{Shellwords.escape(cmd)}"
       end
     end
   end

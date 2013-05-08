@@ -21,10 +21,7 @@ end
 
 Given /^I have following Gemfile:$/ do |gemfile_contents|
   write_file('Gemfile', gemfile_contents)
-  saving_env do
-    unset_bundler_env_vars
-    run_simple 'bundle'
-  end
+  run_simple(without_bundler('bundle'))
   run_simple 'git add Gemfile Gemfile.lock'
   run_simple 'git commit -m bundle'
 end
