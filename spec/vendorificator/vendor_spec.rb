@@ -53,5 +53,16 @@ module Vendorificator
         assert { categorized.tag_name.include? 'cat' }
       end
     end
+
+    describe '#metadata' do
+      before do
+        @vendor = Vendor.new(basic_environment, 'test')
+        @vendor.stubs(:version).returns('0.23')
+      end
+
+      it 'contains the vendorificator version' do
+        assert { @vendor.metadata.keys.include? :vendorificator_version }
+      end
+    end
   end
 end

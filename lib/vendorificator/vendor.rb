@@ -245,6 +245,13 @@ module Vendorificator
       [branch, tags].flatten
     end
 
+    def metadata
+      {
+        :vendorificator_version => ::Vendorificator::VERSION,
+        :version => version
+      }
+    end
+
     private
 
     def tag_name_base
@@ -253,10 +260,6 @@ module Vendorificator
 
     def conjure_commit_message
       "Conjured vendor module #{name} version #{version}"
-    end
-
-    def conjure_note_hash
-      {:version => version}
     end
 
     def tag_message
@@ -306,7 +309,7 @@ module Vendorificator
     def commit_and_annotate
       git.add work_dir
       git.commit :m => conjure_commit_message
-      git.notes({:ref => 'vendor'}, 'add', {:m => conjure_note_hash.to_yaml}, 'HEAD')
+      git.notes({:ref => 'vendor'}, 'add', {:m => metadata.to_yaml}, 'HEAD')
       git.tag( { :a => true, :m => tag_message }, tag_name )
       shell.say_status :tag, tag_name
     end
