@@ -42,5 +42,19 @@ module Vendorificator
 
   class Config
     register_module :tool, Vendor::Tool
+
+    def rubygems_bundler
+      tool 'rubygems',
+           :path => 'cache', # Hardcoded, meh
+           :specs => [ 'Gemfile', 'Gemfile.lock' ],
+           :command => 'bundle package --all'
+    end
+
+    def chef_berkshelf
+      tool 'cookbooks',
+           :path => 'cookbooks',
+           :specs => [ 'Berksfile', 'Berksfile.lock' ],
+           :command => 'berks install --path vendor/cookbooks'
+    end
   end
 end

@@ -30,7 +30,7 @@ Given /^a remote repository$/ do
   run_simple 'git remote add origin ../remote-repository'
 end
 
-When /^I (?:have following Gemfile|change Gemfile to):$/ do |gemfile_contents|
+When /(?:I have following Gemfile|I change Gemfile to|following Gemfile):$/ do |gemfile_contents|
   write_file('Gemfile', gemfile_contents)
   run_simple(without_bundler('bundle'))
   run_simple 'git add Gemfile Gemfile.lock'
