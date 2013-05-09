@@ -304,18 +304,27 @@ module Vendorificator
 
     # Private: Commits and annotates the conjured module.
     #
+    # environment_metadata - Hash with environment metadata where vendor was run
+    #
     # Returns nothing.
-    def commit_and_annotate(environment_metadata = nil)
+    def commit_and_annotate(environment_metadata = {})
       git.add work_dir
       git.commit :m => conjure_commit_message
-      git.notes(
-        {:ref => 'vendor'},
-        'add',
-        {:m => metadata.merge(environment_metadata).to_yaml},
-        'HEAD'
-      )
+      git.notes({:ref => 'vendor'}, 'add', {:m => conjure_note(environment_metadata)}, 'HEAD')
       git.tag( { :a => true, :m => tag_message }, tag_name )
       shell.say_status :tag, tag_name
+    end
+
+    # Private: Merges all the data we use for the commit note.
+    #
+    # environment_metadata - Hash with environment metadata where vendor was run
+    #
+    # Returns: The note in the YAML format.
+    def conjure_note(environment_metadata = {})
+      config.metadata.
+        merge(environment_metadata).
+        merge(metadata).
+        to_yaml
     end
   end
 

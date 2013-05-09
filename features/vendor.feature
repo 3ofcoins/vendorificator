@@ -4,6 +4,7 @@ Scenario:
   Given a repository with following Vendorfile:
     """ruby
     vendor 'generated', :version => '0.23' do |v|
+      annotate 'foo', 'bar'
       File.open('README', 'w') { |f| f.puts "Hello, World!" }
       File.open('VERSION', 'w') { |f| f.puts v.version }
     end
@@ -15,3 +16,4 @@ Scenario:
     | With file | README    |
   And the file "vendor/generated/VERSION" should contain "0.23"
   And there's a git commit note including "0.23" in "version"
+  And there's a git commit note including "bar" in "foo"
