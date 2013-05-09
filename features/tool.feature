@@ -42,3 +42,29 @@ Scenario: Bundler correctly downloads and caches dependencies
     | Without file | hello-0.0.1.gem |
     | With file    | first-0.gem     |
     | With file    | second-0.gem    |
+
+@wip
+Scenario: directory contents are completely replaced on re-vendoring
+  Given I have following Gemfile:
+    """ruby
+    source "file://#{ENV['FIXTURES_DIR']}/rubygems"
+    gem "hello"
+    """
+  When I successfully run `vendor sync`
+  Then following has been conjured:
+    | Name         | bundler         |
+    | Path         | cache           |
+    | With file    | hello-0.0.1.gem |
+    | Without file | first-0.gem     |
+  When I change Gemfile to:
+    """ruby
+    source "file://#{ENV['FIXTURES_DIR']}/rubygems"
+    gem "first"
+    """
+  And I successfully run `vendor sync`
+  Then following has been conjured:
+    | Name         | bundler         |
+    | Path         | cache           |
+    | Without file | hello-0.0.1.gem |
+    | With file    | first-0.gem     |
+    | With file    | second-0.gem    |
