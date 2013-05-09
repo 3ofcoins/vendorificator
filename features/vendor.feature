@@ -3,8 +3,8 @@ Feature: bare 'vendor' clause
 Scenario:
   Given a repository with following Vendorfile:
     """ruby
-    vendor 'generated', :version => '0.23' do |v|
-      annotate 'foo', 'bar'
+    annotate 'foo', 'bar'
+    vendor 'generated', :version => '0.23', :annotate => 'by Przemo' do |v|
       File.open('README', 'w') { |f| f.puts "Hello, World!" }
       File.open('VERSION', 'w') { |f| f.puts v.version }
     end
@@ -15,5 +15,5 @@ Scenario:
     | Version   | 0.23      |
     | With file | README    |
   And the file "vendor/generated/VERSION" should contain "0.23"
-  And there's a git commit note including "0.23" in "version"
   And there's a git commit note including "bar" in "foo"
+  And there's a git commit note including "by Przemo" in "module_annotations"

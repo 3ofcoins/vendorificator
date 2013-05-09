@@ -246,9 +246,11 @@ module Vendorificator
     end
 
     def metadata
-      {
+      default = {
         :version => version
       }
+      user = args[:annotate].empty? ? {} : {:module_annotations => args[:annotate]}
+      default.merge user
     end
 
     private
