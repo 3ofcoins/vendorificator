@@ -24,7 +24,6 @@ module Vendorificator
     def initialize(environment, name, args={}, &block)
       @environment = environment
       @category = args.delete(:category) if args.key?(:category)
-
       @name = name
       @args = args
       @block = block
@@ -247,9 +246,12 @@ module Vendorificator
 
     def metadata
       default = {
-        :version => version
+        :module_version => version,
+        :module_name => @name,
+        :module_category => @category,
+        :module_args => @args
       }
-      user = args[:annotate].empty? ? {} : {:module_annotations => args[:annotate]}
+      user = @args[:annotate] ? {:module_annotations => @args[:annotate]} : {}
       default.merge user
     end
 
