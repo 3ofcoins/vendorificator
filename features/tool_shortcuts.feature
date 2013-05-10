@@ -23,6 +23,7 @@ Scenario: rubygems_bundler
     | Without file | first-0.gem     |
 
 @wip
+@berkshelf
 Scenario: chef_berkshelf
   Given a repository with following Vendorfile:
     """ruby
