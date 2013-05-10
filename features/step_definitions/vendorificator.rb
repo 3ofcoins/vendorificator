@@ -1,3 +1,7 @@
+def vendor_path_for(mod, path)
+  File.join('vendor', mod['Path'] || mod['Name'], path)
+end
+
 Then /^(?:the )?following has( not)? been conjured:$/ do |not_p, table|
   exists_p = not_p ? "does not exist" : "exists"
 
@@ -14,12 +18,12 @@ Then /^(?:the )?following has( not)? been conjured:$/ do |not_p, table|
 
     if mod['With file']
       check_file_presence(mod['With file'].lines.
-        map { |ln| File.join('vendor', mod['Name'], ln.strip) }, !not_p)
+        map { |ln| vendor_path_for(mod, ln.strip) }, !not_p)
     end
 
     if mod['Without file']
       check_file_presence(mod['Without file'].lines.
-          map { |ln| File.join('vendor', mod['Name'], ln.strip) }, !!not_p)
+          map { |ln| vendor_path_for(mod, ln.strip) }, !!not_p)
     end
   end
 end
