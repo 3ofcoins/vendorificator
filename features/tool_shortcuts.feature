@@ -1,6 +1,5 @@
 Feature: `rubygems_bundler` and `chef_berkshelf` shortcuts for tools
 
-@wip
 Scenario: rubygems_bundler
   Given a repository with following Vendorfile:
     """ruby
@@ -22,7 +21,6 @@ Scenario: rubygems_bundler
     | With file    | hello-0.0.1.gem |
     | Without file | first-0.gem     |
 
-@wip
 @berkshelf
 Scenario: chef_berkshelf
   Given a repository with following Vendorfile:

@@ -6,10 +6,7 @@ Bundler.setup
 require "bundler/gem_tasks"
 require 'rake/testtask'
 
-begin
-  require 'berkshelf/version'
-rescue LoadError
-end
+require 'berkshelf/version' rescue LoadError
 
 namespace :relish do
   desc "Publish documentation to Relish"
