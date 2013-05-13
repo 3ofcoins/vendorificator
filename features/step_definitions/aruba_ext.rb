@@ -1,3 +1,4 @@
+
 Then /^the last output should match (#{PATTERN})$/ do |expected|
   assert { last_output =~ expected }
 end

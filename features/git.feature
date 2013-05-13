@@ -39,7 +39,6 @@ Scenario: Vendorificating a certain branch from a git repo
     | With file     | README.md                                |
   And there's a git log message including "at revision ecbfa229ba5f11c05b18bcc4f7c32b8f25d63f8c"
 
-@wip
 Scenario: Vendorificating a certain tag from a git repo
   Given a repository with following Vendorfile:
     """ruby
@@ -51,7 +50,7 @@ Scenario: Vendorificating a certain tag from a git repo
     | Name         | testrepo     |
     | Version      | email-v0     |
     | Without file | README.md    |
-    | With file    | test/alias.c | 
+    | With file    | test/alias.c |
   And there's a git log message including "at revision f81247bde4ef7a1c7d280140cc0bcf0b8221a51f"
 
 Scenario: Vendorificating a certain revision from a git repo

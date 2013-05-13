@@ -6,6 +6,11 @@ Bundler.setup
 require "bundler/gem_tasks"
 require 'rake/testtask'
 
+begin
+  require 'berkshelf/version'
+rescue LoadError
+end
+
 namespace :relish do
   desc "Publish documentation to Relish"
   task :push do
@@ -25,6 +30,8 @@ begin
   desc 'Run Cucumber features'
   Cucumber::Rake::Task.new(:features) do |t|
     t.fork = false
+    t.cucumber_opts = %w{--format progress}
+    t.cucumber_opts += %w{--tags ~@berkshelf} unless defined?(Berkshelf)
   end
 rescue LoadError
   desc 'Cucumber rake task not available'
