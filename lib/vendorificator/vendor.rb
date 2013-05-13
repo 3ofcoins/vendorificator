@@ -207,6 +207,7 @@ module Vendorificator
         shell.say_status 'fetching', self.to_s, :yellow
         begin
           shell.padding += 1
+          before_conjure!
           in_branch(:clean => true) do
             FileUtils::mkdir_p work_dir
 
@@ -225,7 +226,7 @@ module Vendorificator
 
 
             # Commit and tag the conjured module
-            git.add work_dir
+            git.add work_dir, *git_add_extra_paths
             git.commit :m => conjure_commit_message
             git.tag( { :a => true, :m => tag_message }, tag_name )
             shell.say_status :tag, tag_name
@@ -262,6 +263,10 @@ module Vendorificator
       block.call(self) if block
     end
 
+    #
+    # Hook points
+    def git_add_extra_paths ; [] ; end
+    def before_conjure! ; end
     def compute_dependencies! ; end
 
     def pushable_refs
