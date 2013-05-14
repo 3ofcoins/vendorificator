@@ -24,6 +24,14 @@ module Vendorificator
     def initialize(environment, name, args={}, &block)
       @environment = environment
       @category = args.delete(:category) if args.key?(:category)
+
+      unless (hooks = Array(args.delete(:hooks))).empty?
+        hooks.each do |hook|
+          hook_module = hook.is_a?(Module) ? hook : ::Vendorificator::Hooks.const_get(hook)
+          klass = class << self; self; end;
+          klass.send :include, hook_module
+        end
+      end
       @name = name
       @args = args
       @block = block
@@ -202,6 +210,7 @@ module Vendorificator
         shell.say_status 'fetching', self.to_s, :yellow
         begin
           shell.padding += 1
+          before_conjure!
           in_branch(:clean => true) do
             FileUtils::mkdir_p work_dir
 
@@ -236,12 +245,16 @@ module Vendorificator
       block.call(self) if block
     end
 
+    #
+    # Hook points
+    def git_add_extra_paths ; [] ; end
+    def before_conjure! ; end
     def compute_dependencies! ; end
 
     def pushable_refs
-      branch = "+refs/heads/#{branch_name}"
-      tags = created_tags.map{ |tag| '+' + tag }
-      [branch, tags].flatten
+      created_tags.
+        map { |tag| '+' << tag }.
+        unshift("+refs/heads/#{branch_name}")
     end
 
     def metadata
@@ -277,7 +290,7 @@ module Vendorificator
 
     def created_tags
       git.capturing.show_ref.lines.map{ |line| line.split(' ')[1] }.
-        select{ |ref| ref =~ /\Arefs\/tags\/#{tag_name_base}/ }
+        select{ |ref| ref =~ /\Arefs\/tags\/#{tag_name_base}\// }
     end
 
     def git
@@ -312,7 +325,7 @@ module Vendorificator
     #
     # Returns nothing.
     def commit_and_annotate(environment_metadata = {})
-      git.add work_dir
+      git.add work_dir, *git_add_extra_paths
       git.commit :m => conjure_commit_message
       git.notes({:ref => 'vendor'}, 'add', {:m => conjure_note(environment_metadata)}, 'HEAD')
       git.tag( { :a => true, :m => tag_message }, tag_name )

@@ -50,8 +50,10 @@ detail.
 
  * `vendor sync` will update all vendor modules that need updating
  * `vendor status` will list all the modules and their status
- * `vendor pull` will pull all vendor branches, tags, and notes from a
-   Git remote
+ * `vendor pull` will pull all vendor branches, tags, and notes from
+   a Git remote
+ * `vendor push` will push all vendor branches, tags, and notes to
+   a Git remote
  * `vendor diff` will show the differences between vendor module's
    pristine branch and curent work tree
  * `vendor log` will show a `git log` of all changes made to a particular
@@ -228,17 +230,45 @@ chef_cookbook 'memcached', ignore_dependencies => ['runit']
 ```
 
 If you get Chef cookbooks from Git or anywhere else than Opscode's
-community website, you can still use dependency resolution by mixing
-in the hook class:
+community website, you can still use dependency resolution by using a :hooks
+option to add it:
 
 ```ruby
-class <<  git 'git://github.com/user/cookbook.git', :category => :cookbooks
-  include Vendorificator::Hooks::ChefCookbookDependencies
+git 'git://github.com/user/cookbook.git',
+  :category => :cookbooks,
+  :hooks => 'ChefCookbookDependencies'
 end
 ```
 
-This is a bit convoluted, but there will soon be an argument to do
-that in a nicer way.
+#### tool
+
+Runs a shell command to download dependencies, and then stores them in
+a pristine branch. You can use this to leverage platform-specific
+tools (Bundler for Ruby gems, pip for Python packages, Berkshelf for
+Chef cookbooks, etc), and keep track of downloaded modules with
+Vendorificator. Takes the same arguments as `vendor`, plus:
+
+ * `:command` -- command to run to download files
+ * `:specs` -- files specifying what to download; these will be kept
+   on the vendor branch together with downloaded dependencies
+
+Two convenience shortcuts are provided, `rubygems_bundler`, and
+`chef_berkshelf`. They take no arguments. Their definitions are
+examples as well:
+
+```ruby
+tool 'rubygems', # <- rubygems_bundler
+     :path => 'cache',
+     :specs => [ 'Gemfile', 'Gemfile.lock' ],
+     :command => 'bundle package --all'
+```
+
+```ruby
+tool 'cookbooks', # <- chef_berkshelf
+     :path => 'cookbooks',
+     :specs => [ 'Berksfile', 'Berksfile.lock' ],
+     :command => 'berks install --path vendor/cookbooks'
+```
 
 ## Contributing
 

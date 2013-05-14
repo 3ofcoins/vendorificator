@@ -36,7 +36,9 @@ end
 
 class MiniTest::Spec
   before do
-    Vendorificator::Environment.any_instance.stubs(:git).returns(stub)
+    _git = stub
+    _git.stubs(:capturing).returns(stub)
+    Vendorificator::Environment.any_instance.stubs(:git).returns(_git)
   end
 
   def conf

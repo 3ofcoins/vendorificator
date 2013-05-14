@@ -1,2 +1,2 @@
 ---
-default: --format progress
+default: --format pretty
