@@ -6,19 +6,6 @@ module Vendorificator
     arg_reader :repository, :revision, :tag, :branch
     attr_reader :conjured_revision
 
-    def initialize(environment, name, args={}, &block)
-      args[:version] ||= args[:tag] if args[:tag]
-      if [:revision, :tag, :branch].select { |key| args.key?(key) }.count > 1
-        raise ArgumentError, "You can provide only one of: :revision, :tag, :branch"
-      end
-
-      unless args.include?(:repository)
-        args[:repository] = name
-        name = name.split('/').last.sub(/\.git$/, '')
-      end
-      super(environment, name, args, &block)
-    end
-
     def conjure!
       shell.say_status :clone, repository
       MiniGit.git :clone, repository, '.'
@@ -47,6 +34,21 @@ module Vendorificator
       rv << "from branch #{branch} " if branch
       rv << "at revision #{conjured_revision}"
       rv
+    end
+
+    private
+
+    def parse_initialize_args(args = {})
+      args[:version] ||= args[:tag] if args[:tag]
+      if [:revision, :tag, :branch].select { |key| args.key?(key) }.count > 1
+        raise ArgumentError, "You can provide only one of: :revision, :tag, :branch"
+      end
+
+      unless args.include?(:repository)
+        args[:repository] = @name
+        @name = @name.split('/').last.sub(/\.git$/, '')
+      end
+      super args
     end
   end
 

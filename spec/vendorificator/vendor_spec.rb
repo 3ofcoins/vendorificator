@@ -74,8 +74,12 @@ module Vendorificator
         assert { @vendor.metadata[:module_name] == 'name_test' }
       end
 
-      it 'contains the category' do
+      it 'contains the parsed arguments' do
         assert { @vendor.metadata[:module_args].keys.include? :test_arg }
+      end
+
+      it 'contains the unparsed arguments' do
+        assert { @vendor.metadata[:unparsed_args].keys.include? :category }
       end
     end
 
