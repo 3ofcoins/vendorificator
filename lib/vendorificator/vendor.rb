@@ -29,7 +29,7 @@ module Vendorificator
         :module_name => @name,
         :unparsed_args => args.clone
       }
-      @metadata[:parsed_args] = @args = parse_initialize_args args
+      @metadata[:parsed_args] = @args = parse_initialize_args(args)
       @metadata[:module_annotations] = @args[:annotate] if @args[:annotate]
 
       @environment.vendor_instances << self
