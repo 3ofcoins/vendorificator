@@ -75,7 +75,7 @@ module Vendorificator
       end
 
       it 'contains the parsed arguments' do
-        assert { @vendor.metadata[:module_args].keys.include? :test_arg }
+        assert { @vendor.metadata[:parsed_args].keys.include? :test_arg }
       end
 
       it 'contains the unparsed arguments' do

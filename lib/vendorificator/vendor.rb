@@ -25,8 +25,12 @@ module Vendorificator
       @environment = environment
       @name = name
       @block = block
-      @unparsed_args = args.clone
-      @args = parse_initialize_args args
+      @metadata = {
+        :module_name => @name,
+        :unparsed_args => args.clone
+      }
+      @metadata[:parsed_args] = @args = parse_initialize_args args
+      @metadata[:module_annotations] = @args[:annotate] if @args[:annotate]
 
       @environment.vendor_instances << self
     end
@@ -252,13 +256,9 @@ module Vendorificator
     def metadata
       default = {
         :module_version => version,
-        :module_name => @name,
         :module_category => @category,
-        :module_args => @args,
-        :unparsed_args => @unparsed_args
       }
-      user = @args[:annotate] ? {:module_annotations => @args[:annotate]} : {}
-      default.merge user
+      default.merge @metadata
     end
 
     private

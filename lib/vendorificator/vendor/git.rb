@@ -20,6 +20,7 @@ module Vendorificator
       super
 
       @conjured_revision = local_git.capturing.rev_parse('HEAD').strip
+      add_git_metadata
       FileUtils::rm_rf '.git'
     end
 
@@ -37,6 +38,10 @@ module Vendorificator
     end
 
     private
+
+    def add_git_metadata
+      @metadata[:git_revision] = conjured_revision
+    end
 
     def parse_initialize_args(args = {})
       args[:version] ||= args[:tag] if args[:tag]
