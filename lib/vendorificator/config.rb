@@ -3,6 +3,7 @@ require 'pathname'
 module Vendorificator
   class Config
     attr_accessor :environment
+    attr_reader :metadata
 
     @defaults = {}
     @modules = {}
@@ -34,6 +35,7 @@ module Vendorificator
 
     def initialize(params = {})
       @configuration = self.class.defaults.merge(params)
+      @metadata = {}
     end
 
     def read_file(filename)
@@ -64,6 +66,10 @@ module Vendorificator
 
     def modules
       self.class.modules
+    end
+
+    def annotate key, value
+      @metadata.merge!({key => value})
     end
 
     def method_missing(method_symbol, *args, &block)

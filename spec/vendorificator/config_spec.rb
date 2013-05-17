@@ -60,5 +60,12 @@ module Vendorificator
         assert { includes_method? config, :remotes }
       end
     end
+
+    describe 'metadata' do
+      it 'can be set by user' do
+        config.annotate :foo, :bar
+        assert { config.metadata[:foo] == :bar }
+      end
+    end
   end
 end
