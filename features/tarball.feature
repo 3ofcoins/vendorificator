@@ -36,6 +36,9 @@ Scenario: Version & checksum
     | Name      | testrepo     |
     | Version   | 0.1          |
     | With file | test/alias.c |
+  And there's a git commit note including "ea207a" in "archive_checksum"
+  And there's a git commit note including "20480" in "archive_filesize"
+  And there's a git commit note including "test-assets.3ofcoins" in "archive_url"
 
 Scenario: Wrong checksum
   Given a repository with following Vendorfile:

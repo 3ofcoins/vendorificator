@@ -46,7 +46,7 @@ Then /^there's a git commit note including "(.*?)" in "(.*?)"$/ do |value, key|
   # Not in the assert block, because it raises an exception on failure.
   contains_note = git.notes({:ref => 'vendor'}, 'list').lines.any? do |line|
     note = YAML.load git.show(line.split[0])
-    (note[key] || note[key.to_sym]).include? value
+    (note[key] || note[key.to_sym]).to_s.include? value
   end
   assert { contains_note == true }
 end
