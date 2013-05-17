@@ -40,8 +40,8 @@ module Vendorificator
       archive = Tempfile.new([basename, extname])
       archive.write( open(url).read )
       @conjured_filesize = File.size(archive)
-      archive.close
       @conjured_checksum = Digest::SHA256.file(archive.path).hexdigest
+      archive.close
       raise RuntimeError, "Checksum error" if checksum && checksum != conjured_checksum
 
       archive
