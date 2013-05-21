@@ -54,6 +54,35 @@ module Vendorificator
       end
     end
 
+    describe '#metadata' do
+      before do
+        @vendor = Vendor.new(basic_environment, 'name_test',
+          :category => 'cat_test', :test_arg => 'test_value'
+        )
+        @vendor.stubs(:version).returns('0.23')
+      end
+
+      it 'contains the module version' do
+        assert { @vendor.metadata[:module_version] == '0.23' }
+      end
+
+      it 'contains the category' do
+        assert { @vendor.metadata[:module_category] == 'cat_test' }
+      end
+
+      it 'contains the name' do
+        assert { @vendor.metadata[:module_name] == 'name_test' }
+      end
+
+      it 'contains the parsed arguments' do
+        assert { @vendor.metadata[:parsed_args].keys.include? :test_arg }
+      end
+
+      it 'contains the unparsed arguments' do
+        assert { @vendor.metadata[:unparsed_args].keys.include? :category }
+      end
+    end
+
     describe '#initialize' do
       it 'adds hooks when you pass a module option' do
         vendor = Vendor.new(basic_environment, 'test', {:hooks => Hooks::FooHook})

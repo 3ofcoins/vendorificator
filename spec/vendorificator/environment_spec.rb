@@ -77,5 +77,26 @@ module Vendorificator
       end
     end
 
+    describe '#metadata_snapshot' do
+      before do
+        environment.git.stubs(:rev_parse).with({:abbrev_ref => true}, 'HEAD').returns('current_branch')
+        environment.git.stubs(:rev_parse).with('HEAD').returns('123456')
+        environment.git.stubs(:describe).returns('git description')
+        @metadata = environment.metadata_snapshot
+      end
+
+      it 'contains vendorificator version information' do
+        assert { @metadata.keys.include? :vendorificator_version }
+      end
+
+      it 'contains current branch information' do
+        assert { @metadata[:current_branch] == 'current_branch' }
+        assert { @metadata[:current_sha] == '123456' }
+      end
+
+      it 'contains git describe information' do
+        assert { @metadata[:git_describe] == 'git description' }
+      end
+    end
   end
 end

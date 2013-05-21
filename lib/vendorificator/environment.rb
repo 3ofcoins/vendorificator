@@ -69,6 +69,7 @@ module Vendorificator
 
       git.fetch(remote)
       git.fetch({:tags => true}, remote)
+      git.fetch(remote, 'refs/notes/vendor:refs/notes/vendor')
 
       ref_rx = /^refs\/remotes\/#{Regexp.quote(remote)}\//
       remote_branches = Hash[ git.capturing.show_ref.
@@ -112,9 +113,11 @@ module Vendorificator
       each_vendor_instance{ |mod| pushable += mod.pushable_refs }
 
       remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
-      remotes.each{ |remote| git.push remote, pushable }
-
-      git.push :tags => true
+      remotes.each do |remote|
+        git.push remote, pushable
+        git.push remote, :tags => true
+        git.push remote, 'refs/notes/vendor'
+      end
     end
 
     # Public: Runs all the vendor modules.
@@ -125,11 +128,12 @@ module Vendorificator
     def sync(options = {})
       ensure_clean!
       config[:use_upstream_version] = options[:update]
+      metadata = metadata_snapshot
 
       each_vendor_instance(*options[:modules]) do |mod|
         say_status :module, mod.name
         indent do
-          mod.run!
+          mod.run!(:metadata => metadata)
         end
       end
     end
@@ -167,6 +171,15 @@ module Vendorificator
       true
     rescue MiniGit::GitError
       false
+    end
+
+    def metadata_snapshot
+      {
+        :vendorificator_version => ::Vendorificator::VERSION,
+        :current_branch => git.rev_parse({:abbrev_ref => true}, 'HEAD'),
+        :current_sha => git.rev_parse('HEAD'),
+        :git_describe => (git.describe rescue '')
+      }
     end
 
     # Public: Returns module with given name

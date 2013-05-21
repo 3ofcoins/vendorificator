@@ -12,6 +12,4 @@ Scenario:
   And I successfully run `vendor push`
   Then branch "vendor/generated" exists in the remote repo
   And tag "vendor/generated/0.23" exists in the remote repo
-
-
-
+  And notes ref "vendor" exists in the remote repo
