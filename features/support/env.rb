@@ -5,6 +5,8 @@ require 'tmpdir'
 require 'aruba/cucumber'
 require 'wrong'
 
+require 'vendorificator/cli'
+
 World(Wrong)
 
 ENV['FIXTURES_DIR'] = Pathname.new(__FILE__).
