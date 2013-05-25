@@ -20,7 +20,7 @@ Scenario: Use Gem bundler to download rubygems, and Vendorificator to vendor the
     source "file://#{ENV['FIXTURES_DIR']}/rubygems"
     gem "hello"
     """
-  When I successfully run `vendor sync`
+  When I run vendor sync
   Then following has been conjured:
     | Name         | bundler         |
     | Path         | cache           |
@@ -33,7 +33,7 @@ Scenario: Bundler correctly downloads and caches dependencies
     source "file://#{ENV['FIXTURES_DIR']}/rubygems"
     gem "first"
     """
-  When I successfully run `vendor sync`
+  When I run vendor sync
   Then following has been conjured:
     | Name         | bundler         |
     | Path         | cache           |
@@ -47,7 +47,7 @@ Scenario: directory contents are completely replaced on re-vendoring
     source "file://#{ENV['FIXTURES_DIR']}/rubygems"
     gem "hello"
     """
-  When I successfully run `vendor sync`
+  When I run vendor sync
   Then following has been conjured:
     | Name         | bundler         |
     | Path         | cache           |
@@ -58,7 +58,7 @@ Scenario: directory contents are completely replaced on re-vendoring
     source "file://#{ENV['FIXTURES_DIR']}/rubygems"
     gem "first"
     """
-  And I successfully run `vendor sync`
+  And I run vendor sync
   Then following has been conjured:
     | Name         | bundler         |
     | Path         | cache           |

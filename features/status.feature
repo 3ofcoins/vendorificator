@@ -16,12 +16,12 @@ Scenario: status new module
   Then the last output should match /new\s+generated\/0.23/
 
 Scenario: status up-to-date module
-  When I successfully run `vendor sync`
+  When I run vendor sync
   And I successfully run `vendor status`
   Then the last output should match /up to date\s+generated\/0.23/
 
 Scenario: status outdated modules
-  When I successfully run `vendor sync`
+  When I run vendor sync
   And I change Vendorfile to:
     """ruby
     vendor 'generated', :version => '0.42' do |v|
@@ -41,7 +41,7 @@ Scenario: Module's dependencies are statused if they are known
   And I successfully run `vendor status`
   Then the last output should match /new\s+memcached/
   And the last output should not match "runit"
-  When I successfully run `vendor sync`
+  When I run vendor sync
   And I successfully run `vendor status`
   Then the last output should match /up to date\s+memcached/
   And the last output should match /up to date\s+runit/
