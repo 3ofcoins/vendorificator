@@ -110,6 +110,16 @@ module Vendorificator
       merged_tag && merged_tag[(1+tag_name_base.length)..-1]
     end
 
+    # Public: Get git vendor notes of the merged commit.
+    #
+    # Returns the Hash of git vendor notes.
+    def merged_notes
+      merge_commit = merged
+      if merge_commit
+        YAML.load(git.capturing.notes({:ref => 'vendor'}, 'show', merge_commit))
+      end
+    end
+
     def version
       @args[:version] || (!config[:use_upstream_version] && merged_version) || upstream_version
     end
