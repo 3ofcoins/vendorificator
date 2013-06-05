@@ -85,8 +85,13 @@ module Vendorificator
         end
 
         say_status( mod.status.to_s.gsub('_', ' '), status_line,
-                    ( mod.status==:up_to_date ? :green : :yellow ) )
+                    ( mod.status == :up_to_date ? :green : :yellow ) )
       end
+    end
+
+    desc :info, "Show module information"
+    def info(mod_name)
+      environment.info mod_name, options
     end
 
     desc :pull, "Pull upstream branches from a remote repository"

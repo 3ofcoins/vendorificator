@@ -21,6 +21,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'escape'
   gem.add_dependency 'thor', '>= 0.18.1'
   gem.add_dependency 'minigit', '>= 0.0.3'
+  gem.add_dependency 'awesome_print'
 
   gem.add_development_dependency 'aruba', '0.5.1'
   gem.add_development_dependency 'cucumber'
