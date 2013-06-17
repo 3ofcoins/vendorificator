@@ -26,3 +26,15 @@ Scenario: Getting module information
   And I successfully run `vendor info generated`
   Then the last output should match /Module merged version: 0.23/
   And the last output should match /unparsed_args/
+
+Scenario: Getting revision information
+  Given a repository with following Vendorfile:
+    """ruby
+    vendor 'generated', :version => '0.23' do |v|
+      File.open('README', 'w') { |f| f.puts "Hello, World!" }
+    end
+    """
+  And a remote repository
+  When I successfully run `vendor sync`
+  And I successfully run `vendor info HEAD\^2`
+  Then the last output should match /master, vendor\/generated/
