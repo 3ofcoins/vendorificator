@@ -89,7 +89,7 @@ module Vendorificator
       end
     end
 
-    desc :info, "Show module information"
+    desc 'info MODULE', "Show module information"
     def info(mod_name)
       environment.info mod_name, options
     end
