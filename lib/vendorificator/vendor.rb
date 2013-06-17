@@ -117,7 +117,11 @@ module Vendorificator
       merge_commit = merged
       if merge_commit
         YAML.load(git.capturing.notes({:ref => 'vendor'}, 'show', merge_commit))
+      else
+        {}
       end
+    rescue MiniGit::GitError
+      {}
     end
 
     def version
