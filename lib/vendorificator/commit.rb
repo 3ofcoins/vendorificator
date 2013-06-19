@@ -41,5 +41,16 @@ module Vendorificator
       YAML.load(git.capturing.notes({:ref => 'vendor'}, 'show', rev))
     end
 
+    # Public: Returns vendorificator git notes for the commit if it exists.
+    #
+    # Returns the notes Hash or an empty one.
+    def notes?
+      if exists?
+        YAML.load(git.capturing.notes({:ref => 'vendor'}, 'show', rev))
+      else
+        {}
+      end
+    end
+
   end
 end

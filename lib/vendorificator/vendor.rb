@@ -114,12 +114,7 @@ module Vendorificator
     #
     # Returns the Hash of git vendor notes.
     def merged_notes
-      merge_commit = merged
-      if (commit = Commit.new(merged, git)).exists?
-        commit.notes
-      else
-        {}
-      end
+      Commit.new(merged, git).notes?
     end
 
     def version
