@@ -112,8 +112,8 @@ module Vendorificator
         shell.say "Module category: #{vendor.category}\n"
         shell.say "Module merged version: #{vendor.merged_version}\n"
         shell.say "Module merged notes: #{vendor.merged_notes.ai}\n"
-      elsif branches = find_revision_branches(mod_name)
-        shell.say "Branches that contain this commit: #{branches.join(', ')}\n"
+      elsif (commit = Commit.new(mod_name, git)).exists?
+        shell.say "Branches that contain this commit: #{commit.branches.join(', ')}\n"
       else
         shell.say "Module or ref #{mod_name.inspect} not found."
       end
@@ -216,19 +216,6 @@ module Vendorificator
       each_vendor_instance do |mod|
         return mod if mod.name == mod_name
       end
-      nil
-    end
-
-    # Private: Finds branches that contains the commit with given ref.
-    #
-    # ref - The String containing the ref.
-    #
-    # Returns Array of branch names.
-    def find_revision_branches(ref)
-      git.capturing.branch({:contains => true}, ref).split("\n").map do |name|
-        name.tr('*', '').strip
-      end
-    rescue MiniGit::GitError
       nil
     end
 
