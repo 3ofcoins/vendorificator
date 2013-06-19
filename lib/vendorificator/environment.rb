@@ -114,6 +114,7 @@ module Vendorificator
         shell.say "Module merged notes: #{vendor.merged_notes.ai}\n"
       elsif (commit = Commit.new(mod_name, git)).exists?
         shell.say "Branches that contain this commit: #{commit.branches.join(', ')}\n"
+        shell.say "Vendorificator notes on this commit: #{commit.notes.ai}\n"
       else
         shell.say "Module or ref #{mod_name.inspect} not found."
       end

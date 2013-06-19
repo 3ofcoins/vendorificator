@@ -1,6 +1,8 @@
+require 'yaml'
+
 module Vendorificator
   class Commit
-    attr_reader :git
+    attr_reader :git, :rev
 
     # Public: Initializes the object
     #
@@ -17,19 +19,26 @@ module Vendorificator
     #
     # Returns Array of branch names.
     def branches
-      git.capturing.branch({:contains => true}, @rev).split("\n").map do |name|
+      git.capturing.branch({:contains => true}, rev).split("\n").map do |name|
         name.tr('*', '').strip
       end
     end
 
     # Public: Checks if such a commit exists in the repository.
     #
-    # Returns boolean.
+    # Returns Boolean.
     def exists?
-      git.capturing.rev_parse(@rev)
-      return true
+      git.capturing.rev_parse rev
+      true
     rescue MiniGit::GitError
       false
+    end
+
+    # Public: Returns vendorificator git notes for the commit.
+    #
+    # Returns the notes Hash.
+    def notes
+      YAML.load(git.capturing.notes({:ref => 'vendor'}, 'show', rev))
     end
 
   end

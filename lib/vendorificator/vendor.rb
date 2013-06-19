@@ -115,13 +115,11 @@ module Vendorificator
     # Returns the Hash of git vendor notes.
     def merged_notes
       merge_commit = merged
-      if merge_commit
-        YAML.load(git.capturing.notes({:ref => 'vendor'}, 'show', merge_commit))
+      if (commit = Commit.new(merged, git)).exists?
+        commit.notes
       else
         {}
       end
-    rescue MiniGit::GitError
-      {}
     end
 
     def version
