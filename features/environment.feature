@@ -39,3 +39,4 @@ Scenario: Getting revision information
   When I successfully run `vendor sync`
   And I successfully run `vendor info HEAD\^2`
   Then the last output should match /master, vendor\/generated/
+  Then the last output should match /:unparsed_args/
