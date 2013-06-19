@@ -13,6 +13,7 @@ Scenario: Pushing to remote repo
   Then branch "vendor/generated" exists in the remote repo
   And tag "vendor/generated/0.23" exists in the remote repo
   And notes ref "vendor" exists in the remote repo
+  And there's a git commit note including "master" in "current_branch"
 
 Scenario: Getting module information
   Given a repository with following Vendorfile:
