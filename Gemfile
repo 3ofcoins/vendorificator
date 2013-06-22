@@ -8,7 +8,6 @@ group :development do
       :ref => '0cbc35a07cb63f6f409bb85da6ad7d107bdab021' do
     gem 'wrong'
   end
-  gem 'minitest-ansi'
 end
 
 group :development_workstation do
