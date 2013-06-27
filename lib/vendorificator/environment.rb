@@ -1,7 +1,6 @@
 require 'pathname'
-
 require 'minigit'
-
+require 'awesome_print'
 require 'vendorificator/config'
 
 module Vendorificator
@@ -101,6 +100,20 @@ module Vendorificator
       end
     end
 
+    # Public: Displays info about the last merged version of module.
+    #
+    # mod - String with the module name
+    # options - Hash containing options
+    #
+    # Returns nothing.
+    def info(mod_name, options = {})
+      vendor = find_vendor_instance_by_name(mod_name)
+      shell.say "Module name: #{vendor.name}\n"
+      shell.say "Module category: #{vendor.category}\n"
+      shell.say "Module merged version: #{vendor.merged_version}\n"
+      shell.say "Module merged notes: #{vendor.merged_notes.ai}\n"
+    end
+
     # Public: Push changes on module branches.
     #
     # options - The Hash containing options
@@ -176,9 +189,9 @@ module Vendorificator
     def metadata_snapshot
       {
         :vendorificator_version => ::Vendorificator::VERSION,
-        :current_branch => git.rev_parse({:abbrev_ref => true}, 'HEAD'),
-        :current_sha => git.rev_parse('HEAD'),
-        :git_describe => (git.describe rescue '')
+        :current_branch => git.capturing.rev_parse({:abbrev_ref => true}, 'HEAD').strip,
+        :current_sha => git.capturing.rev_parse('HEAD').strip,
+        :git_describe => (git.capturing.describe.strip rescue '')
       }
     end
 
@@ -188,6 +201,18 @@ module Vendorificator
     end
 
     private
+
+    # Private: Finds a vendor instance by module name.
+    #
+    # mod_name - The String containing the module name.
+    #
+    # Returns Vendor instance.
+    def find_vendor_instance_by_name(mod_name)
+      each_vendor_instance do |mod|
+        return mod if mod.name == mod_name
+      end
+      nil
+    end
 
     # Private: Finds the vendorfile to use.
     #

@@ -79,9 +79,11 @@ module Vendorificator
 
     describe '#metadata_snapshot' do
       before do
-        environment.git.stubs(:rev_parse).with({:abbrev_ref => true}, 'HEAD').returns('current_branch')
-        environment.git.stubs(:rev_parse).with('HEAD').returns('123456')
-        environment.git.stubs(:describe).returns('git description')
+        capturing = mock('capturing')
+        capturing.stubs(:rev_parse).with({:abbrev_ref => true}, 'HEAD').returns("current_branch\n")
+        capturing.stubs(:rev_parse).with('HEAD').returns("123456\n")
+        capturing.stubs(:describe).returns("git description\n")
+        environment.git.stubs(:capturing).returns(capturing)
         @metadata = environment.metadata_snapshot
       end
 

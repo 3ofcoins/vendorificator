@@ -90,6 +90,9 @@ module Vendorificator
         @_has_merged = true
       end
       @merged
+    rescue MiniGit::GitError
+      @_has_merged = true
+      @merged = nil
     end
 
     def merged_tag
@@ -108,6 +111,16 @@ module Vendorificator
 
     def merged_version
       merged_tag && merged_tag[(1+tag_name_base.length)..-1]
+    end
+
+    # Public: Get git vendor notes of the merged commit.
+    #
+    # Returns the Hash of git vendor notes.
+    def merged_notes
+      merge_commit = merged
+      if merge_commit
+        YAML.load(git.capturing.notes({:ref => 'vendor'}, 'show', merge_commit))
+      end
     end
 
     def version
@@ -200,6 +213,7 @@ module Vendorificator
       when :unpulled, :unmerged
         shell.say_status 'merging', self.to_s, :yellow
         git.merge({:no_edit => true, :no_ff => true}, tagged_sha1)
+        postprocess! if self.respond_to? :postprocess!
         compute_dependencies!
 
       when :outdated, :new
@@ -227,6 +241,7 @@ module Vendorificator
           end
           # Merge back to the original branch
           git.merge( {:no_edit => true, :no_ff => true}, branch_name )
+          postprocess! if self.respond_to? :postprocess!
           compute_dependencies!
         ensure
           shell.padding -= 1
