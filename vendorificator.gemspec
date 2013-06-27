@@ -24,7 +24,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'awesome_print'
 
   gem.add_development_dependency 'aruba', '0.5.1'
-  gem.add_development_dependency 'cucumber'
+  gem.add_development_dependency 'cucumber', '~> 2.0'
   gem.add_development_dependency 'mocha', '>= 0.14.0'
   gem.add_development_dependency 'chef', '>= 10.16.0' unless is_jruby
   gem.add_development_dependency 'berkshelf' unless is_jruby || !is_1_9_plus
