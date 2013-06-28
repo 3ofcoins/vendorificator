@@ -8,15 +8,15 @@ module Vendorificator
       end
 
       def last_stdout
-        last_process.stdout(@aruba_keep_ansi)
+        unescape last_process.stdout
       end
 
       def last_stderr
-        last_process.stderr(@aruba_keep_ansi)
+        unescape last_process.stderr
       end
 
       def last_output
-        last_stdout + last_stderr
+        unescape(last_stdout + last_stderr)
       end
 
       def without_bundler(cmd)
