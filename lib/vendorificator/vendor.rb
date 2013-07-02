@@ -90,6 +90,9 @@ module Vendorificator
         @_has_merged = true
       end
       @merged
+    rescue MiniGit::GitError
+      @_has_merged = true
+      @merged = nil
     end
 
     def merged_tag
@@ -207,6 +210,7 @@ module Vendorificator
       when :unpulled, :unmerged
         shell.say_status 'merging', self.to_s, :yellow
         git.merge({:no_edit => true, :no_ff => true}, tagged_sha1)
+        postprocess! if self.respond_to? :postprocess!
         compute_dependencies!
 
       when :outdated, :new
@@ -234,6 +238,7 @@ module Vendorificator
           end
           # Merge back to the original branch
           git.merge( {:no_edit => true, :no_ff => true}, branch_name )
+          postprocess! if self.respond_to? :postprocess!
           compute_dependencies!
         ensure
           shell.padding -= 1

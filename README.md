@@ -31,6 +31,9 @@ Or install it yourself as:
 
     $ gem install vendorificator
 
+Vendorificator is supported on Ruby 1.9.2 or newer. Rubinius and JRuby
+in 1.9 mode are also supported.
+
 ## Usage
 
 Vendorificator is a command-line tool. The command is called `vendor`

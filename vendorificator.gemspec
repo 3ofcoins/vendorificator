@@ -24,8 +24,8 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'awesome_print'
 
   gem.add_development_dependency 'aruba', '0.5.1'
-  gem.add_development_dependency 'cucumber'
-  gem.add_development_dependency 'mocha'
+  gem.add_development_dependency 'cucumber', '~> 2.0'
+  gem.add_development_dependency 'mocha', '>= 0.14.0'
   gem.add_development_dependency 'chef', '>= 10.16.0' unless is_jruby
   gem.add_development_dependency 'berkshelf' unless is_jruby || !is_1_9_plus
   gem.add_development_dependency 'vcr'
@@ -33,5 +33,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'wrong', '>= 0.7.0'
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'simplecov'
-  gem.add_development_dependency 'minitest', '~> 4.7.4'
+  gem.add_development_dependency 'minitest', '~> 5.0.0'
 end
