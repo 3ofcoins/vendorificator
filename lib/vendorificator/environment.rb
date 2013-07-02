@@ -107,11 +107,17 @@ module Vendorificator
     #
     # Returns nothing.
     def info(mod_name, options = {})
-      vendor = find_vendor_instance_by_name(mod_name)
-      shell.say "Module name: #{vendor.name}\n"
-      shell.say "Module category: #{vendor.category}\n"
-      shell.say "Module merged version: #{vendor.merged_version}\n"
-      shell.say "Module merged notes: #{vendor.merged_notes.ai}\n"
+      if vendor = find_vendor_instance_by_name(mod_name)
+        shell.say "Module name: #{vendor.name}\n"
+        shell.say "Module category: #{vendor.category}\n"
+        shell.say "Module merged version: #{vendor.merged_version}\n"
+        shell.say "Module merged notes: #{vendor.merged_notes.ai}\n"
+      elsif (commit = Commit.new(mod_name, git)).exists?
+        shell.say "Branches that contain this commit: #{commit.branches.join(', ')}\n"
+        shell.say "Vendorificator notes on this commit: #{commit.notes.ai}\n"
+      else
+        shell.say "Module or ref #{mod_name.inspect} not found."
+      end
     end
 
     # Public: Push changes on module branches.
