@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'tmpdir'
 require 'thor/shell/basic'
 require 'yaml'
 require 'vendorificator/config'
@@ -68,7 +69,7 @@ module Vendorificator
     end
 
     def work_dir
-      _join(config[:root_dir], work_subdir)
+      _join(git.git_work_tree, environment.relative_root_dir, work_subdir)
     end
 
     def head
@@ -160,44 +161,29 @@ module Vendorificator
     end
 
     def in_branch(options={}, &block)
-      orig_branch = environment.current_branch
-      stash_message = "vendorificator-#{git.capturing.rev_parse('HEAD').strip}-#{branch_name}-#{Time.now.to_i}"
+      branch_exists = !!self.head
+      Dir.mktmpdir("vendor-#{category}-#{name}") do |tmpdir|
+        clone_opts = {:shared => true, :no_checkout => true}
+        clone_opts[:branch] = branch_name if branch_exists
+        MiniGit.git(:clone, clone_opts, git.git_dir, tmpdir)
+        tmpgit = MiniGit::new(tmpdir)
+        tmpgit.checkout({orphan: true}, branch_name) unless branch_exists
+        tmpgit.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean] || !branch_exists
 
-      # We want to be in repository's root now, as we may need to
-      # remove stuff and don't want to have removed directory as cwd.
-      Dir::chdir git.git_work_tree do
         begin
-          # Stash all local changes
-          git.stash :save, {:all => true, :quiet => true}, stash_message
-
-          # If our branch exists, check it out; otherwise, create a new
-          # orphaned branch.
-          if self.head
-            git.checkout branch_name
-            git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean]
-          else
-            git.checkout( { :orphan => true }, branch_name )
-            git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
+          @git = tmpgit
+          Dir.chdir(tmpdir) do
+            yield
           end
-
-          yield
         ensure
-          # We should try to ensure we're back on original branch and
-          # local changes have been applied
-          begin
-            git.checkout orig_branch
-            stash = git.capturing.
-              stash(:list, {:grep => stash_message, :fixed_strings => true}).lines.map(&:strip)
-            if stash.length > 1
-              shell.say_status 'WARNING', "more than one stash matches #{stash_message}, it's weird", :yellow
-              stash.each { |ln| shell.say_status '-', ln, :yellow }
-            end
-            git.stash :pop, {:quiet => true}, stash.first.sub(/:.*/, '') unless stash.empty?
-          rescue => e
-            shell.say_status 'ERROR', "Cannot revert branch from #{self.head} back to #{orig_branch}: #{e}", :red
-            raise
-          end
+          @git = nil
         end
+
+        git.fetch(tmpdir)
+        git.fetch({tags: true}, tmpdir)
+        git.fetch(tmpdir,
+          "+refs/heads/#{branch_name}:refs/heads/#{branch_name}",
+          "+refs/notes/vendor:refs/notes/vendor")
       end
     end
 
@@ -313,7 +299,7 @@ module Vendorificator
     end
 
     def git
-      environment.git
+      @git || environment.git
     end
 
     def config

@@ -11,19 +11,19 @@ module Vendorificator
       upstream_version # to cache the version in instance attribute,
                        # it will be needed when we don't have the
                        # specs
-      @contents = Tempfile.new(["vendorificator-tool-#{name}", ".tar"])
-      @contents.close
-      system self.command or raise RuntimeError, "Command failed"
-      Dir.chdir(config[:root_dir]) do
-        system 'tar', '-cf', @contents.path, work_subdir, *specs
-        # Restore work subdir so that we have a clean sla
-        git.clean({:f => true, :d => true, :x => true}, work_subdir)
-      end
     end
 
     def conjure!
-      Dir.chdir(config[:root_dir]) do
-        system 'tar', '-xf', @contents.path
+      specs.each do |spec|
+        src = File.join(environment.git.git_work_tree, spec)
+        if File.exist?(src)
+          FileUtils.install File.join(environment.git.git_work_tree, spec),
+                            File.join(git.git_work_tree, spec),
+                            verbose: true
+        end
+        Dir.chdir(git.git_work_tree) do
+          system self.command or raise RuntimeError, "Command failed"
+        end
       end
     end
 
