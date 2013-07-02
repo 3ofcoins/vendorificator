@@ -201,6 +201,12 @@ module Vendorificator
       }
     end
 
+    # Public: returns `config[:root_dir]` relative to Git repository root
+    def relative_root_dir
+      @relative_root_dir ||= config[:root_dir].relative_path_from(
+        Pathname.new(git.git_work_tree))
+    end
+
     # Public: Returns module with given name
     def [](name)
       vendor_instances.find { |v| v.name == name }
