@@ -89,7 +89,7 @@ module Vendorificator
       end
     end
 
-    desc :info, "Show module information"
+    desc 'info MODULE', "Show module information"
     def info(mod_name)
       environment.info mod_name, options
     end
@@ -116,7 +116,7 @@ module Vendorificator
     long_desc <<EOF
   Run a git command for specified modules. Within GIT_ARGS arguments,
   you can use @MERGED@ and @PATH@ tags, which will be substituted with
-  mo#dule's most recently merged revision and full path of its work
+  module's most recently merged revision and full path of its work
   directory.
 
   The 'diff' and 'log' commands are simple aliases for 'git' command.
