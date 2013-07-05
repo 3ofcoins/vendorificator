@@ -12,13 +12,13 @@ Background:
     """
 
 Scenario: status new module
-  When I successfully run `vendor status`
-  Then the last output should match /new\s+generated\/0.23/
+  When I run vendor command "status"
+  Then the last vendor output should match /new\s+generated\/0.23/
 
 Scenario: status up-to-date module
   When I run vendor command "sync"
-  And I successfully run `vendor status`
-  Then the last output should match /up to date\s+generated\/0.23/
+  And I run vendor command "status"
+  Then the last vendor output should match /up to date\s+generated\/0.23/
 
 Scenario: status outdated modules
   When I run vendor command "sync"
@@ -29,8 +29,8 @@ Scenario: status outdated modules
       File.open('VERSION', 'w') { |f| f.puts v.version }
     end
     """
-  And I successfully run `vendor status`
-  Then the last output should match /outdated\s+generated\/0.42/
+  And I run vendor command "status"
+  Then the last vendor output should match /outdated\s+generated\/0.42/
 
 Scenario: Module's dependencies are statused if they are known
   When I change Vendorfile to:
