@@ -42,8 +42,10 @@ When /^I change Vendorfile to:$/ do |vendorfile_contents|
   run_simple 'git commit -m "Updated Vendorfile" Vendorfile'
 end
 
-When /^I run vendor sync$/ do
+When /^I run vendor (.*)$/ do |cmd|
   Dir.chdir(current_dir) do
-    Vendorificator::CLI.start [:sync, '-q']
+    with_redirected_stdout do
+      Vendorificator::CLI.start [cmd.strip.to_sym, '-q']
+    end
   end
 end

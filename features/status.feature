@@ -38,10 +38,10 @@ Scenario: Module's dependencies are statused if they are known
     require 'vendorificator/vendor/chef_cookbook'
     chef_cookbook 'memcached'
     """
-  And I successfully run `vendor status`
-  Then the last output should match /new\s+memcached/
-  And the last output should not match "runit"
+  And I run vendor status
+  Then the last vendor output should match /new\s+memcached/
+  And the last vendor output should not match "runit"
   When I run vendor sync
-  And I successfully run `vendor status`
-  Then the last output should match /up to date\s+memcached/
-  And the last output should match /up to date\s+runit/
+  And I run vendor status
+  Then the last vendor output should match /up to date\s+memcached/
+  And the last vendor output should match /up to date\s+runit/
