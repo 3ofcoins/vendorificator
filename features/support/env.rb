@@ -7,6 +7,9 @@ require 'wrong'
 
 require 'vendorificator/cli'
 
+ENV['GIT_AUTHOR_NAME'] = ENV['GIT_COMMITTER_NAME'] = 'Vendorificator Cucumber'
+ENV['GIT_AUTHOR_EMAIL'] = ENV['GIT_COMMITTER_EMAIL'] = 'nonexistent@example.com'
+
 World(Wrong)
 
 ENV['FIXTURES_DIR'] = Pathname.new(__FILE__).
