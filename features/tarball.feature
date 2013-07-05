@@ -5,7 +5,7 @@ Scenario: just URL as name
     """ruby
     archive 'http://test-assets.3ofcoins.net.s3-website-us-east-1.amazonaws.com/testrepo-0.1.tar.gz'
     """
-  When I run vendor sync
+  When I run vendor command "sync"
   Then following has been conjured:
     | Name      | testrepo-0.1        |
     | Version   | testrepo-0.1.tar.gz |
@@ -17,7 +17,7 @@ Scenario: URL as keyword
     archive :testrepo,
       :url => 'http://test-assets.3ofcoins.net.s3-website-us-east-1.amazonaws.com/testrepo-0.1.tar.gz'
     """
-  When I run vendor sync
+  When I run vendor command "sync"
   Then following has been conjured:
     | Name      | testrepo            |
     | Version   | testrepo-0.1.tar.gz |
@@ -31,7 +31,7 @@ Scenario: Version & checksum
       :version => '0.1',
       :checksum => 'ea207a896f929ffb3a1dfe128332d6134a18edab7c01b97bfb2b1c7eacebe0cb'
     """
-  When I run vendor sync
+  When I run vendor command "sync"
   Then following has been conjured:
     | Name      | testrepo     |
     | Version   | 0.1          |
@@ -60,7 +60,7 @@ Scenario: Tarball without a root directory
     archive :testrepo,
       :url => 'http://test-assets.3ofcoins.net.s3-website-us-east-1.amazonaws.com/testrepo-0.1-noroot.tar.gz'
     """
-  When I run vendor sync
+  When I run vendor command "sync"
   Then following has been conjured:
     | Name      | testrepo     |
     | With file | test/alias.c |

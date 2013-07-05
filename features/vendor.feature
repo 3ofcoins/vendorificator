@@ -9,7 +9,7 @@ Scenario:
       File.open('VERSION', 'w') { |f| f.puts v.version }
     end
     """
-  When I run vendor sync
+  When I run vendor command "sync"
   Then the following has been conjured:
     | Name      | generated |
     | Version   | 0.23      |

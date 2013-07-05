@@ -14,7 +14,7 @@ Scenario: rubygems_bundler
     source "file://#{ENV['FIXTURES_DIR']}/rubygems"
     gem "hello"
     """
-  When I run vendor sync
+  When I run vendor command "sync"
   Then following has been conjured:
     | Name         | rubygems        |
     | Path         | cache           |
@@ -35,7 +35,7 @@ Scenario: chef_berkshelf
   And I successfully run `berks install`
   And I successfully run `git add Berksfile Berksfile.lock`
   And I successfully run `git commit -m Berksfile`
-  When I run vendor sync
+  When I run vendor command "sync"
   Then following has been conjured:
     | Name         | cookbooks                   |
     | With file    | build-essential/metadata.rb  |
