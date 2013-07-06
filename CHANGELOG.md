@@ -1,6 +1,6 @@
 # Changes
 
-## WIP
+## 0.4.0
 
  - Dropped support for Ruby 1.8.7
  - Refactored internals to avoid touching user's work tree - all
