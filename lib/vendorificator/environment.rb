@@ -1,7 +1,6 @@
 require 'pathname'
-
 require 'minigit'
-
+require 'awesome_print'
 require 'vendorificator/config'
 
 module Vendorificator
@@ -9,12 +8,15 @@ module Vendorificator
     attr_reader :config
     attr_accessor :shell, :vendor_instances
 
-    def initialize(vendorfile=nil)
+    def initialize(vendorfile=nil, &block)
       @vendor_instances = []
 
       @config = Vendorificator::Config.new
       @config.environment = self
-      @config.read_file(find_vendorfile(vendorfile).to_s)
+      if vendorfile || !block_given?
+        @config.read_file(find_vendorfile(vendorfile).to_s)
+      end
+      @config.instance_eval(&block) if block_given?
 
       self.each_vendor_instance{ |mod| mod.compute_dependencies! }
     end
@@ -66,6 +68,7 @@ module Vendorificator
 
       git.fetch(remote)
       git.fetch({:tags => true}, remote)
+      git.fetch(remote, 'refs/notes/vendor:refs/notes/vendor')
 
       ref_rx = /^refs\/remotes\/#{Regexp.quote(remote)}\//
       remote_branches = Hash[ git.capturing.show_ref.
@@ -97,6 +100,26 @@ module Vendorificator
       end
     end
 
+    # Public: Displays info about the last merged version of module.
+    #
+    # mod - String with the module name
+    # options - Hash containing options
+    #
+    # Returns nothing.
+    def info(mod_name, options = {})
+      if vendor = find_vendor_instance_by_name(mod_name)
+        shell.say "Module name: #{vendor.name}\n"
+        shell.say "Module category: #{vendor.category}\n"
+        shell.say "Module merged version: #{vendor.merged_version}\n"
+        shell.say "Module merged notes: #{vendor.merged_notes.ai}\n"
+      elsif (commit = Commit.new(mod_name, git)).exists?
+        shell.say "Branches that contain this commit: #{commit.branches.join(', ')}\n"
+        shell.say "Vendorificator notes on this commit: #{commit.notes.ai}\n"
+      else
+        shell.say "Module or ref #{mod_name.inspect} not found."
+      end
+    end
+
     # Public: Push changes on module branches.
     #
     # options - The Hash containing options
@@ -109,9 +132,11 @@ module Vendorificator
       each_vendor_instance{ |mod| pushable += mod.pushable_refs }
 
       remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
-      remotes.each{ |remote| git.push remote, pushable }
-
-      git.push :tags => true
+      remotes.each do |remote|
+        git.push remote, pushable
+        git.push remote, :tags => true
+        git.push remote, 'refs/notes/vendor'
+      end
     end
 
     # Public: Runs all the vendor modules.
@@ -122,11 +147,12 @@ module Vendorificator
     def sync(options = {})
       ensure_clean!
       config[:use_upstream_version] = options[:update]
+      metadata = metadata_snapshot
 
       each_vendor_instance(*options[:modules]) do |mod|
         say_status :module, mod.name
         indent do
-          mod.run!
+          mod.run!(:metadata => metadata)
         end
       end
     end
@@ -166,7 +192,39 @@ module Vendorificator
       false
     end
 
+    def metadata_snapshot
+      {
+        :vendorificator_version => ::Vendorificator::VERSION,
+        :current_branch => git.capturing.rev_parse({:abbrev_ref => true}, 'HEAD').strip,
+        :current_sha => git.capturing.rev_parse('HEAD').strip,
+        :git_describe => (git.capturing.describe.strip rescue '')
+      }
+    end
+
+    # Public: returns `config[:root_dir]` relative to Git repository root
+    def relative_root_dir
+      @relative_root_dir ||= config[:root_dir].relative_path_from(
+        Pathname.new(git.git_work_tree))
+    end
+
+    # Public: Returns module with given name
+    def [](name)
+      vendor_instances.find { |v| v.name == name }
+    end
+
     private
+
+    # Private: Finds a vendor instance by module name.
+    #
+    # mod_name - The String containing the module name.
+    #
+    # Returns Vendor instance.
+    def find_vendor_instance_by_name(mod_name)
+      each_vendor_instance do |mod|
+        return mod if mod.name == mod_name
+      end
+      nil
+    end
 
     # Private: Finds the vendorfile to use.
     #
@@ -213,6 +271,5 @@ module Vendorificator
     ensure
       shell.padding -= 1 if shell
     end
-
   end
 end

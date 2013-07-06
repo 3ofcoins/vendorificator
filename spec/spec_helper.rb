@@ -2,18 +2,24 @@ require 'rubygems'
 require 'bundler/setup'
 Bundler.setup
 
-require 'minitest/spec'
 require 'minitest/autorun'
 require 'vcr'
 require 'mocha/setup'
 require 'wrong'
-require 'wrong/adapters/minitest'
 
-begin
-  require 'minitest/ansi'
-rescue LoadError                # that's fine, we'll live without it
-else
-  MiniTest::ANSI.use! if STDOUT.tty?
+module Vendorificator
+  module Spec
+    module Helpers
+      module Wrong
+        include ::Wrong::Assert
+        include ::Wrong::Helpers
+
+        def increment_assertion_count
+          self.assertions += 1
+        end
+      end
+    end
+  end
 end
 
 if ENV['COVERAGE']
@@ -35,8 +41,12 @@ VCR.configure do |config|
 end
 
 class MiniTest::Spec
+  include Vendorificator::Spec::Helpers::Wrong
+
   before do
-    Vendorificator::Environment.any_instance.stubs(:git).returns(stub)
+    _git = stub
+    _git.stubs(:capturing).returns(stub)
+    Vendorificator::Environment.any_instance.stubs(:git).returns(_git)
   end
 
   def conf

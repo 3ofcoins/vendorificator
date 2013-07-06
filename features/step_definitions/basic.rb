@@ -30,6 +30,13 @@ Given /^a remote repository$/ do
   run_simple 'git remote add origin ../remote-repository'
 end
 
+When /(?:I have following Gemfile|I change Gemfile to|following Gemfile):$/ do |gemfile_contents|
+  write_file('Gemfile', gemfile_contents)
+  run_simple(without_bundler('bundle'))
+  run_simple 'git add Gemfile Gemfile.lock'
+  run_simple 'git commit -m bundle'
+end
+
 When /^I change Vendorfile to:$/ do |vendorfile_contents|
   write_file('Vendorfile', vendorfile_contents)
   run_simple 'git commit -m "Updated Vendorfile" Vendorfile'

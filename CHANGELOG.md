@@ -1,5 +1,17 @@
 # Changes
 
+## 0.4.0
+
+ - Dropped support for Ruby 1.8.7
+ - Refactored internals to avoid touching user's work tree - all
+   conjuring is done in a temporary shared clone, fetched and merged
+   from there
+ - Module metadata is stored in Git notes; new `vendor info` command
+   shows it.
+ - Test dependency cleanup (use up-to-date Cucumber and Minitest)
+ - Support for external fetching tools with predefined shortcuts for
+   Bundler and Berkshelf
+
 ## 0.3.0
 
  - New command `vendor push` for pushing managed branches and tags to

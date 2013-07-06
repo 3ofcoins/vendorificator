@@ -1,7 +1,7 @@
 require 'fileutils'
-
+require 'tmpdir'
 require 'thor/shell/basic'
-
+require 'yaml'
 require 'vendorificator/config'
 
 module Vendorificator
@@ -22,20 +22,16 @@ module Vendorificator
     attr_reader :environment, :name, :args, :block
     arg_reader :version
 
-    def initialize(environment, name, args={}, &block)
+    def initialize(environment, name, args = {}, &block)
       @environment = environment
-      @category = args.delete(:category) if args.key?(:category)
-
-      unless (hooks = Array(args.delete(:hooks))).empty?
-        hooks.each do |hook|
-          hook_module = hook.is_a?(Module) ? hook : ::Vendorificator::Hooks.const_get(hook)
-          klass = class << self; self; end;
-          klass.send :include, hook_module
-        end
-      end
       @name = name
-      @args = args
       @block = block
+      @metadata = {
+        :module_name => @name,
+        :unparsed_args => args.clone
+      }
+      @metadata[:parsed_args] = @args = parse_initialize_args(args)
+      @metadata[:module_annotations] = @args[:annotate] if @args[:annotate]
 
       @environment.vendor_instances << self
     end
@@ -73,13 +69,17 @@ module Vendorificator
     end
 
     def work_dir
-      _join(config[:root_dir], work_subdir)
+      _join(git.git_work_tree, environment.relative_root_dir, work_subdir)
     end
 
     def head
       git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/heads/#{branch_name}").strip
     rescue MiniGit::GitError
       nil
+    end
+
+    def tag_name
+      _join(tag_name_base, version)
     end
 
     def merged
@@ -91,6 +91,9 @@ module Vendorificator
         @_has_merged = true
       end
       @merged
+    rescue MiniGit::GitError
+      @_has_merged = true
+      @merged = nil
     end
 
     def merged_tag
@@ -109,6 +112,13 @@ module Vendorificator
 
     def merged_version
       merged_tag && merged_tag[(1+tag_name_base.length)..-1]
+    end
+
+    # Public: Get git vendor notes of the merged commit.
+    #
+    # Returns the Hash of git vendor notes.
+    def merged_notes
+      Commit.new(merged, git).notes?
     end
 
     def version
@@ -151,48 +161,33 @@ module Vendorificator
     end
 
     def in_branch(options={}, &block)
-      orig_branch = environment.current_branch
-      stash_message = "vendorificator-#{git.capturing.rev_parse('HEAD').strip}-#{branch_name}-#{Time.now.to_i}"
+      branch_exists = !!self.head
+      Dir.mktmpdir("vendor-#{category}-#{name}") do |tmpdir|
+        clone_opts = {:shared => true, :no_checkout => true}
+        clone_opts[:branch] = branch_name if branch_exists
+        MiniGit.git(:clone, clone_opts, git.git_dir, tmpdir)
+        tmpgit = MiniGit::new(tmpdir)
+        tmpgit.checkout({orphan: true}, branch_name) unless branch_exists
+        tmpgit.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean] || !branch_exists
 
-      # We want to be in repository's root now, as we may need to
-      # remove stuff and don't want to have removed directory as cwd.
-      Dir::chdir git.git_work_tree do
         begin
-          # Stash all local changes
-          git.stash :save, {:all => true, :quiet => true}, stash_message
-
-          # If our branch exists, check it out; otherwise, create a new
-          # orphaned branch.
-          if self.head
-            git.checkout branch_name
-            git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean]
-          else
-            git.checkout( { :orphan => true }, branch_name )
-            git.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
+          @git = tmpgit
+          Dir.chdir(tmpdir) do
+            yield
           end
-
-          yield
         ensure
-          # We should try to ensure we're back on original branch and
-          # local changes have been applied
-          begin
-            git.checkout orig_branch
-            stash = git.capturing.
-              stash(:list, {:grep => stash_message, :fixed_strings => true}).lines.map(&:strip)
-            if stash.length > 1
-              shell.say_status 'WARNING', "more than one stash matches #{stash_message}, it's weird", :yellow
-              stash.each { |ln| shell.say_status '-', ln, :yellow }
-            end
-            git.stash :pop, {:quiet => true}, stash.first.sub(/:.*/, '') unless stash.empty?
-          rescue => e
-            shell.say_status 'ERROR', "Cannot revert branch from #{self.head} back to #{orig_branch}: #{e}", :red
-            raise
-          end
+          @git = nil
         end
+
+        git.fetch(tmpdir)
+        git.fetch({tags: true}, tmpdir)
+        git.fetch(tmpdir,
+          "+refs/heads/#{branch_name}:refs/heads/#{branch_name}",
+          "+refs/notes/vendor:refs/notes/vendor")
       end
     end
 
-    def run!
+    def run!(options = {})
       case status
 
       when :up_to_date
@@ -201,12 +196,14 @@ module Vendorificator
       when :unpulled, :unmerged
         shell.say_status 'merging', self.to_s, :yellow
         git.merge({:no_edit => true, :no_ff => true}, tagged_sha1)
+        postprocess! if self.respond_to? :postprocess!
         compute_dependencies!
 
       when :outdated, :new
         shell.say_status 'fetching', self.to_s, :yellow
         begin
           shell.padding += 1
+          before_conjure!
           in_branch(:clean => true) do
             FileUtils::mkdir_p work_dir
 
@@ -223,15 +220,11 @@ module Vendorificator
               make_subdir_root subdir if subdir && !subdir.empty?
             end
 
-
-            # Commit and tag the conjured module
-            git.add work_dir
-            git.commit :m => conjure_commit_message
-            git.tag( { :a => true, :m => tag_message }, tag_name )
-            shell.say_status :tag, tag_name
+            commit_and_annotate(options[:metadata])
           end
           # Merge back to the original branch
           git.merge( {:no_edit => true, :no_ff => true}, branch_name )
+          postprocess! if self.respond_to? :postprocess!
           compute_dependencies!
         ensure
           shell.padding -= 1
@@ -242,12 +235,48 @@ module Vendorificator
       end
     end
 
-    def tag_name_base
-      _join('vendor', category, name)
+    def conjure!
+      block.call(self) if block
     end
 
-    def tag_name
-      _join(tag_name_base, version)
+    #
+    # Hook points
+    def git_add_extra_paths ; [] ; end
+    def before_conjure! ; end
+    def compute_dependencies! ; end
+
+    def pushable_refs
+      created_tags.
+        map { |tag| '+' << tag }.
+        unshift("+refs/heads/#{branch_name}")
+    end
+
+    def metadata
+      default = {
+        :module_version => version,
+        :module_category => @category,
+      }
+      default.merge @metadata
+    end
+
+    private
+
+    def parse_initialize_args(args = {})
+      @category = args.delete(:category) if args.key?(:category)
+
+      unless (hooks = Array(args.delete(:hooks))).empty?
+        hooks.each do |hook|
+          hook_module = hook.is_a?(Module) ? hook : ::Vendorificator::Hooks.const_get(hook)
+          klass = class << self; self; end;
+          klass.send :include, hook_module
+        end
+      end
+
+      args
+    end
+
+    def tag_name_base
+      _join('vendor', category, name)
     end
 
     def conjure_commit_message
@@ -258,20 +287,6 @@ module Vendorificator
       conjure_commit_message
     end
 
-    def conjure!
-      block.call(self) if block
-    end
-
-    def compute_dependencies! ; end
-
-    def pushable_refs
-      branch = "+refs/heads/#{branch_name}"
-      tags = created_tags.map{ |tag| '+' + tag }
-      [branch, tags].flatten
-    end
-
-    private
-
     def tagged_sha1
       @tagged_sha1 ||= git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/tags/#{tag_name}^{commit}").strip
     rescue MiniGit::GitError
@@ -279,12 +294,12 @@ module Vendorificator
     end
 
     def created_tags
-      git.capturing.show_ref.split("\n").map{ |line| line.split(' ')[1] }.
-        select{ |ref| ref =~ /\Arefs\/tags\/#{tag_name_base}/ }
+      git.capturing.show_ref.lines.map{ |line| line.split(' ')[1] }.
+        select{ |ref| ref =~ /\Arefs\/tags\/#{tag_name_base}\// }
     end
 
     def git
-      environment.git
+      @git || environment.git
     end
 
     def config
@@ -309,6 +324,30 @@ module Vendorificator
       Dir.chdir(curdir.to_s) if curdir.exist?
     end
 
+    # Private: Commits and annotates the conjured module.
+    #
+    # environment_metadata - Hash with environment metadata where vendor was run
+    #
+    # Returns nothing.
+    def commit_and_annotate(environment_metadata = {})
+      git.add work_dir, *git_add_extra_paths
+      git.commit :m => conjure_commit_message
+      git.notes({:ref => 'vendor'}, 'add', {:m => conjure_note(environment_metadata)}, 'HEAD')
+      git.tag( { :a => true, :m => tag_message }, tag_name )
+      shell.say_status :tag, tag_name
+    end
+
+    # Private: Merges all the data we use for the commit note.
+    #
+    # environment_metadata - Hash with environment metadata where vendor was run
+    #
+    # Returns: The note in the YAML format.
+    def conjure_note(environment_metadata = {})
+      config.metadata.
+        merge(environment_metadata).
+        merge(metadata).
+        to_yaml
+    end
   end
 
   Config.register_module :vendor, Vendor

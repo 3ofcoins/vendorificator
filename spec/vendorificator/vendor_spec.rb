@@ -54,6 +54,35 @@ module Vendorificator
       end
     end
 
+    describe '#metadata' do
+      before do
+        @vendor = Vendor.new(basic_environment, 'name_test',
+          :category => 'cat_test', :test_arg => 'test_value'
+        )
+        @vendor.stubs(:version).returns('0.23')
+      end
+
+      it 'contains the module version' do
+        assert { @vendor.metadata[:module_version] == '0.23' }
+      end
+
+      it 'contains the category' do
+        assert { @vendor.metadata[:module_category] == 'cat_test' }
+      end
+
+      it 'contains the name' do
+        assert { @vendor.metadata[:module_name] == 'name_test' }
+      end
+
+      it 'contains the parsed arguments' do
+        assert { @vendor.metadata[:parsed_args].keys.include? :test_arg }
+      end
+
+      it 'contains the unparsed arguments' do
+        assert { @vendor.metadata[:unparsed_args].keys.include? :category }
+      end
+    end
+
     describe '#initialize' do
       it 'adds hooks when you pass a module option' do
         vendor = Vendor.new(basic_environment, 'test', {:hooks => Hooks::FooHook})
@@ -63,6 +92,45 @@ module Vendorificator
       it 'adds hooks via the String option shortcut' do
         vendor = Vendor.new(basic_environment, 'test', {:hooks => 'FooHook'})
         assert { includes_method? vendor, :foo_hooked_method }
+      end
+    end
+
+    describe '#pushable_refs' do
+      before do
+        environment.git.capturing.stubs(:show_ref).returns <<EOF
+a2745fdf2d7e51f139f9417c5ca045b389fa939f refs/heads/master
+127eb134185e2bf34c79321819b81f8464392d45 refs/heads/vendor/cookbooks/nginx
+0448bfa569d3d94dcb3e485c8da60fdb33d365f6 refs/heads/vendor/cookbooks/nginx_simplecgi
+a2745fdf2d7e51f139f9417c5ca045b389fa939f refs/remotes/origin/master
+127eb134185e2bf34c79321819b81f8464392d45 refs/remotes/origin/vendor/cookbooks/nginx
+0448bfa569d3d94dcb3e485c8da60fdb33d365f6 refs/remotes/origin/vendor/cookbooks/nginx_simplecgi
+e4646a83e6d24322958e1d7a2ed922dae034accd refs/tags/vendor/cookbooks/nginx/1.2.0
+fa0293b914420f59f8eb4c347fb628dcb953aad3 refs/tags/vendor/cookbooks/nginx/1.3.0
+680dee5e56a0d49ba2ae299bb82189b6f2660c9b refs/tags/vendor/cookbooks/nginx_simplecgi/0.1.0
+EOF
+      end
+
+      let(:environment) do
+        Environment.new do
+          vendor :nginx, :category => :cookbooks
+          vendor :nginx_simplecgi, :category => :cookbooks
+        end
+      end
+
+      it 'includes all own refs' do
+        refs = environment['nginx'].pushable_refs
+        assert { refs.include? '+refs/heads/vendor/cookbooks/nginx' }
+        assert { refs.include? '+refs/tags/vendor/cookbooks/nginx/1.2.0' }
+        assert { refs.include? '+refs/tags/vendor/cookbooks/nginx/1.3.0' }
+
+        refs = environment['nginx_simplecgi'].pushable_refs
+        assert { refs.include? '+refs/heads/vendor/cookbooks/nginx_simplecgi' }
+        assert { refs.include? '+refs/tags/vendor/cookbooks/nginx_simplecgi/0.1.0' }
+      end
+
+      it "doesn't include other modules' refs" do
+        refs = environment['nginx'].pushable_refs
+        deny { refs.include? '+refs/tags/vendor/cookbooks/nginx_simplecgi/0.1.0' }
       end
     end
   end

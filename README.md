@@ -31,6 +31,9 @@ Or install it yourself as:
 
     $ gem install vendorificator
 
+Vendorificator is supported on Ruby 1.9.2 or newer. Rubinius and JRuby
+in 1.9 mode are also supported.
+
 ## Usage
 
 Vendorificator is a command-line tool. The command is called `vendor`
@@ -238,6 +241,36 @@ git 'git://github.com/user/cookbook.git',
   :category => :cookbooks,
   :hooks => 'ChefCookbookDependencies'
 end
+```
+
+#### tool
+
+Runs a shell command to download dependencies, and then stores them in
+a pristine branch. You can use this to leverage platform-specific
+tools (Bundler for Ruby gems, pip for Python packages, Berkshelf for
+Chef cookbooks, etc), and keep track of downloaded modules with
+Vendorificator. Takes the same arguments as `vendor`, plus:
+
+ * `:command` -- command to run to download files
+ * `:specs` -- files specifying what to download; these will be kept
+   on the vendor branch together with downloaded dependencies
+
+Two convenience shortcuts are provided, `rubygems_bundler`, and
+`chef_berkshelf`. They take no arguments. Their definitions are
+examples as well:
+
+```ruby
+tool 'rubygems', # <- rubygems_bundler
+     :path => 'cache',
+     :specs => [ 'Gemfile', 'Gemfile.lock' ],
+     :command => 'bundle package --all'
+```
+
+```ruby
+tool 'cookbooks', # <- chef_berkshelf
+     :path => 'cookbooks',
+     :specs => [ 'Berksfile', 'Berksfile.lock' ],
+     :command => 'berks install --path vendor/cookbooks'
 ```
 
 ## Contributing
