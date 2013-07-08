@@ -165,9 +165,9 @@ module Vendorificator
       Dir.mktmpdir("vendor-#{category}-#{name}") do |tmpdir|
         clone_opts = {:shared => true, :no_checkout => true}
         clone_opts[:branch] = branch_name if branch_exists
-        MiniGit.git(:clone, clone_opts, git.git_dir, tmpdir)
+        MiniGit::Capturing.git(:clone, clone_opts, git.git_dir, tmpdir)
         tmpgit = MiniGit::new(tmpdir)
-        tmpgit.checkout({orphan: true}, branch_name) unless branch_exists
+        tmpgit.checkout({orphan: true}, branch_name, {quiet: true}) unless branch_exists
         tmpgit.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean] || !branch_exists
 
         begin
@@ -179,9 +179,9 @@ module Vendorificator
           @git = nil
         end
 
-        git.fetch(tmpdir)
-        git.fetch({tags: true}, tmpdir)
-        git.fetch(tmpdir,
+        git.fetch({quiet: true}, tmpdir)
+        git.fetch({tags: true, quiet: true}, tmpdir)
+        git.fetch({quiet: true}, tmpdir,
           "+refs/heads/#{branch_name}:refs/heads/#{branch_name}",
           "+refs/notes/vendor:refs/notes/vendor")
       end

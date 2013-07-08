@@ -18,8 +18,7 @@ module Vendorificator
         src = File.join(environment.git.git_work_tree, spec)
         if File.exist?(src)
           FileUtils.install File.join(environment.git.git_work_tree, spec),
-                            File.join(git.git_work_tree, spec),
-                            verbose: true
+                            File.join(git.git_work_tree, spec)
         end
         Dir.chdir(git.git_work_tree) do
           system self.command or raise RuntimeError, "Command failed"
@@ -47,14 +46,14 @@ module Vendorificator
       tool 'rubygems',
            :path => 'cache', # Hardcoded, meh
            :specs => [ 'Gemfile', 'Gemfile.lock' ],
-           :command => 'bundle package --all'
+           :command => 'bundle package --all > /dev/null'
     end
 
     def chef_berkshelf
       tool 'cookbooks',
            :path => 'cookbooks',
            :specs => [ 'Berksfile', 'Berksfile.lock' ],
-           :command => 'berks install --path vendor/cookbooks'
+           :command => 'berks install --quiet --path vendor/cookbooks'
     end
   end
 end

@@ -8,13 +8,13 @@ module Vendorificator
 
     def conjure!
       shell.say_status :clone, repository
-      MiniGit.git :clone, repository, '.'
+      MiniGit.git :clone, repository, '.', quiet: true
       local_git = MiniGit.new('.')
 
       if tag||revision
-        local_git.checkout({:b => 'vendorified'}, tag||revision)
+        local_git.checkout({:b => 'vendorified'}, tag||revision, quiet: true)
       elsif branch
-        local_git.checkout({:b => 'vendorified'}, "origin/#{branch}")
+        local_git.checkout({:b => 'vendorified'}, "origin/#{branch}", quiet: true)
       end
 
       super

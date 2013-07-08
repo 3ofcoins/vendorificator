@@ -133,9 +133,9 @@ module Vendorificator
 
       remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
       remotes.each do |remote|
-        git.push remote, pushable
-        git.push remote, :tags => true
-        git.push remote, 'refs/notes/vendor'
+        git.push remote, pushable, quiet: true
+        git.push remote, tags: true, quiet: true
+        git.push remote, 'refs/notes/vendor', quiet: true
       end
     end
 

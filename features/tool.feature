@@ -11,7 +11,7 @@ Background:
     tool 'bundler',
          :path => 'cache', # Hardcoded, meh
          :specs => [ 'Gemfile', 'Gemfile.lock' ],
-         :command => 'bundle package --all'
+         :command => 'bundle package --all > /dev/null'
     """
 
 Scenario: Use Gem bundler to download rubygems, and Vendorificator to vendor them
