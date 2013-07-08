@@ -197,7 +197,7 @@ module Vendorificator
         :vendorificator_version => ::Vendorificator::VERSION,
         :current_branch => git.capturing.rev_parse({:abbrev_ref => true}, 'HEAD').strip,
         :current_sha => git.capturing.rev_parse('HEAD').strip,
-        :git_describe => (git.capturing.describe.strip rescue '')
+        :git_describe => (git.capturing.describe(:always => true).strip rescue '')
       }
     end
 

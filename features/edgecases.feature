@@ -7,7 +7,7 @@ Scenario: module with a .gitignore file
       File.open('.gitignore', 'w') { |f| f.puts 'ignored.txt' }
     end
     """
-  When I successfully run `vendor sync`
+  When I run vendor command "sync"
   Then the following has been conjured:
     | Name      | ignore     |
     | With file | .gitignore |
@@ -25,7 +25,7 @@ Scenario: module with a .gitignore file
       File.open('.gitignore', 'w') { |f| f.puts 'ignored.txt' }
     end
     """
-  And I successfully run `vendor sync`
+  And I run vendor command "sync"
   Then the file "vendor/ignore/files.txt" should not contain "ignored.txt"
   And the file "vendor/ignore/ignored.txt" should contain exactly:
     """

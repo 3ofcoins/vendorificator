@@ -8,8 +8,8 @@ Scenario: Pushing to remote repo
     end
     """
   And a remote repository
-  When I successfully run `vendor sync`
-  And I successfully run `vendor push`
+  When I run vendor command "sync"
+  And I run vendor command "push"
   Then branch "vendor/generated" exists in the remote repo
   And tag "vendor/generated/0.23" exists in the remote repo
   And notes ref "vendor" exists in the remote repo
@@ -23,10 +23,10 @@ Scenario: Getting module information
     end
     """
   And a remote repository
-  When I successfully run `vendor sync`
-  And I successfully run `vendor info generated`
-  Then the last output should match /Module merged version: 0.23/
-  And the last output should match /unparsed_args/
+  When I run vendor command "sync"
+  And I run vendor command "info generated"
+  Then the last vendor output should match /Module merged version: 0.23/
+  And the last vendor output should match /unparsed_args/
 
 Scenario: Getting revision information
   Given a repository with following Vendorfile:
@@ -36,7 +36,7 @@ Scenario: Getting revision information
     end
     """
   And a remote repository
-  When I successfully run `vendor sync`
-  And I successfully run `vendor info HEAD\^2`
-  Then the last output should match /master, vendor\/generated/
-  Then the last output should match /:unparsed_args/
+  When I run vendor command "sync"
+  And I run vendor command "info HEAD^2"
+  Then the last vendor output should match /master, vendor\/generated/
+  Then the last vendor output should match /:unparsed_args/

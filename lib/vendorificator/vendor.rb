@@ -223,7 +223,7 @@ module Vendorificator
             commit_and_annotate(options[:metadata])
           end
           # Merge back to the original branch
-          git.merge( {:no_edit => true, :no_ff => true}, branch_name )
+          git.capturing.merge( {:no_edit => true, :no_ff => true}, branch_name )
           postprocess! if self.respond_to? :postprocess!
           compute_dependencies!
         ensure
@@ -330,10 +330,10 @@ module Vendorificator
     #
     # Returns nothing.
     def commit_and_annotate(environment_metadata = {})
-      git.add work_dir, *git_add_extra_paths
-      git.commit :m => conjure_commit_message
-      git.notes({:ref => 'vendor'}, 'add', {:m => conjure_note(environment_metadata)}, 'HEAD')
-      git.tag( { :a => true, :m => tag_message }, tag_name )
+      git.capturing.add work_dir, *git_add_extra_paths
+      git.capturing.commit :m => conjure_commit_message
+      git.capturing.notes({:ref => 'vendor'}, 'add', {:m => conjure_note(environment_metadata)}, 'HEAD')
+      git.capturing.tag( { :a => true, :m => tag_message }, tag_name )
       shell.say_status :tag, tag_name
     end
 

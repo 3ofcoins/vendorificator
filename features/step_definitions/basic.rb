@@ -41,3 +41,14 @@ When /^I change Vendorfile to:$/ do |vendorfile_contents|
   write_file('Vendorfile', vendorfile_contents)
   run_simple 'git commit -m "Updated Vendorfile" Vendorfile'
 end
+
+When /^I run vendor command "(.*)"$/ do |args|
+  args = args.split
+  args[0] = args[0].to_sym
+
+  Dir.chdir(current_dir) do
+    with_redirected_stdout do
+      Vendorificator::CLI.start args
+    end
+  end
+end
