@@ -5,6 +5,8 @@ require 'tmpdir'
 require 'aruba/cucumber'
 require 'wrong'
 
+require 'vendorificator/cli'
+
 ENV['GIT_AUTHOR_NAME'] = ENV['GIT_COMMITTER_NAME'] = 'Vendorificator Cucumber'
 ENV['GIT_AUTHOR_EMAIL'] = ENV['GIT_COMMITTER_EMAIL'] = 'nonexistent@example.com'
 

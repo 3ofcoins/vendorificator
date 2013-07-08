@@ -5,7 +5,7 @@ Scenario: A single cookbook, without dependencies
     """ruby
     chef_cookbook 'apt'
     """
-  When I successfully run `vendor sync`
+  When I run vendor command "sync"
   Then following has been conjured:
     | Name      | cookbooks/apt |
     | With file | metadata.rb   |
@@ -15,7 +15,7 @@ Scenario: Dependency hook
     """ruby
     chef_cookbook 'memcached'
     """
-  When I successfully run `vendor sync`
+  When I run vendor command "sync"
   Then following has been conjured:
     | Name      | cookbooks/memcached | cookbooks/runit |
     | With file | metadata.rb         | metadata.rb     |
@@ -26,7 +26,7 @@ Scenario: Ignored dependency
     chef_cookbook_ignore_dependencies ['runit']
     chef_cookbook 'memcached'
     """
-  When I successfully run `vendor sync`
+  When I run vendor command "sync"
   Then following has been conjured:
     | Name      | cookbooks/memcached |
     | With file | metadata.rb         |
@@ -40,7 +40,7 @@ Scenario: Ignored all dependencies
     chef_cookbook_ignore_dependencies true
     chef_cookbook 'chef-server'
     """
-  When I successfully run `vendor sync`
+  When I run vendor command "sync"
   Then following has been conjured:
     | Name      | cookbooks/chef-server |
     | With file | metadata.rb           |
