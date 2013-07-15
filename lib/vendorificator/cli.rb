@@ -34,8 +34,7 @@ module Vendorificator
       parse_options
 
       @environment = Vendorificator::Environment.new(self.options[:file])
-      @environment.shell = shell
-      @environment.logger = Logger.new(
+      @environment.io = IOProxy.new(
         shell,
         VERBOSITY_LEVELS[self.options[:verbose]] || :default
       )

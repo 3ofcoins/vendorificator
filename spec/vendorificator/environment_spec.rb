@@ -7,7 +7,7 @@ module Vendorificator
     end
     let(:environment) do
       env = Environment.new 'spec/vendorificator/fixtures/vendorfiles/vendor.rb'
-      env.logger = Logger.new(nil)
+      env.io = IOProxy.new(nil)
       env
     end
 

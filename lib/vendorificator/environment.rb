@@ -6,7 +6,7 @@ require 'vendorificator/config'
 module Vendorificator
   class Environment
     attr_reader :config
-    attr_accessor :vendor_instances, :logger, :shell
+    attr_accessor :vendor_instances, :io
 
     def initialize(vendorfile = nil, &block)
       @vendor_instances = []
@@ -21,8 +21,12 @@ module Vendorificator
       self.each_vendor_instance{ |mod| mod.compute_dependencies! }
     end
 
+    def shell
+      io.shell
+    end
+
     def say_status(*args)
-      shell.say_status(*args) if shell
+      io.say_status(*args)
     end
 
     # Main MiniGit instance
@@ -52,7 +56,7 @@ module Vendorificator
       ensure_clean!
       remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
       remotes.each do |remote|
-        indent 'remote', remote do
+        indent :default, 'remote', remote do
           pull(remote, options)
         end
       end
@@ -108,15 +112,15 @@ module Vendorificator
     # Returns nothing.
     def info(mod_name, options = {})
       if vendor = find_vendor_instance_by_name(mod_name)
-        shell.say "Module name: #{vendor.name}\n"
-        shell.say "Module category: #{vendor.category}\n"
-        shell.say "Module merged version: #{vendor.merged_version}\n"
-        shell.say "Module merged notes: #{vendor.merged_notes.ai}\n"
+        io.puts "Module name: #{vendor.name}\n"
+        io.puts "Module category: #{vendor.category}\n"
+        io.puts "Module merged version: #{vendor.merged_version}\n"
+        io.puts "Module merged notes: #{vendor.merged_notes.ai}\n"
       elsif (commit = Commit.new(mod_name, git)).exists?
-        shell.say "Branches that contain this commit: #{commit.branches.join(', ')}\n"
-        shell.say "Vendorificator notes on this commit: #{commit.notes.ai}\n"
+       io.puts "Branches that contain this commit: #{commit.branches.join(', ')}\n"
+       io.puts "Vendorificator notes on this commit: #{commit.notes.ai}\n"
       else
-        shell.say "Module or ref #{mod_name.inspect} not found."
+        io.puts "Module or ref #{mod_name.inspect} not found."
       end
     end
 
@@ -150,7 +154,7 @@ module Vendorificator
       metadata = metadata_snapshot
 
       each_vendor_instance(*options[:modules]) do |mod|
-        say_status :module, mod.name
+        say_status :default, :module, mod.name
         indent do
           mod.run!(:metadata => metadata)
         end
@@ -264,8 +268,8 @@ module Vendorificator
     # Private: Indents the output.
     #
     # Returns nothing.
-    def indent(*args, &block)
-      say_status *args unless args.empty?
+    def indent(verb_level = :default, *args, &block)
+      say_status verb_level, *args unless args.empty?
       shell.padding += 1 if shell
       yield
     ensure
