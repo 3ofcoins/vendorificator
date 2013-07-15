@@ -167,6 +167,7 @@ module Vendorificator
         clone_opts[:branch] = branch_name if branch_exists
         MiniGit.git(:clone, clone_opts, git.git_dir, tmpdir)
         tmpgit = MiniGit::new(tmpdir)
+        tmpgit.fetch(git.git_dir, "refs/notes/vendor:refs/notes/vendor")
         tmpgit.checkout({orphan: true}, branch_name) unless branch_exists
         tmpgit.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean] || !branch_exists
 
@@ -182,8 +183,8 @@ module Vendorificator
         git.fetch(tmpdir)
         git.fetch({tags: true}, tmpdir)
         git.fetch(tmpdir,
-          "+refs/heads/#{branch_name}:refs/heads/#{branch_name}",
-          "+refs/notes/vendor:refs/notes/vendor")
+          "refs/heads/#{branch_name}:refs/heads/#{branch_name}",
+          "refs/notes/vendor:refs/notes/vendor")
       end
     end
 
