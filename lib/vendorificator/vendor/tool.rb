@@ -21,9 +21,9 @@ module Vendorificator
                             File.join(git.git_work_tree, spec),
                             verbose: true
         end
-        Dir.chdir(git.git_work_tree) do
-          system self.command or raise RuntimeError, "Command failed"
-        end
+      end
+      Dir.chdir(git.git_work_tree) do
+        system self.command or raise RuntimeError, "Command failed"
       end
     end
 
