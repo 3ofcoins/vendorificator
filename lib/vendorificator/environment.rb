@@ -6,11 +6,10 @@ require 'vendorificator/config'
 module Vendorificator
   class Environment
     attr_reader :config
-    attr_accessor :shell, :vendor_instances, :verbosity
+    attr_accessor :vendor_instances, :logger, :shell
 
-    def initialize(vendorfile = nil, verbosity = :default, &block)
+    def initialize(vendorfile = nil, &block)
       @vendor_instances = []
-      @verbosity = verbosity
 
       @config = Vendorificator::Config.new
       @config.environment = self

@@ -33,11 +33,12 @@ module Vendorificator
       super
       parse_options
 
-      @environment = Vendorificator::Environment.new(
-        self.options[:file],
+      @environment = Vendorificator::Environment.new(self.options[:file])
+      @environment.shell = shell
+      @environment.logger = Logger.new(
+        shell,
         VERBOSITY_LEVELS[self.options[:verbose]] || :default
       )
-      environment.shell = shell
     end
 
     desc :sync, "Download new or updated vendor files"

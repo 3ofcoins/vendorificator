@@ -5,7 +5,11 @@ module Vendorificator
     before do
       MiniGit.any_instance.stubs(:fetch)
     end
-    let(:environment){ Environment.new 'spec/vendorificator/fixtures/vendorfiles/vendor.rb' }
+    let(:environment) do
+      env = Environment.new 'spec/vendorificator/fixtures/vendorfiles/vendor.rb'
+      env.logger = Logger.new(nil)
+      env
+    end
 
     describe '#clean' do
       it 'returns false for dirty repo' do

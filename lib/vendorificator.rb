@@ -6,6 +6,7 @@ require 'vendorificator/config'
 require 'vendorificator/environment'
 require 'vendorificator/errors'
 require 'vendorificator/commit'
+require 'vendorificator/logger'
 
 require 'vendorificator/vendor'
 require 'vendorificator/vendor/download'
