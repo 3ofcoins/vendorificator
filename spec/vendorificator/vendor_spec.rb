@@ -111,7 +111,7 @@ EOF
       end
 
       let(:environment) do
-        Environment.new do
+        Environment.new(Thor::Shell::Basic.new) do
           vendor :nginx, :category => :cookbooks
           vendor :nginx_simplecgi, :category => :cookbooks
         end

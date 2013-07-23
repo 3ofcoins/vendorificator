@@ -7,7 +7,7 @@ module Vendorificator
     attr_reader :conjured_revision
 
     def conjure!
-      shell.say_status :clone, repository
+      say_status :default, :clone, repository
       MiniGit.git :clone, repository, '.'
       local_git = MiniGit.new('.')
 

@@ -8,8 +8,9 @@ module Vendorificator
     attr_reader :config
     attr_accessor :vendor_instances, :io
 
-    def initialize(vendorfile = nil, &block)
+    def initialize(shell, verbosity = :default, vendorfile = nil, &block)
       @vendor_instances = []
+      @io = IOProxy.new(shell, verbosity)
 
       @config = Vendorificator::Config.new
       @config.environment = self
@@ -23,6 +24,10 @@ module Vendorificator
 
     def shell
       io.shell
+    end
+
+    def say(*args)
+      io.say(*args)
     end
 
     def say_status(*args)
@@ -86,20 +91,20 @@ module Vendorificator
         theirs = remote_branches[mod.branch_name]
         if theirs
           if not ours
-            say_status 'new', mod.branch_name, :yellow
+            say_status :default, 'new', mod.branch_name, :yellow
             git.branch({:track => true}, mod.branch_name, theirs) unless options[:dry_run]
           elsif ours == theirs
-            say_status 'unchanged', mod.branch_name
+            say_status :default, 'unchanged', mod.branch_name
           elsif fast_forwardable?(theirs, ours)
-            say_status 'updated', mod.name, :yellow
+            say_status :default, 'updated', mod.name, :yellow
             mod.in_branch { git.merge({:ff_only => true}, theirs) } unless options[:dry_run]
           elsif fast_forwardable?(ours, theirs)
-            say_status 'older', mod.branch_name
+            say_status :default, 'older', mod.branch_name
           else
-            say_status 'complicated', mod.branch_name, :red
+            say_status :default, 'complicated', mod.branch_name, :red
           end
         else
-          say_status 'unknown', mod.branch_name
+          say_status :default, 'unknown', mod.branch_name
         end
       end
     end
@@ -112,15 +117,15 @@ module Vendorificator
     # Returns nothing.
     def info(mod_name, options = {})
       if vendor = find_vendor_instance_by_name(mod_name)
-        io.puts "Module name: #{vendor.name}\n"
-        io.puts "Module category: #{vendor.category}\n"
-        io.puts "Module merged version: #{vendor.merged_version}\n"
-        io.puts "Module merged notes: #{vendor.merged_notes.ai}\n"
+        say :default, "Module name: #{vendor.name}\n"
+        say :default, "Module category: #{vendor.category}\n"
+        say :default, "Module merged version: #{vendor.merged_version}\n"
+        say :default, "Module merged notes: #{vendor.merged_notes.ai}\n"
       elsif (commit = Commit.new(mod_name, git)).exists?
-       io.puts "Branches that contain this commit: #{commit.branches.join(', ')}\n"
-       io.puts "Vendorificator notes on this commit: #{commit.notes.ai}\n"
+        say :default, "Branches that contain this commit: #{commit.branches.join(', ')}\n"
+        say :default, "Vendorificator notes on this commit: #{commit.notes.ai}\n"
       else
-        io.puts "Module or ref #{mod_name.inspect} not found."
+        say :default, "Module or ref #{mod_name.inspect} not found."
       end
     end
 

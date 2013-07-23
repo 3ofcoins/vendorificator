@@ -55,6 +55,8 @@ class MiniTest::Spec
 
   def basic_environment
     @basic_environment ||= Vendorificator::Environment.new(
+      Thor::Shell::Basic.new,
+      :quiet,
       'spec/vendorificator/fixtures/vendorfiles/empty_vendor.rb'
     )
   end

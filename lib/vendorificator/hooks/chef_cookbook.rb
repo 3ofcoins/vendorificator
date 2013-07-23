@@ -26,7 +26,7 @@ module Vendorificator::Hooks
         metadata = File.join(self.work_dir, 'metadata.rb')
 
         unless File.exist?(metadata)
-          shell.say_status 'WARNING', "Metadata of #{name} does not exist at #{metadata}, could not gather dependencies", :red
+          say_status :quiet, 'WARNING', "Metadata of #{name} does not exist at #{metadata}, could not gather dependencies", :red
           return super
         end
 

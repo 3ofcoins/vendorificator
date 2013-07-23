@@ -33,10 +33,10 @@ module Vendorificator
       super
       parse_options
 
-      @environment = Vendorificator::Environment.new(self.options[:file])
-      @environment.io = IOProxy.new(
+      @environment = Vendorificator::Environment.new(
         shell,
-        VERBOSITY_LEVELS[self.options[:verbose]] || :default
+        VERBOSITY_LEVELS[self.options[:verbose]] || :default,
+        self.options[:file]
       )
     end
 

@@ -18,8 +18,13 @@ module Vendorificator
     end
 
     def say_status(verb_level, *args)
-      write("Say: #{args.inspect}\n")
+      write args[0..1].join('  ' * @shell.padding)
       @shell.say_status(*args) if @shell && should_speak?(verb_level)
+    end
+
+    def say(verb_level, *args)
+      write args[0]
+      @shell.say(*args) if @shell && should_speak?(verb_level)
     end
 
     private

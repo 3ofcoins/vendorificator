@@ -6,9 +6,11 @@ module Vendorificator
       MiniGit.any_instance.stubs(:fetch)
     end
     let(:environment) do
-      env = Environment.new 'spec/vendorificator/fixtures/vendorfiles/vendor.rb'
-      env.io = IOProxy.new(nil)
-      env
+      Environment.new(
+        Thor::Shell::Basic.new,
+        :quiet,
+        'spec/vendorificator/fixtures/vendorfiles/vendor.rb'
+      )
     end
 
     describe '#clean' do
@@ -69,7 +71,13 @@ module Vendorificator
     end
 
     describe '#vendor_instances' do
-      let(:environment){ Environment.new 'spec/vendorificator/fixtures/vendorfiles/empty_vendor.rb' }
+      let(:environment) do
+        Environment.new(
+          Thor::Shell::Basic.new,
+          :default,
+          'spec/vendorificator/fixtures/vendorfiles/empty_vendor.rb'
+        )
+      end
 
       it 'is initialized on a new environment' do
         assert { environment.vendor_instances == [] }
