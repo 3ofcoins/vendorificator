@@ -29,7 +29,6 @@ module Vendorificator
       :banner => 'mod1,mod2,...,modN',
       :desc => 'Run only for specified modules (name or path, comma separated)'
     class_option :version,                   :type => :boolean
-    class_option :help,    :aliases => '-h', :type => :boolean
 
     def initialize(args=[], options={}, config={})
       super
@@ -40,11 +39,6 @@ module Vendorificator
 
       if self.options[:version]
         say "Vendorificator #{Vendorificator::VERSION}"
-        exit
-      end
-
-      if self.options[:help] && config[:current_task].name != 'help'
-        invoke :help, [ config[:current_task].name ]
         exit
       end
 
