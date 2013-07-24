@@ -64,6 +64,20 @@ module Vendorificator
       end
     end
 
+    describe '#push' do
+      it "handles git error on pushing empty notes" do
+        environment.unstub(:git)
+        environment.stubs(:ensure_clean!)
+        environment.vendor_instances = []
+
+        environment.git.stubs(:push).with('origin', [])
+        environment.git.stubs(:push).with('origin', :tags => true)
+        environment.git.expects(:push).with('origin', 'refs/notes/vendor').raises(MiniGit::GitError)
+
+        environment.push(:remote => 'origin')
+      end
+    end
+
     describe '#vendor_instances' do
       let(:environment){ Environment.new 'spec/vendorificator/fixtures/vendorfiles/empty_vendor.rb' }
 
