@@ -48,8 +48,10 @@ module Vendorificator
         exit
       end
 
-      @environment = Vendorificator::Environment.new(self.options[:file])
-      environment.shell = shell
+      unless config[:current_command].name == 'help'
+        @environment = Vendorificator::Environment.new(self.options[:file])
+        environment.shell = shell
+      end
 
       class << shell
         # Make say_status always say it.
