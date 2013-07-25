@@ -62,6 +62,14 @@ module Vendorificator
         environment.expects(:fast_forwardable?).returns(true)
         environment.pull('origin')
       end
+
+      it "handles git error on fetching empty notes" do
+        Environment.any_instance.unstub(:git)
+        MiniGit.any_instance.expects(:fetch).with('origin', 'refs/notes/vendor:refs/notes/vendor').
+          raises(MiniGit::GitError)
+
+        environment.pull('origin')
+      end
     end
 
     describe '#push' do
