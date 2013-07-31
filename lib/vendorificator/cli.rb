@@ -56,6 +56,15 @@ module Vendorificator
       end
     end
 
+    desc :sync, "Download new or updated vendor files"
+    method_option :update, :type => :boolean, :default => false
+    def sync
+      say_status 'DEPRECATED', 'Using vendor sync is deprecated and will be removed in future versions. Use vendor install or vendor update instead.', :yellow
+      environment.sync options.merge(:modules => modules)
+    rescue DirtyRepoError
+      fail! 'Repository is not clean.'
+    end
+
     desc :install, "Download and install new or updated vendor files"
     def install
       environment.sync options.merge(:modules => [])
@@ -73,6 +82,7 @@ module Vendorificator
     desc "status", "List known vendor modules and their status"
     method_option :update, :type => :boolean, :default => false
     def status
+      say_status 'DEPRECATED', 'Using vendor status is deprecated and will be removed in future versions', :yellow
       say_status 'WARNING', 'Git repository is not clean', :red unless environment.clean?
       environment.config[:use_upstream_version] = options[:update]
       environment.each_vendor_instance(*modules) do |mod|
@@ -210,6 +220,7 @@ EOF
     end
 
     def modules
+      say_status 'DEPRECATED', 'Using --modules option is deprecated and will be removed in future versions.', :yellow unless options[:modules].empty?
       options[:modules].split(',').map(&:strip)
     end
 
