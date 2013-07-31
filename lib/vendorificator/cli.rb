@@ -56,10 +56,16 @@ module Vendorificator
       end
     end
 
-    desc :sync, "Download new or updated vendor files"
-    method_option :update, :type => :boolean, :default => false
-    def sync
-      environment.sync options.merge(:modules => modules)
+    desc :install, "Download and install new or updated vendor files"
+    def install
+      environment.sync options.merge(:modules => [])
+    rescue DirtyRepoError
+      fail! 'Repository is not clean.'
+    end
+
+    desc :update, "Update installed vendor files"
+    def update
+      environment.sync options.merge(:modules => modules, :update => true)
     rescue DirtyRepoError
       fail! 'Repository is not clean.'
     end

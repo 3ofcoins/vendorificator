@@ -8,7 +8,7 @@ Scenario:
       FileUtils::rm Dir['test/archive*.c']
     end
     """
-  When I run vendor command "sync"
+  When I run vendor command "install"
   Then following has been conjured:
     | Name         | testrepo       |
     | With file    | test/alias.c   |
