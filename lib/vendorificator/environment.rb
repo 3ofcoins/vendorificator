@@ -132,13 +132,19 @@ module Vendorificator
       ensure_clean!
 
       pushable = []
-      each_vendor_instance{ |mod| pushable += mod.pushable_refs }
+      each_vendor_instance { |mod| pushable += mod.pushable_refs }
+
+      has_notes = begin
+                    git.capturing.rev_parse({:quiet => true, :verify => true}, 'refs/notes/vendor')
+                    true
+                  rescue MiniGit::GitError
+                    false
+                  end
+      pushable << 'refs/notes/vendor' if has_notes
 
       remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
       remotes.each do |remote|
         git.push remote, pushable
-        git.push remote, :tags => true
-        git.push remote, 'refs/notes/vendor' rescue MiniGit::GitError
       end
     end
 
