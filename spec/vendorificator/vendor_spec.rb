@@ -119,18 +119,18 @@ EOF
 
       it 'includes all own refs' do
         refs = environment['nginx'].pushable_refs
-        assert { refs.include? '+refs/heads/vendor/cookbooks/nginx' }
-        assert { refs.include? '+refs/tags/vendor/cookbooks/nginx/1.2.0' }
-        assert { refs.include? '+refs/tags/vendor/cookbooks/nginx/1.3.0' }
+        assert { refs.include? 'refs/heads/vendor/cookbooks/nginx' }
+        assert { refs.include? 'refs/tags/vendor/cookbooks/nginx/1.2.0' }
+        assert { refs.include? 'refs/tags/vendor/cookbooks/nginx/1.3.0' }
 
         refs = environment['nginx_simplecgi'].pushable_refs
-        assert { refs.include? '+refs/heads/vendor/cookbooks/nginx_simplecgi' }
-        assert { refs.include? '+refs/tags/vendor/cookbooks/nginx_simplecgi/0.1.0' }
+        assert { refs.include? 'refs/heads/vendor/cookbooks/nginx_simplecgi' }
+        assert { refs.include? 'refs/tags/vendor/cookbooks/nginx_simplecgi/0.1.0' }
       end
 
       it "doesn't include other modules' refs" do
         refs = environment['nginx'].pushable_refs
-        deny { refs.include? '+refs/tags/vendor/cookbooks/nginx_simplecgi/0.1.0' }
+        deny { refs.include? 'refs/tags/vendor/cookbooks/nginx_simplecgi/0.1.0' }
       end
     end
   end
