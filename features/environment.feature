@@ -40,3 +40,15 @@ Scenario: Getting revision information
   And I run vendor command "info HEAD^2"
   Then the last vendor output should match /master, vendor\/generated/
   Then the last vendor output should match /:unparsed_args/
+
+Scenario: Getting module list
+  Given a repository with following Vendorfile:
+    """ruby
+    vendor 'generated', :version => '0.23' do |v|
+      File.open('README', 'w') { |f| f.puts "Hello, World!" }
+    end
+    """
+  And a remote repository
+  When I run vendor command "install"
+  And I run vendor command "list"
+  Then the last vendor output should match /Module: generated, version: 0.23/

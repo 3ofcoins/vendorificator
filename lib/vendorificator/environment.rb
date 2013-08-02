@@ -132,6 +132,15 @@ module Vendorificator
       end
     end
 
+    # Public: Displays info about current modules.
+    #
+    # Returns nothing.
+    def list
+      each_vendor_instance do |mod|
+        shell.say "Module: #{mod.name}, version: #{mod.version}"
+      end
+    end
+
     # Public: Push changes on module branches.
     #
     # options - The Hash containing options
@@ -171,7 +180,7 @@ module Vendorificator
 
     # Public: Goes through all the Vendor instances and runs the block
     #
-    # modules - ?
+    # modules - An Array of vendor modules to yield the block for.
     #
     # Returns nothing.
     def each_vendor_instance(*modules)

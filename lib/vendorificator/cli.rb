@@ -107,6 +107,11 @@ module Vendorificator
       environment.info mod_name, options
     end
 
+    desc :list, 'List all currently installed modules'
+    def list
+      environment.list
+    end
+
     desc :pull, "Pull upstream branches from a remote repository"
     method_option :remote, :aliases => ['-r'], :default => nil
     method_option :dry_run, :aliases => ['-n'], :default => false, :type => :boolean
