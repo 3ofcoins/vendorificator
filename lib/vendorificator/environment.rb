@@ -6,10 +6,11 @@ require 'vendorificator/config'
 module Vendorificator
   class Environment
     attr_reader :config
-    attr_accessor :shell, :vendor_instances
+    attr_accessor :vendor_instances, :io
 
-    def initialize(vendorfile=nil, &block)
+    def initialize(shell, verbosity = :default, vendorfile = nil, &block)
       @vendor_instances = []
+      @io = IOProxy.new(shell, verbosity)
 
       @config = Vendorificator::Config.new
       @config.environment = self
@@ -21,8 +22,16 @@ module Vendorificator
       self.each_vendor_instance{ |mod| mod.compute_dependencies! }
     end
 
+    def shell
+      io.shell
+    end
+
+    def say(*args)
+      io.say(*args)
+    end
+
     def say_status(*args)
-      shell.say_status(*args) if shell
+      io.say_status(*args)
     end
 
     # Main MiniGit instance
@@ -52,7 +61,7 @@ module Vendorificator
       ensure_clean!
       remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
       remotes.each do |remote|
-        indent 'remote', remote do
+        indent :default, 'remote', remote do
           pull(remote, options)
         end
       end
@@ -82,20 +91,20 @@ module Vendorificator
         theirs = remote_branches[mod.branch_name]
         if theirs
           if not ours
-            say_status 'new', mod.branch_name, :yellow
+            say_status :default, 'new', mod.branch_name, :yellow
             git.branch({:track => true}, mod.branch_name, theirs) unless options[:dry_run]
           elsif ours == theirs
-            say_status 'unchanged', mod.branch_name
+            say_status :default, 'unchanged', mod.branch_name
           elsif fast_forwardable?(theirs, ours)
-            say_status 'updated', mod.name, :yellow
+            say_status :default, 'updated', mod.name, :yellow
             mod.in_branch { git.merge({:ff_only => true}, theirs) } unless options[:dry_run]
           elsif fast_forwardable?(ours, theirs)
-            say_status 'older', mod.branch_name
+            say_status :default, 'older', mod.branch_name
           else
-            say_status 'complicated', mod.branch_name, :red
+            say_status :default, 'complicated', mod.branch_name, :red
           end
         else
-          say_status 'unknown', mod.branch_name
+          say_status :default, 'unknown', mod.branch_name
         end
       end
     end
@@ -108,15 +117,15 @@ module Vendorificator
     # Returns nothing.
     def info(mod_name, options = {})
       if vendor = find_vendor_instance_by_name(mod_name)
-        shell.say "Module name: #{vendor.name}\n"
-        shell.say "Module category: #{vendor.category}\n"
-        shell.say "Module merged version: #{vendor.merged_version}\n"
-        shell.say "Module merged notes: #{vendor.merged_notes.ai}\n"
+        say :default, "Module name: #{vendor.name}\n"
+        say :default, "Module category: #{vendor.category}\n"
+        say :default, "Module merged version: #{vendor.merged_version}\n"
+        say :default, "Module merged notes: #{vendor.merged_notes.ai}\n"
       elsif (commit = Commit.new(mod_name, git)).exists?
-        shell.say "Branches that contain this commit: #{commit.branches.join(', ')}\n"
-        shell.say "Vendorificator notes on this commit: #{commit.notes.ai}\n"
+        say :default, "Branches that contain this commit: #{commit.branches.join(', ')}\n"
+        say :default, "Vendorificator notes on this commit: #{commit.notes.ai}\n"
       else
-        shell.say "Module or ref #{mod_name.inspect} not found."
+        say :default, "Module or ref #{mod_name.inspect} not found."
       end
     end
 
@@ -150,7 +159,7 @@ module Vendorificator
       metadata = metadata_snapshot
 
       each_vendor_instance(*options[:modules]) do |mod|
-        say_status :module, mod.name
+        say_status :default, :module, mod.name
         indent do
           mod.run!(:metadata => metadata)
         end
@@ -264,8 +273,8 @@ module Vendorificator
     # Private: Indents the output.
     #
     # Returns nothing.
-    def indent(*args, &block)
-      say_status *args unless args.empty?
+    def indent(verb_level = :default, *args, &block)
+      say_status verb_level, *args unless args.empty?
       shell.padding += 1 if shell
       yield
     ensure

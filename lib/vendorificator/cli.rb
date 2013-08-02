@@ -14,6 +14,7 @@ require 'vendorificator'
 
 module Vendorificator
   class CLI < Thor
+    VERBOSITY_LEVELS = {1 => :quiet, 2 => :default, 3 => :chatty, 9 => :debug}
     attr_reader :environment
 
     check_unknown_options! :except => [:git, :diff, :log]
@@ -21,42 +22,22 @@ module Vendorificator
 
     default_task :help
 
-    class_option :file,    :aliases => '-f', :type => :string,
-      :banner => 'PATH'
-    class_option :debug,   :aliases => '-d', :type => :boolean, :default => false
-    class_option :quiet,   :aliases => '-q', :type => :boolean, :default => false
+    class_option :file, :aliases => '-f', :type => :string, :banner => 'PATH'
     class_option :modules, :aliases => '-m', :type => :string,  :default => '',
       :banner => 'mod1,mod2,...,modN',
       :desc => 'Run only for specified modules (name or path, comma separated)'
-    class_option :version,                   :type => :boolean
-    class_option :help,    :aliases => '-h', :type => :boolean
+    class_option :verbose, :aliases => '-v', :type => :numeric
+    class_option :version, :type => :boolean
 
-    def initialize(args=[], options={}, config={})
+    def initialize(args = [], options = {}, config = {})
       super
+      parse_options
 
-      if self.options[:debug]
-        MiniGit.debug = true
-      end
-
-      if self.options[:version]
-        say "Vendorificator #{Vendorificator::VERSION}"
-        exit
-      end
-
-      if self.options[:help] && config[:current_task].name != 'help'
-        invoke :help, [ config[:current_task].name ]
-        exit
-      end
-
-      @environment = Vendorificator::Environment.new(self.options[:file])
-      environment.shell = shell
-
-      class << shell
-        # Make say_status always say it.
-        def quiet?
-          false
-        end
-      end
+      @environment = Vendorificator::Environment.new(
+        shell,
+        VERBOSITY_LEVELS[self.options[:verbose]] || :default,
+        self.options[:file]
+      )
     end
 
     desc :sync, "Download new or updated vendor files"
@@ -183,6 +164,20 @@ EOF
     end
 
     private
+
+    # Private: Parses general vendorificator options.
+    #
+    # Returns nothing.
+    def parse_options
+      if options[:version]
+        say "Vendorificator #{Vendorificator::VERSION}"
+        exit
+      end
+
+      if options[:verbose] && (!VERBOSITY_LEVELS.keys.include? options[:verbose])
+        fail! "Unknown verbosity level: #{options[:verbose].inspect}"
+      end
+    end
 
     def split_git_options(args)
       case i = args.index('--git-options')
