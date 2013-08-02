@@ -68,7 +68,10 @@ module Vendorificator
 
       git.fetch(remote)
       git.fetch({:tags => true}, remote)
-      git.fetch(remote, 'refs/notes/vendor:refs/notes/vendor') rescue MiniGit::GitError
+      begin
+        git.fetch(remote, 'refs/notes/vendor:refs/notes/vendor')
+      rescue MiniGit::GitError  # ignore
+      end
 
       ref_rx = /^refs\/remotes\/#{Regexp.quote(remote)}\//
       remote_branches = Hash[ git.capturing.show_ref.
