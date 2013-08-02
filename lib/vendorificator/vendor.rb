@@ -45,7 +45,16 @@ module Vendorificator
     end
 
     def shell
-      @shell ||= config[:shell] || Thor::Shell::Basic.new
+      @environment.shell
+    end
+
+    def say(verb_level= :default, &block)
+      output = yield
+      @environment.say verb_level, output
+    end
+
+    def say_status(*args, &block)
+      @environment.say_status(*args, &block)
     end
 
     def category
@@ -170,11 +179,14 @@ module Vendorificator
       Dir.mktmpdir("vendor-#{category}-#{name}") do |tmpdir|
         clone_opts = {:shared => true, :no_checkout => true}
         clone_opts[:branch] = branch_name if branch_exists
-        MiniGit.git(:clone, clone_opts, git.git_dir, tmpdir)
-        tmpgit = MiniGit::new(tmpdir)
+        say { MiniGit::Capturing.git(:clone, clone_opts, git.git_dir, tmpdir) }
+        tmpgit = MiniGit.new(tmpdir)
+        #TODO: Silence/handle the stderr output from git-checkout
+        tmpgit.capturing.checkout({orphan: true}, branch_name) unless branch_exists
         tmpgit.fetch(git.git_dir, "refs/notes/vendor:refs/notes/vendor") if notes_exist
-        tmpgit.checkout({orphan: true}, branch_name) unless branch_exists
-        tmpgit.rm( { :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.') if options[:clean] || !branch_exists
+        if options[:clean] || !branch_exists
+          tmpgit.rm({ :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
+        end
 
         begin
           @git = tmpgit
@@ -185,6 +197,7 @@ module Vendorificator
           @git = nil
         end
 
+        #TODO: Silence/handle the stderr output from git-fetch
         git.fetch(tmpdir)
         git.fetch({tags: true}, tmpdir)
         git.fetch(tmpdir,
@@ -197,16 +210,16 @@ module Vendorificator
       case status
 
       when :up_to_date
-        shell.say_status 'up to date', self.to_s
+        say_status :default, 'up to date', self.to_s
 
       when :unpulled, :unmerged
-        shell.say_status 'merging', self.to_s, :yellow
+        say_status :default, 'merging', self.to_s, :yellow
         git.merge({:no_edit => true, :no_ff => true}, tagged_sha1)
         postprocess! if self.respond_to? :postprocess!
         compute_dependencies!
 
       when :outdated, :new
-        shell.say_status 'fetching', self.to_s, :yellow
+        say_status :default, 'fetching', self.to_s, :yellow
         begin
           shell.padding += 1
           before_conjure!
@@ -237,7 +250,7 @@ module Vendorificator
         end
 
       else
-        say_status self.status, "I'm unsure what to do.", :red
+        say_status :quiet, self.status, "I'm unsure what to do.", :red
       end
     end
 
@@ -338,7 +351,7 @@ module Vendorificator
       git.capturing.commit :m => conjure_commit_message
       git.capturing.notes({:ref => 'vendor'}, 'add', {:m => conjure_note(environment_metadata)}, 'HEAD')
       git.capturing.tag( { :a => true, :m => tag_message }, tag_name )
-      shell.say_status :tag, tag_name
+      say_status :default, :tag, tag_name
     end
 
     # Private: Merges all the data we use for the commit note.

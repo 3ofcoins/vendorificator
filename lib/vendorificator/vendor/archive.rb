@@ -13,9 +13,9 @@ module Vendorificator
     attr_reader :conjured_checksum, :conjured_filesize
 
     def conjure!
-      shell.say_status :download, url
+      say_status :default, :download, url
       archive = download_file
-      shell.say_status :unpack, filename
+      say_status :default, :unpack, filename
       unpack_file archive
       add_archive_metadata
       super

@@ -2,7 +2,14 @@ require 'spec_helper'
 
 module Vendorificator
   describe Environment do
-    let(:environment) { Environment.new 'spec/vendorificator/fixtures/vendorfiles/vendor.rb' }
+    let(:environment) do
+      Environment.new(
+        Thor::Shell::Basic.new,
+        :quiet,
+        'spec/vendorificator/fixtures/vendorfiles/vendor.rb'
+      )
+    end
+
     before do
       environment.git.capturing.stubs(:remote).returns("origin\n")
     end
@@ -97,7 +104,13 @@ module Vendorificator
     end
 
     describe '#vendor_instances' do
-      let(:environment){ Environment.new 'spec/vendorificator/fixtures/vendorfiles/empty_vendor.rb' }
+      let(:environment) do
+        Environment.new(
+          Thor::Shell::Basic.new,
+          :default,
+          'spec/vendorificator/fixtures/vendorfiles/empty_vendor.rb'
+        )
+      end
 
       it 'is initialized on a new environment' do
         assert { environment.vendor_instances == [] }
