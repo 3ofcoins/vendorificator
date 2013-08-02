@@ -16,7 +16,13 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "vendorificator"
   gem.require_paths = ["lib"]
-  gem.version       = Vendorificator::VERSION
+  gem.version       = if ENV['PRERELEASE']
+                        require 'minigit'
+                        git_desc = MiniGit::Capturing.new(__FILE__).describe.strip.gsub('-', '.')
+                        Gem::Version.new(Vendorificator::VERSION).bump.to_s << ".git.#{git_desc}"
+                      else
+                        Vendorificator::VERSION
+                      end
 
   gem.add_dependency 'escape'
   gem.add_dependency 'thor', '>= 0.18.1'
