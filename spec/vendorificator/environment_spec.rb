@@ -2,15 +2,16 @@ require 'spec_helper'
 
 module Vendorificator
   describe Environment do
-    before do
-      MiniGit.any_instance.stubs(:fetch)
-    end
     let(:environment) do
       Environment.new(
         Thor::Shell::Basic.new,
         :quiet,
         'spec/vendorificator/fixtures/vendorfiles/vendor.rb'
       )
+    end
+
+    before do
+      environment.git.capturing.stubs(:remote).returns("origin\n")
     end
 
     describe '#clean' do
@@ -47,26 +48,58 @@ module Vendorificator
     end
 
     describe '#pull' do
+      before do
+        environment.git.expects(:fetch).with('origin')
+        environment.git.expects(:fetch).with({:tags => true}, 'origin')
+        @git_fetch_notes = environment.git.expects(:fetch).with('origin', 'refs/notes/vendor:refs/notes/vendor')
+        environment.git.capturing.stubs(:show_ref).returns("602315 refs/remotes/origin/vendor/test\n")
+        environment.vendor_instances = []
+      end
+
       it "creates a branch if it doesn't exist" do
-        Environment.any_instance.unstub(:git)
-        environment.git.capturing.stubs(:show_ref).
-          returns("602315 refs/remotes/origin/vendor/test")
-        environment.vendor_instances = [ stub(:branch_name => 'vendor/test', :head => nil)]
+        environment.vendor_instances << stub(:branch_name => 'vendor/test', :head => nil)
 
         environment.git.expects(:branch).with({:track => true}, 'vendor/test', '602315')
+
         environment.pull('origin')
       end
 
       it "handles fast forwardable branches" do
-        Environment.any_instance.unstub(:git)
-        environment.git.capturing.stubs(:show_ref).
-          returns("602315 refs/remotes/origin/vendor/test")
-        environment.vendor_instances = [stub(
-          :branch_name => 'vendor/test', :head => '123456', :in_branch => true, :name => 'test'
-        )]
-
+        environment.vendor_instances << stub(
+          :branch_name => 'vendor/test', :head => '123456', :in_branch => true, :name => 'test')
         environment.expects(:fast_forwardable?).returns(true)
+
         environment.pull('origin')
+      end
+
+      it "handles git error on fetching empty notes" do
+        @git_fetch_notes.raises(MiniGit::GitError)
+
+        environment.pull('origin')
+      end
+    end
+
+    describe '#push' do
+      it "handles git error on pushing empty notes" do
+        environment.stubs(:ensure_clean!)
+        environment.vendor_instances = []
+
+        environment.git.capturing.expects(:rev_parse).with({:quiet => true, :verify => true}, 'refs/notes/vendor').raises(MiniGit::GitError)
+        environment.git.expects(:push).with('origin', [])
+        environment.git.stubs(:push).with('origin', :tags => true)
+
+        environment.push(:remote => 'origin')
+      end
+
+      it "pushes note when they exist" do
+        environment.stubs(:ensure_clean!)
+        environment.vendor_instances = []
+
+        environment.git.capturing.expects(:rev_parse).with({:quiet => true, :verify => true}, 'refs/notes/vendor').returns('abcdef')
+        environment.git.expects(:push).with('origin', ['refs/notes/vendor'])
+        environment.git.stubs(:push).with('origin', :tags => true)
+
+        environment.push(:remote => 'origin')
       end
     end
 

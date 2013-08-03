@@ -26,18 +26,34 @@ module Vendorificator
     class_option :modules, :aliases => '-m', :type => :string,  :default => '',
       :banner => 'mod1,mod2,...,modN',
       :desc => 'Run only for specified modules (name or path, comma separated)'
+    class_option :version,                   :type => :boolean
     class_option :verbose, :aliases => '-v', :type => :numeric
-    class_option :version, :type => :boolean
 
     def initialize(args = [], options = {}, config = {})
       super
       parse_options
+
+      if self.options[:debug]
+        MiniGit.debug = true
+      end
+
+      if self.options[:version]
+        say "Vendorificator #{Vendorificator::VERSION}"
+        exit
+      end
 
       @environment = Vendorificator::Environment.new(
         shell,
         VERBOSITY_LEVELS[self.options[:verbose]] || :default,
         self.options[:file]
       )
+
+      class << shell
+        # Make say_status always say it.
+        def quiet?
+          false
+        end
+      end
     end
 
     desc :sync, "Download new or updated vendor files"
