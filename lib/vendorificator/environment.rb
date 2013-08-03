@@ -143,13 +143,7 @@ module Vendorificator
       pushable = []
       each_vendor_instance { |mod| pushable += mod.pushable_refs }
 
-      has_notes = begin
-                    git.capturing.rev_parse({:quiet => true, :verify => true}, 'refs/notes/vendor')
-                    true
-                  rescue MiniGit::GitError
-                    false
-                  end
-      pushable << 'refs/notes/vendor' if has_notes
+      pushable << 'refs/notes/vendor' if has_notes?
 
       remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
       remotes.each do |remote|
@@ -288,6 +282,16 @@ module Vendorificator
       yield
     ensure
       shell.padding -= 1 if shell
+    end
+
+    # Private: Checks if there are git vendor notes.
+    #
+    # Returns true/false.
+    def has_notes?
+      git.capturing.rev_parse({:quiet => true, :verify => true}, 'refs/notes/vendor')
+      true
+    rescue MiniGit::GitError
+      false
     end
   end
 end
