@@ -44,8 +44,9 @@ class MiniTest::Spec
   include Vendorificator::Spec::Helpers::Wrong
 
   before do
-    _git = stub
-    _git.stubs(:capturing).returns(stub)
+    _git = stub('git')
+    _capturing = stub('git.capturing')
+    _git.stubs(:capturing).returns(_capturing)
     Vendorificator::Environment.any_instance.stubs(:git).returns(_git)
   end
 

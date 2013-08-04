@@ -265,9 +265,7 @@ module Vendorificator
     def compute_dependencies! ; end
 
     def pushable_refs
-      created_tags.
-        map { |tag| '+' << tag }.
-        unshift("+refs/heads/#{branch_name}")
+      created_tags.unshift("refs/heads/#{branch_name}")
     end
 
     def metadata
