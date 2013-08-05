@@ -112,6 +112,11 @@ module Vendorificator
       environment.list
     end
 
+    desc :outdated, 'List all currently installed modules'
+    def outdated
+      environment.outdated
+    end
+
     desc :pull, "Pull upstream branches from a remote repository"
     method_option :remote, :aliases => ['-r'], :default => nil
     method_option :dry_run, :aliases => ['-n'], :default => false, :type => :boolean

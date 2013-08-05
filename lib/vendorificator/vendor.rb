@@ -258,7 +258,6 @@ module Vendorificator
       block.call(self) if block
     end
 
-    #
     # Hook points
     def git_add_extra_paths ; [] ; end
     def before_conjure! ; end

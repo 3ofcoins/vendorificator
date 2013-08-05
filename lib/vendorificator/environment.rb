@@ -141,6 +141,18 @@ module Vendorificator
       end
     end
 
+    # Public: Displays info about outdated modules.
+    #
+    # Returns nothing.
+    def outdated
+      outdated = []
+      each_vendor_instance do |mod|
+        outdated << mod if [:unpulled, :unmerged, :outdated].include? mod.status
+      end
+
+      outdated.each { |mod| say_status :quiet, 'outdated', mod.name }
+    end
+
     # Public: Push changes on module branches.
     #
     # options - The Hash containing options
