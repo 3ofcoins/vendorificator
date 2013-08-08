@@ -57,8 +57,8 @@ detail.
    a Git remote
  * `vendor push` will push all vendor branches, tags, and notes to
    a Git remote
- * `vendor diff` will show the differences between vendor module's
-   pristine branch and curent work tree
+ * `vendor diff` will show a `git diff` of vendor module's files between vendor
+   module's pristine branch and current work tree
  * `vendor log` will show a `git log` of all changes made to a particular
    vendor module's files that are not in module's pristine branch
 
