@@ -280,7 +280,7 @@ module Vendorificator
 
       module_list.include?(name) ||
         module_list.include?("#{group}/#{name}") ||
-        modpaths.include?(work_dir)
+        modpaths.include?(File.expand_path(work_dir))
     end
 
     private
@@ -312,7 +312,9 @@ module Vendorificator
     end
 
     def tagged_sha1
-      @tagged_sha1 ||= git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/tags/#{tag_name}^{commit}").strip
+      @tagged_sha1 ||= git.capturing.rev_parse(
+        {:verify => true, :quiet => true}, "refs/tags/#{tag_name}^{commit}"
+      ).strip
     rescue MiniGit::GitError
       nil
     end
