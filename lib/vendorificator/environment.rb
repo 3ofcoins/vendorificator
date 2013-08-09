@@ -121,7 +121,7 @@ module Vendorificator
     def info(mod_name, options = {})
       if vendor = find_vendor_instance_by_name(mod_name)
         say :default, "Module name: #{vendor.name}\n"
-        say :default, "Module category: #{vendor.category}\n"
+        say :default, "Module group: #{vendor.group}\n"
         say :default, "Module merged version: #{vendor.merged_version}\n"
         say :default, "Module merged notes: #{vendor.merged_notes.ai}\n"
       elsif (commit = Commit.new(mod_name, git)).exists?

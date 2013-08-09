@@ -112,10 +112,10 @@ It takes following options:
  * `:version` - the version of module. If the module's contents should
    change, increase the version, so that Vendorificator knows it needs
    to re-create the module.
- * `:category` - module's *category* is subdirectory of the basedir
+ * `:group` - module's *group* is subdirectory of the basedir
    where module's directory will be created. For example, `vendor
    "foo"` will go to `vendor/foo` by default, but `vendor "foo",
-   :category => :widgets` will go to `vendor/widgets/foo`. It is also
+   :group => :widgets` will go to `vendor/widgets/foo`. It is also
    added in a similar way to module's branch name, tag names, etc.
  * `:path` - lets you specify subdirectory in which the module will be
    downloaded
@@ -197,7 +197,7 @@ Example:
 ```ruby
 git 'git://github.com/mpasternacki/nagios.git',
     :branch => 'COOK-1997',
-    :category => :cookbooks,
+    :group => :cookbooks,
     :version => '0.20130124.2'
 ```
 
@@ -206,7 +206,7 @@ git 'git://github.com/mpasternacki/nagios.git',
 Downloads an Opscode Chef cookbook from http://community.opscode.com/
 website (same thing that `knife cookbook site install` does). It
 resolves dependencies -- all needed modules will be downloaded by
-default. Its category defaults to `:cookbooks`. It may take the same
+default. Its group defaults to `:cookbooks`. It may take the same
 arguments as `archive` (but the name and possibly version is almost
 always enough), plus:
 
@@ -238,7 +238,7 @@ option to add it:
 
 ```ruby
 git 'git://github.com/user/cookbook.git',
-  :category => :cookbooks,
+  :group => :cookbooks,
   :hooks => 'ChefCookbookDependencies'
 end
 ```

@@ -8,7 +8,7 @@ module Vendorificator
   class Vendor
 
     class << self
-      attr_accessor :category, :method_name
+      attr_accessor :group, :method_name
 
       def arg_reader(*names)
         names.each do |name|
@@ -41,7 +41,7 @@ module Vendorificator
     end
 
     def path
-      args[:path] || _join(category, name)
+      args[:path] || _join(group, name)
     end
 
     def shell
@@ -57,12 +57,12 @@ module Vendorificator
       @environment.say_status(*args, &block)
     end
 
-    def category
-      defined?(@category) ? @category : self.class.category
+    def group
+      defined?(@group) ? @group : self.class.group
     end
 
     def branch_name
-      _join(config[:branch_prefix], category, name)
+      _join(config[:branch_prefix], group, name)
     end
 
     def to_s
@@ -176,7 +176,7 @@ module Vendorificator
                     rescue MiniGit::GitError
                       nil
                     end
-      Dir.mktmpdir("vendor-#{category}-#{name}") do |tmpdir|
+      Dir.mktmpdir("vendor-#{group}-#{name}") do |tmpdir|
         clone_opts = {:shared => true, :no_checkout => true}
         clone_opts[:branch] = branch_name if branch_exists
         say { MiniGit::Capturing.git(:clone, clone_opts, git.git_dir, tmpdir) }
@@ -270,7 +270,7 @@ module Vendorificator
     def metadata
       default = {
         :module_version => version,
-        :module_category => @category,
+        :module_group => @group,
       }
       default.merge @metadata
     end
@@ -278,7 +278,7 @@ module Vendorificator
     private
 
     def parse_initialize_args(args = {})
-      @category = args.delete(:category) if args.key?(:category)
+      @group = args.delete(:group) if args.key?(:group)
 
       unless (hooks = Array(args.delete(:hooks))).empty?
         hooks.each do |hook|
@@ -292,7 +292,7 @@ module Vendorificator
     end
 
     def tag_name_base
-      _join('vendor', category, name)
+      _join('vendor', group, name)
     end
 
     def conjure_commit_message

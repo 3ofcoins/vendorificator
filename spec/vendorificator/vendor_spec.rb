@@ -4,7 +4,7 @@ require 'spec_helper'
 
 module Vendorificator
   class Vendor::Categorized < Vendor
-    @category = :test
+    @group = :test
   end
 
   class Vendor::Custom < Vendor
@@ -12,34 +12,34 @@ module Vendorificator
   end
 
   describe Vendor do
-    describe '.category' do
+    describe '.group' do
       it 'defaults to nil' do
-        assert { Vendor.category == nil }
+        assert { Vendor.group == nil }
       end
 
       it 'can be overridden in a subclass' do
-        assert { Vendor::Categorized.category == :test }
+        assert { Vendor::Categorized.group == :test }
       end
     end
 
-    describe '#category' do
+    describe '#group' do
       it 'defaults to class attribute' do
-        assert { Vendor.new(basic_environment, 'test').category == nil }
-        assert { Vendor::Categorized.new(basic_environment, 'test').category == :test }
+        assert { Vendor.new(basic_environment, 'test').group == nil }
+        assert { Vendor::Categorized.new(basic_environment, 'test').group == :test }
       end
 
       it 'can be overriden by option' do
-        assert { Vendor.new(basic_environment, 'test', :category => :foo).category == :foo }
-        assert { Vendor::Categorized.new(basic_environment, 'test', :category => :foo).category == :foo }
+        assert { Vendor.new(basic_environment, 'test', :group => :foo).group == :foo }
+        assert { Vendor::Categorized.new(basic_environment, 'test', :group => :foo).group == :foo }
       end
 
       it 'can be reset to nil by option' do
-        assert { Vendor::Categorized.new(basic_environment, 'test', :category => nil).category == nil }
+        assert { Vendor::Categorized.new(basic_environment, 'test', :group => nil).group == nil }
       end
 
       it 'is inserted into paths and other names' do
         uncategorized = Vendor.new(basic_environment, 'test')
-        categorized   = Vendor.new(basic_environment, 'test', :category => :cat)
+        categorized   = Vendor.new(basic_environment, 'test', :group => :cat)
 
         deny { uncategorized.branch_name.include? 'cat' }
         assert { categorized.branch_name.include? 'cat' }
@@ -57,7 +57,7 @@ module Vendorificator
     describe '#metadata' do
       before do
         @vendor = Vendor.new(basic_environment, 'name_test',
-          :category => 'cat_test', :test_arg => 'test_value'
+          :group => 'cat_test', :test_arg => 'test_value'
         )
         @vendor.stubs(:version).returns('0.23')
       end
@@ -66,8 +66,8 @@ module Vendorificator
         assert { @vendor.metadata[:module_version] == '0.23' }
       end
 
-      it 'contains the category' do
-        assert { @vendor.metadata[:module_category] == 'cat_test' }
+      it 'contains the group' do
+        assert { @vendor.metadata[:module_group] == 'cat_test' }
       end
 
       it 'contains the name' do
@@ -79,7 +79,7 @@ module Vendorificator
       end
 
       it 'contains the unparsed arguments' do
-        assert { @vendor.metadata[:unparsed_args].keys.include? :category }
+        assert { @vendor.metadata[:unparsed_args].keys.include? :group }
       end
     end
 
@@ -112,8 +112,8 @@ EOF
 
       let(:environment) do
         Environment.new(Thor::Shell::Basic.new) do
-          vendor :nginx, :category => :cookbooks
-          vendor :nginx_simplecgi, :category => :cookbooks
+          vendor :nginx, :group => :cookbooks
+          vendor :nginx_simplecgi, :group => :cookbooks
         end
       end
 

@@ -10,7 +10,7 @@ module Vendorificator
     include Hooks::ChefCookbookDependencies
 
     @method_name = :chef_cookbook
-    @category = :cookbooks
+    @group = :cookbooks
 
     API_PREFIX = 'http://cookbooks.opscode.com/api/v1/cookbooks/'
 
