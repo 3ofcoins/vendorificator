@@ -275,6 +275,14 @@ module Vendorificator
       default.merge @metadata
     end
 
+    def included_in_list?(module_list)
+      modpaths = module_list.map { |m| File.expand_path(m) }
+
+      module_list.include?(name) ||
+        module_list.include?("#{group}/#{name}") ||
+        modpaths.include?(work_dir)
+    end
+
     private
 
     def parse_initialize_args(args = {})

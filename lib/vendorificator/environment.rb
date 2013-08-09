@@ -196,8 +196,6 @@ module Vendorificator
     #
     # Returns nothing.
     def each_vendor_instance(*modules)
-      modpaths = modules.map { |m| File.expand_path(m) }
-
       # We don't use @vendor_instances.each here, because Vendor#run! is
       # explicitly allowed to append to instantiate new dependencies, and #each
       # fails to catch up on some Ruby implementations.
@@ -205,9 +203,7 @@ module Vendorificator
       while true
         break if i >= @vendor_instances.length
         mod = @vendor_instances[i]
-        yield mod if modules.empty? ||
-          modules.include?(mod.name) ||
-          modpaths.include?(mod.work_dir)
+        yield mod if modules.empty? || mod.included_in_list?(modules)
         i += 1
       end
     end
