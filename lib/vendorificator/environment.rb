@@ -243,14 +243,14 @@ module Vendorificator
 
     private
 
-    # Private: Finds a vendor instance by module name.
+    # Private: Finds a vendor instance by module (qualified) name, path or branch.
     #
-    # mod_name - The String containing the module name.
+    # mod_name - The String containing the module id.
     #
     # Returns Vendor instance.
     def find_vendor_instance_by_name(mod_name)
-      each_vendor_instance do |mod|
-        return mod if mod.name == mod_name
+      each_vendor_instance(mod_name) do |mod|
+        return mod
       end
       nil
     end
