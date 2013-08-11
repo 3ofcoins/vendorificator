@@ -133,6 +133,24 @@ EOF
         deny { refs.include? 'refs/tags/vendor/cookbooks/nginx_simplecgi/0.1.0' }
       end
     end
+
+    describe '#included_in_list?' do
+      let(:vendor) { Vendor.new(basic_environment, 'test_name', :group => 'test_group') }
+
+      it 'finds a module by name' do
+        assert { vendor.included_in_list?(['test_name']) }
+      end
+
+      it 'finds a module by qualified name' do
+        assert { vendor.included_in_list?(['test_group/test_name']) }
+      end
+
+      it 'finds a module by path' do
+        vendor.stubs(:work_dir).returns('./vendor/test_group/test_name')
+
+        assert { vendor.included_in_list?(['./vendor/test_group/test_name']) }
+      end
+    end
   end
 
   module Hooks
