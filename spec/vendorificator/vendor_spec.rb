@@ -1,6 +1,6 @@
 # Note that due to git operations involved, most of the Vendor class is tested
 # with cucumber features instead.
-require 'spec_helper'
+require_relative '../spec_helper'
 
 module Vendorificator
   class Vendor::Categorized < Vendor
@@ -150,6 +150,22 @@ EOF
 
         assert { vendor.included_in_list?(['./vendor/test_group/test_name']) }
       end
+
+      it 'finds a module by merge commit' do
+        vendor.stubs(:merged).returns('foobar')
+        vendor.stubs(:work_dir).returns('abc/def')
+
+        assert { vendor.included_in_list?(['foobar']) }
+      end
+
+      it 'finds a module by branch name' do
+        vendor.stubs(:merged).returns('abcdef')
+        vendor.stubs(:work_dir).returns('abc/def')
+
+        vendor.stubs(:branch_name).returns('foo/bar')
+        assert { vendor.included_in_list?(['foo/bar']) }
+      end
+
     end
   end
 

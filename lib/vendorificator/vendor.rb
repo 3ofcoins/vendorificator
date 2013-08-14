@@ -280,7 +280,9 @@ module Vendorificator
 
       module_list.include?(name) ||
         module_list.include?("#{group}/#{name}") ||
-        modpaths.include?(File.expand_path(work_dir))
+        modpaths.include?(File.expand_path(work_dir)) ||
+        module_list.include?(merged) ||
+        module_list.include?(branch_name)
     end
 
     private
