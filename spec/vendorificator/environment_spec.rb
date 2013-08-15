@@ -3,11 +3,10 @@ require 'spec_helper'
 module Vendorificator
   describe Environment do
     let(:environment) do
-      Environment.new(
-        Thor::Shell::Basic.new,
-        :quiet,
-        'spec/vendorificator/fixtures/vendorfiles/vendor.rb'
-      )
+      Environment.new Thor::Shell::Basic.new, :quiet, nil do
+        vendor 'name', :option => 'value'
+        vendor 'other_name', :option => 'other_value'
+      end
     end
 
     before do
@@ -108,7 +107,7 @@ module Vendorificator
         Environment.new(
           Thor::Shell::Basic.new,
           :default,
-          'spec/vendorificator/fixtures/vendorfiles/empty_vendor.rb'
+          nil
         )
       end
 
