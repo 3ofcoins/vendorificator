@@ -16,7 +16,11 @@ module Vendorificator
       @config.environment = self
       if vendorfile || !block_given?
         found_file = find_vendorfile(vendorfile)
-        @config.read_file found_file.to_s if found_file
+        if found_file
+          @config.read_file found_file.to_s
+        else
+          say_status :default, 'WARNING', "Vendorfile not found. If you've created one, make sure the path is correct."
+        end
       end
       @config.instance_eval(&block) if block_given?
 
