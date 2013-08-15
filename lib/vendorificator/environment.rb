@@ -15,7 +15,8 @@ module Vendorificator
       @config = Vendorificator::Config.new
       @config.environment = self
       if vendorfile || !block_given?
-        @config.read_file(find_vendorfile(vendorfile).to_s)
+        found_file = find_vendorfile(vendorfile)
+        @config.read_file found_file.to_s if found_file
       end
       @config.instance_eval(&block) if block_given?
 
@@ -243,8 +244,8 @@ module Vendorificator
     # given - the optional String containing vendorfile path.
     #
     # Returns a String containing the vendorfile path.
-    def find_vendorfile(given=nil)
-      given = [ given, ENV['VENDORFILE'] ].find do |candidate|
+    def find_vendorfile(given = nil)
+      given = [given, ENV['VENDORFILE']].find do |candidate|
         candidate && !(candidate.respond_to?(:empty?) && candidate.empty?)
       end
       return given if given
@@ -259,11 +260,11 @@ module Vendorificator
         # avoid stepping above the tmp directory when testing
         if ENV['VENDORIFICATOR_SPEC_RUN'] &&
             dir.join('vendorificator.gemspec').exist?
-          raise ArgumentError, "Vendorfile not found"
+          break
         end
       end
 
-      raise ArgumentError, "Vendorfile not found"
+      return nil
     end
 
     # Private: Aborts on a dirty repository.
