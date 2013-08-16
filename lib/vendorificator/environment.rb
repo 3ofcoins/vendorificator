@@ -121,7 +121,7 @@ module Vendorificator
     def info(mod_name, options = {})
       if vendor = find_vendor_instance_by_name(mod_name)
         say :default, "Module name: #{vendor.name}\n"
-        say :default, "Module category: #{vendor.category}\n"
+        say :default, "Module group: #{vendor.group}\n"
         say :default, "Module merged version: #{vendor.merged_version}\n"
         say :default, "Module merged notes: #{vendor.merged_notes.ai}\n"
       elsif (commit = Commit.new(mod_name, git)).exists?
@@ -130,6 +130,27 @@ module Vendorificator
       else
         say :default, "Module or ref #{mod_name.inspect} not found."
       end
+    end
+
+    # Public: Displays info about current modules.
+    #
+    # Returns nothing.
+    def list
+      each_vendor_instance do |mod|
+        shell.say "Module: #{mod.name}, version: #{mod.version}"
+      end
+    end
+
+    # Public: Displays info about outdated modules.
+    #
+    # Returns nothing.
+    def outdated
+      outdated = []
+      each_vendor_instance do |mod|
+        outdated << mod if [:unpulled, :unmerged, :outdated].include? mod.status
+      end
+
+      outdated.each { |mod| say_status :quiet, 'outdated', mod.name }
     end
 
     # Public: Push changes on module branches.
@@ -171,12 +192,10 @@ module Vendorificator
 
     # Public: Goes through all the Vendor instances and runs the block
     #
-    # modules - ?
+    # modules - An Array of vendor modules to yield the block for.
     #
     # Returns nothing.
     def each_vendor_instance(*modules)
-      modpaths = modules.map { |m| File.expand_path(m) }
-
       # We don't use @vendor_instances.each here, because Vendor#run! is
       # explicitly allowed to append to instantiate new dependencies, and #each
       # fails to catch up on some Ruby implementations.
@@ -184,9 +203,7 @@ module Vendorificator
       while true
         break if i >= @vendor_instances.length
         mod = @vendor_instances[i]
-        yield mod if modules.empty? ||
-          modules.include?(mod.name) ||
-          modpaths.include?(mod.work_dir)
+        yield mod if modules.empty? || mod.included_in_list?(modules)
         i += 1
       end
     end
@@ -226,14 +243,14 @@ module Vendorificator
 
     private
 
-    # Private: Finds a vendor instance by module name.
+    # Private: Finds a vendor instance by module (qualified) name, path or branch.
     #
-    # mod_name - The String containing the module name.
+    # mod_name - The String containing the module id.
     #
     # Returns Vendor instance.
     def find_vendor_instance_by_name(mod_name)
-      each_vendor_instance do |mod|
-        return mod if mod.name == mod_name
+      each_vendor_instance(mod_name) do |mod|
+        return mod
       end
       nil
     end

@@ -143,5 +143,6 @@ module Vendorificator
         assert { @metadata[:git_describe] == 'git description' }
       end
     end
+
   end
 end

@@ -59,7 +59,22 @@ module Vendorificator
     desc :sync, "Download new or updated vendor files"
     method_option :update, :type => :boolean, :default => false
     def sync
+      say_status 'DEPRECATED', 'Using vendor sync is deprecated and will be removed in future versions. Use vendor install or vendor update instead.', :yellow
       environment.sync options.merge(:modules => modules)
+    rescue DirtyRepoError
+      fail! 'Repository is not clean.'
+    end
+
+    desc :install, "Download and install new or updated vendor files"
+    def install(*modules)
+      environment.sync options.merge(:modules => modules)
+    rescue DirtyRepoError
+      fail! 'Repository is not clean.'
+    end
+
+    desc :update, "Update installed vendor files"
+    def update(*modules)
+      environment.sync options.merge(:modules => modules, :update => true)
     rescue DirtyRepoError
       fail! 'Repository is not clean.'
     end
@@ -67,6 +82,7 @@ module Vendorificator
     desc "status", "List known vendor modules and their status"
     method_option :update, :type => :boolean, :default => false
     def status
+      say_status 'DEPRECATED', 'Using vendor status is deprecated and will be removed in future versions', :yellow
       say_status 'WARNING', 'Git repository is not clean', :red unless environment.clean?
       environment.config[:use_upstream_version] = options[:update]
       environment.each_vendor_instance(*modules) do |mod|
@@ -91,6 +107,16 @@ module Vendorificator
       environment.info mod_name, options
     end
 
+    desc :list, 'List all currently installed modules'
+    def list
+      environment.list
+    end
+
+    desc :outdated, 'List all currently installed modules'
+    def outdated
+      environment.outdated
+    end
+
     desc :pull, "Pull upstream branches from a remote repository"
     method_option :remote, :aliases => ['-r'], :default => nil
     method_option :dry_run, :aliases => ['-n'], :default => false, :type => :boolean
@@ -108,8 +134,8 @@ module Vendorificator
       fail! 'Repository is not clean.'
     end
 
-    desc "git GIT_COMMAND [GIT_ARGS [...]]",
-         "Run a git command for specified modules"
+    desc "git GIT_COMMAND [MODULE [MODULE ...]] [-- GIT_OPTIONS]",
+         "Run a git command for specified module(s)"
     long_desc <<EOF
   Run a git command for specified modules. Within GIT_ARGS arguments,
   you can use @MERGED@ and @PATH@ tags, which will be substituted with
@@ -119,17 +145,18 @@ module Vendorificator
   The 'diff' and 'log' commands are simple aliases for 'git' command.
 
   Examples:
-    vendor git log @MERGED@..HEAD -- @PATH@    # basic 'vendor log'
-    vendor git diff --stat @MERGED@ -- @PATH@  # 'vendor diff', as diffstat
+    vendor git log my_module -- @MERGED@..HEAD -- @PATH@    # basic 'vendor log'
+    vendor git diff module1 module2 -- --stat @MERGED@ -- @PATH@  # 'vendor diff', as diffstat
 EOF
     def git(command, *args)
+      modules, git_options = split_git_options(args)
       environment.each_vendor_instance(*modules) do |mod|
         unless mod.merged
-          say_status 'unmerged', mod.to_s, :red unless options[:only_changed]
+          say_status 'unmerged', mod.to_s, :red
           next
         end
 
-        actual_args = args.dup.map do |arg|
+        actual_args = git_options.dup.map do |arg|
           arg.
             gsub('@MERGED@', mod.merged).
             gsub('@PATH@', mod.work_dir)
@@ -140,16 +167,18 @@ EOF
       end
     end
 
-    desc "diff [OPTIONS] [GIT OPTIONS]",
+    desc "diff [MODULE [MODULE ...]] [-- GIT_OPTIONS]",
          "Show differences between work tree and upstream module(s)"
     def diff(*args)
-      invoke :git, %w'diff' + args + %w'@MERGED@ -- @PATH@'
+      modules, git_options = split_git_options(args)
+      invoke :git, %w'diff' + modules + %w'--' + git_options + %w'@MERGED@ -- @PATH@'
     end
 
-    desc "log [OPTIONS] [GIT OPTIONS]",
+    desc "log [MODULE [MODULE ...]] [-- GIT_OPTIONS]",
          "Show git log of commits added to upstream module(s)"
     def log(*args)
-      invoke :git, %w'log' + args + %w'@MERGED@..HEAD -- @PATH@'
+      modules, git_options = split_git_options(args)
+      invoke :git, %w'log' + modules + %w'--' + git_options + %w'@MERGED@..HEAD -- @PATH@'
     end
 
     desc :pry, 'Pry into the binding', :hide => true
@@ -196,14 +225,15 @@ EOF
     end
 
     def split_git_options(args)
-      case i = args.index('--git-options')
-      when nil then [ args, [] ]
-      when 0 then [ [], args[1..-1] ]
-      else [ args[0..(i-1)], args[(i+1)..-1] ]
+      case i = args.index('--')
+      when nil then [args, []]
+      when 0 then [[], args[1..-1]]
+      else [args[0..(i - 1)], args[(i + 1)..-1]]
       end
     end
 
     def modules
+      say_status 'DEPRECATED', 'Using --modules option is deprecated and will be removed in future versions.', :yellow unless options[:modules].empty?
       options[:modules].split(',').map(&:strip)
     end
 
