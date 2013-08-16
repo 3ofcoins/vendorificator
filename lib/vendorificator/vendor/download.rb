@@ -11,7 +11,7 @@ module Vendorificator
     attr_reader :conjured_checksum, :conjured_filesize
 
     def path
-      args[:path] || category
+      args[:path] || group
     end
 
     def conjure!

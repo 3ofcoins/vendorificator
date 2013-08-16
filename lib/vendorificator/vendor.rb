@@ -8,7 +8,7 @@ module Vendorificator
   class Vendor
 
     class << self
-      attr_accessor :category, :method_name
+      attr_accessor :group, :method_name
 
       def arg_reader(*names)
         names.each do |name|
@@ -41,7 +41,7 @@ module Vendorificator
     end
 
     def path
-      args[:path] || _join(category, name)
+      args[:path] || _join(group, name)
     end
 
     def shell
@@ -57,12 +57,12 @@ module Vendorificator
       @environment.say_status(*args, &block)
     end
 
-    def category
-      defined?(@category) ? @category : self.class.category
+    def group
+      defined?(@group) ? @group : self.class.group
     end
 
     def branch_name
-      _join(config[:branch_prefix], category, name)
+      _join(config[:branch_prefix], group, name)
     end
 
     def to_s
@@ -176,7 +176,7 @@ module Vendorificator
                     rescue MiniGit::GitError
                       nil
                     end
-      Dir.mktmpdir("vendor-#{category}-#{name}") do |tmpdir|
+      Dir.mktmpdir("vendor-#{group}-#{name}") do |tmpdir|
         clone_opts = {:shared => true, :no_checkout => true}
         clone_opts[:branch] = branch_name if branch_exists
         say { MiniGit::Capturing.git(:clone, clone_opts, git.git_dir, tmpdir) }
@@ -258,7 +258,6 @@ module Vendorificator
       block.call(self) if block
     end
 
-    #
     # Hook points
     def git_add_extra_paths ; [] ; end
     def before_conjure! ; end
@@ -271,15 +270,29 @@ module Vendorificator
     def metadata
       default = {
         :module_version => version,
-        :module_category => @category,
+        :module_group => @group,
       }
       default.merge @metadata
+    end
+
+    def included_in_list?(module_list)
+      modpaths = module_list.map { |m| File.expand_path(m) }
+
+      module_list.include?(name) ||
+        module_list.include?("#{group}/#{name}") ||
+        modpaths.include?(File.expand_path(work_dir)) ||
+        module_list.include?(merged) ||
+        module_list.include?(branch_name)
     end
 
     private
 
     def parse_initialize_args(args = {})
-      @category = args.delete(:category) if args.key?(:category)
+      @group = args.delete(:group) if args.key?(:group)
+      if args.key?(:category)
+        @group ||= args.delete(:category)
+        say_status :default, 'DEPRECATED', 'Using :category option is deprecated and will be removed in future versions. Use :group instead.'
+      end
 
       unless (hooks = Array(args.delete(:hooks))).empty?
         hooks.each do |hook|
@@ -293,7 +306,7 @@ module Vendorificator
     end
 
     def tag_name_base
-      _join('vendor', category, name)
+      _join('vendor', group, name)
     end
 
     def conjure_commit_message
@@ -305,7 +318,9 @@ module Vendorificator
     end
 
     def tagged_sha1
-      @tagged_sha1 ||= git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/tags/#{tag_name}^{commit}").strip
+      @tagged_sha1 ||= git.capturing.rev_parse(
+        {:verify => true, :quiet => true}, "refs/tags/#{tag_name}^{commit}"
+      ).strip
     rescue MiniGit::GitError
       nil
     end
