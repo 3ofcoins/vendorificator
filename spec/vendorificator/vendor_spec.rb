@@ -52,6 +52,12 @@ module Vendorificator
         deny { uncategorized.tag_name.include? 'cat' }
         assert { categorized.tag_name.include? 'cat' }
       end
+
+      it 'accepts a deprecated :category option' do
+        vendor = Vendor.new(basic_environment, 'test', :category => 'foo')
+
+        assert { vendor.group == 'foo' }
+      end
     end
 
     describe '#metadata' do

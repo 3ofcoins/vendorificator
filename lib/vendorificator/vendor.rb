@@ -289,6 +289,10 @@ module Vendorificator
 
     def parse_initialize_args(args = {})
       @group = args.delete(:group) if args.key?(:group)
+      if args.key?(:category)
+        @group ||= args.delete(:category)
+        say_status :default, 'DEPRECATED', 'Using :category option is deprecated and will be removed in future versions. Use :group instead.'
+      end
 
       unless (hooks = Array(args.delete(:hooks))).empty?
         hooks.each do |hook|
