@@ -67,8 +67,11 @@ module Vendorificator
     desc "status", "List known vendor modules and their status"
     method_option :update, :type => :boolean, :default => false
     def status
-      say_status 'WARNING', 'Git repository is not clean', :red unless environment.clean?
       environment.config[:use_upstream_version] = options[:update]
+      environment.load_vendorfile
+
+      say_status 'WARNING', 'Git repository is not clean', :red unless environment.clean?
+
       environment.each_vendor_instance(*modules) do |mod|
         status_line = mod.to_s
 
