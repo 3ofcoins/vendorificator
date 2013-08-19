@@ -49,3 +49,11 @@ Scenario: Working with empty Vendorfile
   When I run vendor command "sync"
   And I run vendor command "status"
   Then the last vendor output should match /\A\z/
+
+Scenario: Working without a Vendorfile
+  Given a directory named "foo"
+  When I cd to "foo"
+  And I run vendor command "help"
+  Then the last vendor output should match /Commands:/
+  And the last vendor output should not match /Vendorfile not found/
+
