@@ -40,3 +40,12 @@ Scenario: Getting revision information
   And I run vendor command "info HEAD^2"
   Then the last vendor output should match /master, vendor\/generated/
   Then the last vendor output should match /:unparsed_args/
+
+Scenario: Working with empty Vendorfile
+  Given a repository with following Vendorfile:
+    """ruby
+    """
+  And a remote repository
+  When I run vendor command "sync"
+  And I run vendor command "status"
+  Then the last vendor output should match /\A\z/
