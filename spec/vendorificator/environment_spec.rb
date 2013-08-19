@@ -47,7 +47,7 @@ module Vendorificator
     end
 
     describe '#pull' do
-      let(:environment){ Environment.new Thor::Shell::Basic.new, :quiet, nil }
+      let(:environment){ Environment.new(Thor::Shell::Basic.new, :quiet, nil){} }
 
       before do
         environment.git.expects(:fetch).with('origin')
@@ -85,7 +85,7 @@ module Vendorificator
     end
 
     describe '#push' do
-      let(:environment){ Environment.new Thor::Shell::Basic.new, :quiet, nil }
+      let(:environment){ Environment.new(Thor::Shell::Basic.new, :quiet, nil){} }
 
       it "handles git error on pushing empty notes" do
         environment.stubs(:ensure_clean!)

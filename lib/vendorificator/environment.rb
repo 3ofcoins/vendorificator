@@ -240,7 +240,7 @@ module Vendorificator
       if @vendorfile
         @config.read_file @vendorfile.to_s
       else
-        say_status :default, 'WARNING', "Vendorfile not found. Vendorificator needs to run in the directory containing Vendorfile or config/vendor.rb."
+        raise MissingVendorfileError unless @vendor_block
       end
       @config.instance_eval(&@vendor_block) if @vendor_block
 
@@ -325,5 +325,6 @@ module Vendorificator
     rescue MiniGit::GitError
       false
     end
+
   end
 end

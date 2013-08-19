@@ -62,6 +62,8 @@ module Vendorificator
       environment.sync options.merge(:modules => modules)
     rescue DirtyRepoError
       fail! 'Repository is not clean.'
+    rescue MissingVendorfileError
+      fail! "Vendorfile not found. Vendorificator needs to run in the directory containing Vendorfile or config/vendor.rb."
     end
 
     desc "status", "List known vendor modules and their status"
@@ -87,11 +89,15 @@ module Vendorificator
         say_status( mod.status.to_s.gsub('_', ' '), status_line,
                     ( mod.status == :up_to_date ? :green : :yellow ) )
       end
+    rescue MissingVendorfileError
+      fail! "Vendorfile not found. Vendorificator needs to run in the directory containing Vendorfile or config/vendor.rb."
     end
 
     desc 'info MODULE', "Show module information"
     def info(mod_name)
       environment.info mod_name, options
+    rescue MissingVendorfileError
+      fail! "Vendorfile not found. Vendorificator needs to run in the directory containing Vendorfile or config/vendor.rb."
     end
 
     desc :pull, "Pull upstream branches from a remote repository"
@@ -101,6 +107,8 @@ module Vendorificator
       environment.pull_all options
     rescue DirtyRepoError
       fail! 'Repository is not clean.'
+    rescue MissingVendorfileError
+      fail! "Vendorfile not found. Vendorificator needs to run in the directory containing Vendorfile or config/vendor.rb."
     end
 
     desc :push, "Push local changes back to the remote repository"
@@ -109,6 +117,8 @@ module Vendorificator
       environment.push options
     rescue DirtyRepoError
       fail! 'Repository is not clean.'
+    rescue MissingVendorfileError
+      fail! "Vendorfile not found. Vendorificator needs to run in the directory containing Vendorfile or config/vendor.rb."
     end
 
     desc "git GIT_COMMAND [GIT_ARGS [...]]",
@@ -210,9 +220,9 @@ EOF
       options[:modules].split(',').map(&:strip)
     end
 
-    def fail!(message, exception_message='I give up.')
+    def fail!(message, exception_message = 'I give up.')
       say_status('FATAL', message, :red)
-      raise Thor::Error, 'I give up.'
+      raise Thor::Error, exception_message
     end
 
   end

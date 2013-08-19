@@ -50,10 +50,15 @@ Scenario: Working with empty Vendorfile
   And I run vendor command "status"
   Then the last vendor output should match /\A\z/
 
-Scenario: Working without a Vendorfile
+Scenario: Running tasks without Vendorfile where they don't need it
   Given a directory named "foo"
   When I cd to "foo"
   And I run vendor command "help"
   Then the last vendor output should match /Commands:/
   And the last vendor output should not match /Vendorfile not found/
 
+Scenario: Running tasks without Vendorfile where they need it
+  Given a directory named "foo"
+  When I cd to "foo"
+  And I run vendor command "pull"
+  Then the last vendor output should match /Vendorfile not found/
