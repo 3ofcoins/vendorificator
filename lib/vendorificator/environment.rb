@@ -235,12 +235,12 @@ module Vendorificator
     #
     # Returns nothing.
     def load_vendorfile
-      raise 'Vendorfile has been already loaded!' if @vendorfile_loaded
+      raise RuntimeError, 'Vendorfile has been already loaded!' if @vendorfile_loaded
 
       if @vendorfile
         @config.read_file @vendorfile.to_s
       else
-        say_status :default, 'WARNING', "Vendorfile not found. If you've created one, make sure the path is correct."
+        say_status :default, 'WARNING', "Vendorfile not found. Vendorificator needs to run in the directory containing Vendorfile or config/vendor.rb."
       end
       @config.instance_eval(&@vendor_block) if @vendor_block
 
