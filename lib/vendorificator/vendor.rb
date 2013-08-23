@@ -19,7 +19,7 @@ module Vendorificator
       end
     end
 
-    attr_reader :environment, :name, :args, :block
+    attr_reader :environment, :name, :args, :block, :overlay
     arg_reader :version
 
     def initialize(environment, name, args = {}, &block)
@@ -289,6 +289,7 @@ module Vendorificator
 
     def parse_initialize_args(args = {})
       @group = args.delete(:group) if args.key?(:group)
+      @overlay = args.delete(:overlay) if args.key?(:overlay)
       if args.key?(:category)
         @group ||= args.delete(:category)
         say_status :default, 'DEPRECATED', 'Using :category option is deprecated and will be removed in future versions. Use :group instead.'

@@ -99,6 +99,12 @@ module Vendorificator
         vendor = Vendor.new(basic_environment, 'test', {:hooks => 'FooHook'})
         assert { includes_method? vendor, :foo_hooked_method }
       end
+
+      it 'assigns to an overlay' do
+        overlay = Overlay.new
+        vendor = Vendor.new(basic_environment, 'test', {overlay: overlay})
+        assert { vendor.overlay == overlay }
+      end
     end
 
     describe '#pushable_refs' do

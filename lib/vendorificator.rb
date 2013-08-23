@@ -7,6 +7,7 @@ require 'vendorificator/environment'
 require 'vendorificator/errors'
 require 'vendorificator/commit'
 require 'vendorificator/io_proxy'
+require 'vendorificator/overlay'
 
 require 'vendorificator/vendor'
 require 'vendorificator/vendor/download'
