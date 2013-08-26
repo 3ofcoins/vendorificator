@@ -24,6 +24,7 @@ module Vendorificator
 
     def initialize(environment, name, args = {}, &block)
       @environment = environment
+      @overlay = config.overlay_instance
       @name = name
       @block = block
       @metadata = {

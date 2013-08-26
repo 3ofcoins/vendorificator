@@ -3,7 +3,7 @@ require 'pathname'
 module Vendorificator
   class Config
     attr_accessor :environment
-    attr_reader :metadata
+    attr_reader :metadata, :overlay_instance
 
     @defaults = {}
     @modules = {}
@@ -78,6 +78,13 @@ module Vendorificator
       else
         super
       end
+    end
+
+    def overlay(path, &block)
+      @overlay_instance = Overlay.new(path)
+      yield
+    ensure
+      @overlay_instance = nil
     end
 
     option :basedir, 'vendor'

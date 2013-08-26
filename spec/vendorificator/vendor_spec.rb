@@ -101,7 +101,7 @@ module Vendorificator
       end
 
       it 'assigns to an overlay' do
-        overlay = Overlay.new
+        overlay = Overlay.new('/')
         vendor = Vendor.new(basic_environment, 'test', {overlay: overlay})
         assert { vendor.overlay == overlay }
       end

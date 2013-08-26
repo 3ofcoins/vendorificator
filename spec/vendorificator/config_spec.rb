@@ -67,5 +67,27 @@ module Vendorificator
         assert { config.metadata[:foo] == :bar }
       end
     end
+
+    describe '#overlay' do
+      let(:environment){ Environment.new(Thor::Shell::Basic.new, :quiet,
+        'spec/vendorificator/fixtures/vendorfiles/overlay.rb'
+      )}
+
+      it 'assigns an overlay instance to all modules in the block' do
+        assert { environment.vendor_instances.size > 1 }
+        environment.each_vendor_instance do |vendor|
+          assert { vendor.overlay != nil }
+        end
+      end
+
+      it 'assigns the same overlay instance to all modules in the block' do
+        overlay = nil
+        assert { environment.vendor_instances.size > 1 }
+        environment.each_vendor_instance do |vendor|
+          overlay ||= vendor.overlay
+          assert { vendor.overlay == overlay }
+        end
+      end
+    end
   end
 end
