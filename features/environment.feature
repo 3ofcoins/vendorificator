@@ -54,7 +54,7 @@ Scenario: Running tasks without Vendorfile where they don't need it
   Given a directory named "foo"
   When I cd to "foo"
   And I run vendor command "help"
-  Then the last vendor output should match /Show differences between work tree/
+  Then the last vendor output should match /diff \[MODULE \[MODULE \.\.\.\]\]/
   And the last vendor output should not match /Vendorfile not found/
 
 Scenario: Running tasks without Vendorfile where they need it
