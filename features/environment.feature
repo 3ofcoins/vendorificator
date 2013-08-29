@@ -8,7 +8,7 @@ Scenario: Pushing to remote repo
     end
     """
   And a remote repository
-  When I run vendor command "sync"
+  When I run vendor command "install"
   And I run vendor command "push"
   Then branch "vendor/generated" exists in the remote repo
   And tag "vendor/generated/0.23" exists in the remote repo
@@ -23,7 +23,7 @@ Scenario: Getting module information
     end
     """
   And a remote repository
-  When I run vendor command "sync"
+  When I run vendor command "install"
   And I run vendor command "info generated"
   Then the last vendor output should match /Module merged version: 0.23/
   And the last vendor output should match /unparsed_args/
@@ -36,7 +36,7 @@ Scenario: Getting revision information
     end
     """
   And a remote repository
-  When I run vendor command "sync"
+  When I run vendor command "install"
   And I run vendor command "info HEAD^2"
   Then the last vendor output should match /master, vendor\/generated/
   Then the last vendor output should match /:unparsed_args/
@@ -47,7 +47,7 @@ Scenario: Working with empty Vendorfile
     """
   And a remote repository
   When I run vendor command "sync"
-  And I run vendor command "status"
+  And I run vendor command "list"
   Then the last vendor output should match /\A\z/
 
 Scenario: Running tasks without Vendorfile where they don't need it
@@ -62,3 +62,32 @@ Scenario: Running tasks without Vendorfile where they need it
   When I cd to "foo"
   And I run vendor command "pull"
   Then the last vendor output should match /Vendorfile not found/
+
+Scenario: Getting module list
+  Given a repository with following Vendorfile:
+    """ruby
+    vendor 'generated', :version => '0.23' do |v|
+      File.open('README', 'w') { |f| f.puts "Hello, World!" }
+    end
+    """
+  When I run vendor command "install"
+  And I run vendor command "list"
+  Then the last vendor output should match /Module: generated, version: 0.23/
+
+Scenario: Getting list of outdated modules
+  Given a repository with following Vendorfile:
+    """ruby
+    vendor 'generated', :version => '0.23' do |v|
+      File.open('README', 'w') { |f| f.puts "Hello, World!" }
+    end
+    """
+  When I run vendor command "install"
+  And I change Vendorfile to:
+    """ruby
+    vendor 'generated', :version => '0.42' do |v|
+      File.open('README', 'w') { |f| f.puts "Hello, Updated, World!" }
+      File.open('VERSION', 'w') { |f| f.puts v.version }
+    end
+    """
+  And I run vendor command "outdated"
+  Then the last vendor output should match /outdated\s+generated/
