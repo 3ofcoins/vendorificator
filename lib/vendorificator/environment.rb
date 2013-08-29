@@ -11,15 +11,11 @@ module Vendorificator
     def initialize(shell, verbosity = :default, vendorfile = nil, &block)
       @vendor_instances = []
       @io = IOProxy.new(shell, verbosity)
+      @vendorfile = find_vendorfile(vendorfile)
+      @vendor_block = block
 
       @config = Vendorificator::Config.new
       @config.environment = self
-      if vendorfile || !block_given?
-        @config.read_file(find_vendorfile(vendorfile).to_s)
-      end
-      @config.instance_eval(&block) if block_given?
-
-      self.each_vendor_instance{ |mod| mod.compute_dependencies! }
     end
 
     def shell
@@ -58,6 +54,8 @@ module Vendorificator
     #
     # Returns nothing.
     def pull_all(options = {})
+      load_vendorfile
+
       ensure_clean!
       remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
       remotes.each do |remote|
@@ -119,6 +117,8 @@ module Vendorificator
     #
     # Returns nothing.
     def info(mod_name, options = {})
+      load_vendorfile
+
       if vendor = find_vendor_instance_by_name(mod_name)
         say :default, "Module name: #{vendor.name}\n"
         say :default, "Module group: #{vendor.group}\n"
@@ -136,6 +136,8 @@ module Vendorificator
     #
     # Returns nothing.
     def list
+      load_vendorfile
+
       each_vendor_instance do |mod|
         shell.say "Module: #{mod.name}, version: #{mod.version}"
       end
@@ -145,6 +147,8 @@ module Vendorificator
     #
     # Returns nothing.
     def outdated
+      load_vendorfile
+
       outdated = []
       each_vendor_instance do |mod|
         outdated << mod if [:unpulled, :unmerged, :outdated].include? mod.status
@@ -159,6 +163,8 @@ module Vendorificator
     #
     # Returns nothing.
     def push(options = {})
+      load_vendorfile
+
       ensure_clean!
 
       pushable = []
@@ -178,6 +184,8 @@ module Vendorificator
     #
     # Returns nothing.
     def sync(options = {})
+      load_vendorfile
+
       ensure_clean!
       config[:use_upstream_version] = options[:update]
       metadata = metadata_snapshot
@@ -233,12 +241,38 @@ module Vendorificator
     # Public: returns `config[:root_dir]` relative to Git repository root
     def relative_root_dir
       @relative_root_dir ||= config[:root_dir].relative_path_from(
-        Pathname.new(git.git_work_tree))
+        Pathname.new(git.git_work_tree)
+      )
     end
 
     # Public: Returns module with given name
     def [](name)
       vendor_instances.find { |v| v.name == name }
+    end
+
+    # Public: Loads the vendorfile.
+    #
+    # Returns nothing.
+    def load_vendorfile
+      raise RuntimeError, 'Vendorfile has been already loaded!' if @vendorfile_loaded
+
+      if @vendorfile
+        @config.read_file @vendorfile.to_s
+      else
+        raise MissingVendorfileError unless @vendor_block
+      end
+      @config.instance_eval(&@vendor_block) if @vendor_block
+
+      each_vendor_instance{ |mod| mod.compute_dependencies! }
+
+      @vendorfile_loaded = true
+    end
+
+    # Public: Checks if vendorfile has been already loaded.
+    #
+    # Returns boolean.
+    def vendorfile_loaded?
+      defined?(@vendorfile_loaded) && @vendorfile_loaded
     end
 
     private
@@ -260,8 +294,8 @@ module Vendorificator
     # given - the optional String containing vendorfile path.
     #
     # Returns a String containing the vendorfile path.
-    def find_vendorfile(given=nil)
-      given = [ given, ENV['VENDORFILE'] ].find do |candidate|
+    def find_vendorfile(given = nil)
+      given = [given, ENV['VENDORFILE']].find do |candidate|
         candidate && !(candidate.respond_to?(:empty?) && candidate.empty?)
       end
       return given if given
@@ -276,11 +310,11 @@ module Vendorificator
         # avoid stepping above the tmp directory when testing
         if ENV['VENDORIFICATOR_SPEC_RUN'] &&
             dir.join('vendorificator.gemspec').exist?
-          raise ArgumentError, "Vendorfile not found"
+          break
         end
       end
 
-      raise ArgumentError, "Vendorfile not found"
+      return nil
     end
 
     # Private: Aborts on a dirty repository.
@@ -310,5 +344,6 @@ module Vendorificator
     rescue MiniGit::GitError
       false
     end
+
   end
 end
