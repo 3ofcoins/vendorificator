@@ -10,6 +10,7 @@ Scenario:
     """
   When I run vendor command "install"
   Then following has been conjured:
-    | Name         | testrepo       |
-    | With file    | test/alias.c   |
-    | Without file | test/archive.c |
+    | Name         | testrepo        |
+    | With file    | test/alias.c    |
+    | Without file | test/archive.c  |
+    | Branch       | vendor/testrepo |

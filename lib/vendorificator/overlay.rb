@@ -3,7 +3,8 @@ module Vendorificator
     attr_reader :path
 
     def initialize(path)
-      @path = path
+      # Clears leading '/' from the path.
+      @path = path.gsub(/\A\//, '')
     end
   end
 end

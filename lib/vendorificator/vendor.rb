@@ -43,9 +43,9 @@ module Vendorificator
 
     def path
       args[:path] || if overlay
-          _join('overlay', overlay.path, 'layer', group, name)
+          _join 'overlay', overlay.path, 'layer', group, name
         else
-          _join(group, name)
+          _join group, name
         end
     end
 
@@ -67,7 +67,11 @@ module Vendorificator
     end
 
     def branch_name
-      _join(config[:branch_prefix], group, name)
+      if overlay
+        _join config[:branch_prefix], 'overlay', overlay.path, 'layer', group, name
+      else
+        _join config[:branch_prefix], group, name
+      end
     end
 
     def to_s

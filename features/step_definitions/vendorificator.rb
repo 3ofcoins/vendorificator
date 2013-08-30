@@ -8,7 +8,7 @@ Then /^(?:the )?following has( not)? been conjured:$/ do |not_p, table|
   step "I'm on \"master\" branch"
 
   table.transpose.hashes.each do |mod|
-    step "branch \"vendor/#{mod['Name']}\" #{exists_p}"
+    step "branch \"#{mod['Branch']}\" #{exists_p}" if mod['Branch']
 
     if mod['Version']
       step "tag \"vendor/#{mod['Name']}/#{mod['Version']}\" #{exists_p}"
