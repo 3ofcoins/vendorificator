@@ -14,8 +14,8 @@ Scenario:
     | Name      | generated                          |
     | Version   | 0.23                               |
     | With file | README                             |
-    | Path      | overlay/foo/layer/generated        |
+    | Path      | foo/generated                      |
     | Branch    | vendor/overlay/foo/layer/generated |
-  And the file "vendor/overlay/foo/layer/generated/README" should contain "Hello, World!"
+  And the file "vendor/foo/generated/README" should contain "Hello, World!"
   And branch "vendor/generated" does not exist
 

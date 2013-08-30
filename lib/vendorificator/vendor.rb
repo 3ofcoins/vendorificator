@@ -43,7 +43,7 @@ module Vendorificator
 
     def path
       args[:path] || if overlay
-          _join 'overlay', overlay.path, 'layer', group, name
+          _join overlay.path, group, name
         else
           _join group, name
         end
