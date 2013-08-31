@@ -63,6 +63,8 @@ module Vendorificator
       environment.sync options.merge(:modules => modules)
     rescue DirtyRepoError
       fail! 'Repository is not clean.'
+    rescue MissingVendorfileError
+      fail! "Vendorfile not found. Vendorificator needs to run in the directory containing Vendorfile or config/vendor.rb."
     end
 
     desc :install, "Download and install new or updated vendor files"
@@ -82,9 +84,12 @@ module Vendorificator
     desc "status", "List known vendor modules and their status"
     method_option :update, :type => :boolean, :default => false
     def status
+      environment.config[:use_upstream_version] = options[:update]
+      environment.load_vendorfile
+
       say_status 'DEPRECATED', 'Using vendor status is deprecated and will be removed in future versions', :yellow
       say_status 'WARNING', 'Git repository is not clean', :red unless environment.clean?
-      environment.config[:use_upstream_version] = options[:update]
+
       environment.each_vendor_instance(*modules) do |mod|
         status_line = mod.to_s
 
@@ -100,11 +105,15 @@ module Vendorificator
         say_status( mod.status.to_s.gsub('_', ' '), status_line,
                     ( mod.status == :up_to_date ? :green : :yellow ) )
       end
+    rescue MissingVendorfileError
+      fail! "Vendorfile not found. Vendorificator needs to run in the directory containing Vendorfile or config/vendor.rb."
     end
 
     desc 'info MODULE', "Show module information"
     def info(mod_name)
       environment.info mod_name, options
+    rescue MissingVendorfileError
+      fail! "Vendorfile not found. Vendorificator needs to run in the directory containing Vendorfile or config/vendor.rb."
     end
 
     desc :list, 'List all currently installed modules'
@@ -124,6 +133,8 @@ module Vendorificator
       environment.pull_all options
     rescue DirtyRepoError
       fail! 'Repository is not clean.'
+    rescue MissingVendorfileError
+      fail! "Vendorfile not found. Vendorificator needs to run in the directory containing Vendorfile or config/vendor.rb."
     end
 
     desc :push, "Push local changes back to the remote repository"
@@ -132,6 +143,8 @@ module Vendorificator
       environment.push options
     rescue DirtyRepoError
       fail! 'Repository is not clean.'
+    rescue MissingVendorfileError
+      fail! "Vendorfile not found. Vendorificator needs to run in the directory containing Vendorfile or config/vendor.rb."
     end
 
     desc "git GIT_COMMAND [MODULE [MODULE ...]] [-- GIT_OPTIONS]",
@@ -237,9 +250,9 @@ EOF
       options[:modules].split(',').map(&:strip)
     end
 
-    def fail!(message, exception_message='I give up.')
+    def fail!(message, exception_message = 'I give up.')
       say_status('FATAL', message, :red)
-      raise Thor::Error, 'I give up.'
+      raise Thor::Error, exception_message
     end
 
   end

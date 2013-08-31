@@ -69,9 +69,14 @@ module Vendorificator
     end
 
     describe '#overlay' do
-      let(:environment){ Environment.new(Thor::Shell::Basic.new, :quiet,
-        'spec/vendorificator/fixtures/vendorfiles/overlay.rb'
-      )}
+      let(:environment) do
+        env = Environment.new(Thor::Shell::Basic.new, :quiet,
+          'spec/vendorificator/fixtures/vendorfiles/overlay.rb'
+        )
+        env.load_vendorfile
+
+        env
+      end
 
       it 'assigns an overlay instance to all modules in the block' do
         assert { environment.vendor_instances.size > 1 }
