@@ -165,14 +165,14 @@ EOF
       end
 
       it 'finds a module by merge commit' do
-        vendor.stubs(:merged).returns('foobar')
+        vendor.stubs(:merged_base).returns('foobar')
         vendor.stubs(:work_dir).returns('abc/def')
 
         assert { vendor.included_in_list?(['foobar']) }
       end
 
       it 'finds a module by branch name' do
-        vendor.stubs(:merged).returns('abcdef')
+        vendor.stubs(:merged_base).returns('abcdef')
         vendor.stubs(:work_dir).returns('abc/def')
 
         vendor.stubs(:branch_name).returns('foo/bar')

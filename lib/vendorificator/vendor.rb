@@ -100,32 +100,29 @@ module Vendorificator
       _join(tag_name_base, version)
     end
 
-    def merged
-      unless @_has_merged
-        if ( head = self.head )
-          merged = git.capturing.merge_base(head, 'HEAD').strip
-          @merged = merged unless merged.empty?
-        end
-        @_has_merged = true
-      end
-      @merged
+    def merged?
+      !merged_base.nil?
+    end
+
+    def merged_base
+      return @merged_base if defined? @merged_base
+      base = git.capturing.merge_base(head, 'HEAD').strip
+      @merged_base = base.empty? ? nil : base
     rescue MiniGit::GitError
-      @_has_merged = true
-      @merged = nil
+      @merged_base = nil
     end
 
     def merged_tag
-      unless @_has_merged_tag
-        if merged
+      return @merged_tag if defined? @merged_tag
+      @merged_tag = if merged?
           tag = git.capturing.describe( {
               :exact_match => true,
               :match => _join(tag_name_base, '*') },
-            merged).strip
-          @merged_tag = tag unless tag.empty?
+            merged_base).strip
+          tag.empty? ? nil : tag
+        else
+          nil
         end
-        @_has_merged_tag = true
-      end
-      @merged_tag
     end
 
     def merged_version
@@ -136,7 +133,7 @@ module Vendorificator
     #
     # Returns the Hash of git vendor notes.
     def merged_notes
-      Commit.new(merged, git).notes?
+      Commit.new(merged_base, git).notes?
     end
 
     def version
@@ -150,7 +147,7 @@ module Vendorificator
     def updatable?
       return nil if self.status == :up_to_date
       return false if !head
-      return false if head && merged == head
+      return false if head && merged_base == head
       git.describe({:abbrev => 0, :always => true}, branch_name)
     end
 
@@ -164,12 +161,12 @@ module Vendorificator
 
       # Well, this is awkward: branch is in config and exists, but is
       # not merged into current branch at all.
-      return :unmerged unless merged
+      return :unmerged unless merged?
 
       # Merge base is tagged with our tag. We're good.
-      return :up_to_date if tagged_sha1 == merged
+      return :up_to_date if tagged_sha1 == merged_base
 
-      return :unpulled if environment.fast_forwardable?(tagged_sha1, merged)
+      return :unpulled if environment.fast_forwardable?(tagged_sha1, merged_base)
 
       return :unknown
     end
@@ -290,7 +287,7 @@ module Vendorificator
       module_list.include?(name) ||
         module_list.include?("#{group}/#{name}") ||
         modpaths.include?(File.expand_path(work_dir)) ||
-        module_list.include?(merged) ||
+        module_list.include?(merged_base) ||
         module_list.include?(branch_name)
     end
 
