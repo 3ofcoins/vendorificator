@@ -100,35 +100,6 @@ module Vendorificator
       _join(tag_name_base, version)
     end
 
-    def merged?
-      !merged_base.nil?
-    end
-
-    def merged_base
-      return @merged_base if defined? @merged_base
-      base = git.capturing.merge_base(head, 'HEAD').strip
-      @merged_base = base.empty? ? nil : base
-    rescue MiniGit::GitError
-      @merged_base = nil
-    end
-
-    def merged_tag
-      return @merged_tag if defined? @merged_tag
-      @merged_tag = if merged?
-          tag = git.capturing.describe( {
-              :exact_match => true,
-              :match => _join(tag_name_base, '*') },
-            merged_base).strip
-          tag.empty? ? nil : tag
-        else
-          nil
-        end
-    end
-
-    def merged_version
-      merged_tag && merged_tag[(1+tag_name_base.length)..-1]
-    end
-
     # Public: Get git vendor notes of the merged commit.
     #
     # Returns the Hash of git vendor notes.
@@ -220,7 +191,7 @@ module Vendorificator
 
       when :unpulled, :unmerged
         say_status :default, 'merging', self.to_s, :yellow
-        git.merge({:no_edit => true, :no_ff => true}, tagged_sha1)
+        merge_back tagged_sha1
         postprocess! if self.respond_to? :postprocess!
         compute_dependencies!
 
@@ -248,7 +219,7 @@ module Vendorificator
             commit_and_annotate(options[:metadata])
           end
           # Merge back to the original branch
-          git.capturing.merge( {:no_edit => true, :no_ff => true}, branch_name )
+          merge_back
           postprocess! if self.respond_to? :postprocess!
           compute_dependencies!
         ensure
@@ -289,6 +260,10 @@ module Vendorificator
         modpaths.include?(File.expand_path(work_dir)) ||
         module_list.include?(merged_base) ||
         module_list.include?(branch_name)
+    end
+
+    def merged_version
+      merged_tag && merged_tag[(1 + tag_name_base.length)..-1]
     end
 
     private
@@ -387,7 +362,37 @@ module Vendorificator
         merge(metadata).
         to_yaml
     end
+
+    def merge_back(commit = branch_name)
+      git.capturing.merge({:no_edit => true, :no_ff => true}, commit)
+    end
+
+    def merged_base
+      return @merged_base if defined? @merged_base
+      base = git.capturing.merge_base(head, 'HEAD').strip
+      @merged_base = base.empty? ? nil : base
+    rescue MiniGit::GitError
+      @merged_base = nil
+    end
+
+    def merged?
+      !merged_base.nil?
+    end
+
+    def merged_tag
+      return @merged_tag if defined? @merged_tag
+      @merged_tag = if merged?
+          tag = git.capturing.describe( {
+              :exact_match => true,
+              :match => _join(tag_name_base, '*') },
+            merged_base).strip
+          tag.empty? ? nil : tag
+        else
+          nil
+        end
+    end
   end
+
 
   Config.register_module :vendor, Vendor
 end
