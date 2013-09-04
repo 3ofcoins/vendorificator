@@ -15,3 +15,6 @@ require 'vendorificator/vendor/archive'
 require 'vendorificator/vendor/git'
 require 'vendorificator/vendor/chef_cookbook'
 require 'vendorificator/vendor/tool'
+
+require 'vendorificator/unit'
+require 'vendorificator/unit/vendor'

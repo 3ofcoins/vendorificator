@@ -34,7 +34,8 @@ module Vendorificator
       @metadata[:parsed_args] = @args = parse_initialize_args(args)
       @metadata[:module_annotations] = @args[:annotate] if @args[:annotate]
 
-      @environment.units << self
+      @unit = Unit::Vendor.new(vendor: self)
+      @environment.units << @unit
     end
 
     def ===(other)
@@ -74,10 +75,6 @@ module Vendorificator
       end
     end
 
-    def to_s
-      _join(name, version)
-    end
-
     def inspect
       "#<#{self.class} #{self}>"
     end
@@ -91,9 +88,7 @@ module Vendorificator
     end
 
     def head
-      git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/heads/#{branch_name}").strip
-    rescue MiniGit::GitError
-      nil
+      @unit.head
     end
 
     def tag_name
@@ -146,61 +141,24 @@ module Vendorificator
       return self.status != :up_to_date
     end
 
-    def in_branch(options={}, &block)
-      branch_exists = !!self.head
-      notes_exist = begin
-                      git.capturing.rev_parse({verify: true, quiet: true}, 'refs/notes/vendor')
-                    rescue MiniGit::GitError
-                      nil
-                    end
-      Dir.mktmpdir("vendor-#{group}-#{name}") do |tmpdir|
-        clone_opts = {:shared => true, :no_checkout => true}
-        clone_opts[:branch] = branch_name if branch_exists
-        say { MiniGit::Capturing.git(:clone, clone_opts, git.git_dir, tmpdir) }
-        tmpgit = MiniGit.new(tmpdir)
-        #TODO: Silence/handle the stderr output from git-checkout
-        tmpgit.capturing.checkout({orphan: true}, branch_name) unless branch_exists
-        tmpgit.fetch(git.git_dir, "refs/notes/vendor:refs/notes/vendor") if notes_exist
-        if options[:clean] || !branch_exists
-          tmpgit.rm({ :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
-        end
-
-        begin
-          @git = tmpgit
-          Dir.chdir(tmpdir) do
-            yield
-          end
-        ensure
-          @git = nil
-        end
-
-        #TODO: Silence/handle the stderr output from git-fetch
-        git.fetch(tmpdir)
-        git.fetch({tags: true}, tmpdir)
-        git.fetch(tmpdir,
-          "refs/heads/#{branch_name}:refs/heads/#{branch_name}",
-          "refs/notes/vendor:refs/notes/vendor")
-      end
-    end
-
     def run!(options = {})
       case status
 
       when :up_to_date
-        say_status :default, 'up to date', self.to_s
+        say_status :default, 'up to date', @unit.to_s
 
       when :unpulled, :unmerged
-        say_status :default, 'merging', self.to_s, :yellow
+        say_status :default, 'merging', @unit.to_s, :yellow
         merge_back tagged_sha1
         postprocess! if self.respond_to? :postprocess!
         compute_dependencies!
 
       when :outdated, :new
-        say_status :default, 'fetching', self.to_s, :yellow
+        say_status :default, 'fetching', @unit.to_s, :yellow
         begin
           shell.padding += 1
           before_conjure!
-          in_branch(:clean => true) do
+          @unit.in_branch(:clean => true) do
             FileUtils::mkdir_p work_dir
 
             # Actually fill the directory with the wanted content
@@ -239,10 +197,6 @@ module Vendorificator
     def git_add_extra_paths ; [] ; end
     def before_conjure! ; end
     def compute_dependencies! ; end
-
-    def pushable_refs
-      created_tags.unshift("refs/heads/#{branch_name}")
-    end
 
     def metadata
       default = {
@@ -305,11 +259,6 @@ module Vendorificator
       ).strip
     rescue MiniGit::GitError
       nil
-    end
-
-    def created_tags
-      git.capturing.show_ref.lines.map{ |line| line.split(' ')[1] }.
-        select{ |ref| ref =~ /\Arefs\/tags\/#{tag_name_base}\// }
     end
 
     def git
