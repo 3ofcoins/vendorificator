@@ -90,7 +90,7 @@ module Vendorificator
       say_status 'DEPRECATED', 'Using vendor status is deprecated and will be removed in future versions', :yellow
       say_status 'WARNING', 'Git repository is not clean', :red unless environment.clean?
 
-      environment.each_vendor_instance(*modules) do |mod|
+      environment.each_unit(*modules) do |mod|
         status_line = mod.to_s
 
         updatable = mod.updatable?
@@ -163,7 +163,7 @@ module Vendorificator
 EOF
     def git(command, *args)
       modules, git_options = split_git_options(args)
-      environment.each_vendor_instance(*modules) do |mod|
+      environment.each_unit(*modules) do |mod|
         unless mod.merged
           say_status 'unmerged', mod.to_s, :red
           next

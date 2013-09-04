@@ -57,7 +57,7 @@ module Vendorificator
       end
 
       it "creates a branch if it doesn't exist" do
-        environment.vendor_instances << stub(
+        environment.units << stub(
           :branch_name => 'vendor/test', :head => nil,
           :compute_dependencies! => nil
         )
@@ -68,7 +68,7 @@ module Vendorificator
       end
 
       it "handles fast forwardable branches" do
-        environment.vendor_instances << stub(
+        environment.units << stub(
           :branch_name => 'vendor/test', :head => '123456', :in_branch => true,
           :name => 'test', :compute_dependencies! => nil
         )
@@ -108,16 +108,16 @@ module Vendorificator
       end
     end
 
-    describe '#vendor_instances' do
+    describe '#units' do
       let(:environment){ Environment.new Thor::Shell::Basic.new, :default, nil }
 
       it 'is initialized on a new environment' do
-        assert { environment.vendor_instances == [] }
+        assert { environment.units == [] }
       end
 
       it 'allows to add/read instances' do
-        environment.vendor_instances << :foo
-        assert { environment.vendor_instances == [:foo] }
+        environment.units << :foo
+        assert { environment.units == [:foo] }
       end
     end
 

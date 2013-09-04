@@ -34,7 +34,7 @@ module Vendorificator
       @metadata[:parsed_args] = @args = parse_initialize_args(args)
       @metadata[:module_annotations] = @args[:annotate] if @args[:annotate]
 
-      @environment.vendor_instances << self
+      @environment.units << self
     end
 
     def ===(other)

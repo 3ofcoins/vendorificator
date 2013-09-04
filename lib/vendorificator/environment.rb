@@ -6,10 +6,10 @@ require 'vendorificator/config'
 module Vendorificator
   class Environment
     attr_reader :config
-    attr_accessor :vendor_instances, :io
+    attr_accessor :units, :io
 
     def initialize(shell, verbosity = :default, vendorfile = nil, &block)
-      @vendor_instances = []
+      @units = []
       @io = IOProxy.new(shell, verbosity)
       @vendorfile = find_vendorfile(vendorfile)
       @vendor_block = block
@@ -87,7 +87,7 @@ module Vendorificator
         map { |sha, name| name =~ ref_rx ? [$', sha] : nil }.
         compact ]
 
-      each_vendor_instance do |mod|
+      each_unit do |mod|
         ours = mod.head
         theirs = remote_branches[mod.branch_name]
         if theirs
@@ -119,7 +119,7 @@ module Vendorificator
     def info(mod_name, options = {})
       load_vendorfile
 
-      if vendor = find_vendor_instance_by_name(mod_name)
+      if vendor = find_module_by_name(mod_name)
         say :default, "Module name: #{vendor.name}\n"
         say :default, "Module group: #{vendor.group}\n"
         say :default, "Module merged version: #{vendor.merged_version}\n"
@@ -132,25 +132,25 @@ module Vendorificator
       end
     end
 
-    # Public: Displays info about current modules.
+    # Public: Displays info about current units.
     #
     # Returns nothing.
     def list
       load_vendorfile
 
-      each_vendor_instance do |mod|
+      each_unit do |mod|
         shell.say "Module: #{mod.name}, version: #{mod.version}"
       end
     end
 
-    # Public: Displays info about outdated modules.
+    # Public: Displays info about outdated units.
     #
     # Returns nothing.
     def outdated
       load_vendorfile
 
       outdated = []
-      each_vendor_instance do |mod|
+      each_unit do |mod|
         outdated << mod if [:unpulled, :unmerged, :outdated].include? mod.status
       end
 
@@ -168,7 +168,7 @@ module Vendorificator
       ensure_clean!
 
       pushable = []
-      each_vendor_instance { |mod| pushable += mod.pushable_refs }
+      each_unit { |mod| pushable += mod.pushable_refs }
 
       pushable << 'refs/notes/vendor' if has_notes?
 
@@ -178,7 +178,7 @@ module Vendorificator
       end
     end
 
-    # Public: Runs all the vendor modules.
+    # Public: Runs all the vendor units.
     #
     # options - The Hash of options.
     #
@@ -190,7 +190,7 @@ module Vendorificator
       config[:use_upstream_version] = options[:update]
       metadata = metadata_snapshot
 
-      each_vendor_instance(*options[:modules]) do |mod|
+      each_unit(*options[:units]) do |mod|
         say_status :default, :module, mod.name
         indent do
           mod.run!(:metadata => metadata)
@@ -200,18 +200,18 @@ module Vendorificator
 
     # Public: Goes through all the Vendor instances and runs the block
     #
-    # modules - An Array of vendor modules to yield the block for.
+    # units - An Array of vendor units to yield the block for.
     #
     # Returns nothing.
-    def each_vendor_instance(*modules)
-      # We don't use @vendor_instances.each here, because Vendor#run! is
+    def each_unit(*units)
+      # We don't use @units.each here, because Vendor#run! is
       # explicitly allowed to append to instantiate new dependencies, and #each
       # fails to catch up on some Ruby implementations.
       i = 0
       while true
-        break if i >= @vendor_instances.length
-        mod = @vendor_instances[i]
-        yield mod if modules.empty? || mod.included_in_list?(modules)
+        break if i >= @units.length
+        mod = @units[i]
+        yield mod if units.empty? || mod.included_in_list?(units)
         i += 1
       end
     end
@@ -247,7 +247,7 @@ module Vendorificator
 
     # Public: Returns module with given name
     def [](name)
-      vendor_instances.find { |v| v.name == name }
+      units.find { |v| v.name == name }
     end
 
     # Public: Loads the vendorfile.
@@ -263,7 +263,7 @@ module Vendorificator
       end
       @config.instance_eval(&@vendor_block) if @vendor_block
 
-      each_vendor_instance{ |mod| mod.compute_dependencies! }
+      each_unit{ |mod| mod.compute_dependencies! }
 
       @vendorfile_loaded = true
     end
@@ -282,8 +282,8 @@ module Vendorificator
     # mod_name - The String containing the module id.
     #
     # Returns Vendor instance.
-    def find_vendor_instance_by_name(mod_name)
-      each_vendor_instance(mod_name) do |mod|
+    def find_module_by_name(mod_name)
+      each_unit(mod_name) do |mod|
         return mod
       end
       nil
