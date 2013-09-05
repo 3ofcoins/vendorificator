@@ -1,7 +1,7 @@
 module Vendorificator
   class Unit
 
-    def in_branch(options={}, &block)
+    def in_branch(options = {}, &block)
       branch_exists = !!head
       Dir.mktmpdir "vendor-#{group}-#{name}" do |tmpdir|
         clone_opts = {:shared => true, :no_checkout => true}
@@ -16,12 +16,15 @@ module Vendorificator
         end
 
         begin
-          @vendor.instance_variable_set :@git, tmpgit
+          @git = tmpgit
+          @vendor.git = tmpgit
+
           Dir.chdir tmpdir do
             yield
           end
         ensure
-          @vendor.instance_variable_set :@git, nil
+          @git = nil
+          @vendor.git = nil
         end
 
         git.fetch tmpdir
@@ -29,6 +32,54 @@ module Vendorificator
         git.fetch tmpdir,
           "refs/heads/#{branch_name}:refs/heads/#{branch_name}",
           "refs/notes/vendor:refs/notes/vendor"
+      end
+    end
+
+    def run!(options = {})
+      case status
+
+      when :up_to_date
+        say_status :default, 'up to date', to_s
+
+      when :unpulled, :unmerged
+        say_status :default, 'merging', to_s, :yellow
+        @vendor.merge_back tagged_sha1
+        postprocess! if self.respond_to? :postprocess!
+        compute_dependencies!
+
+      when :outdated, :new
+        say_status :default, 'fetching', to_s, :yellow
+        begin
+          shell.padding += 1
+          @vendor.before_conjure!
+          in_branch(:clean => true) do
+            FileUtils::mkdir_p work_dir
+
+            # Actually fill the directory with the wanted content
+            Dir::chdir work_dir do
+              begin
+                shell.padding += 1
+                @vendor.conjure!
+              ensure
+                shell.padding -= 1
+              end
+
+              subdir = @vendor.args[:subdirectory]
+              make_subdir_root subdir if subdir && !subdir.empty?
+            end
+
+            commit_and_annotate(options[:metadata])
+          end
+          # Merge back to the original branch
+          merge_back
+          @vendor.postprocess! if @vendor.respond_to? :postprocess!
+          @vendor.compute_dependencies!
+        ensure
+          shell.padding -= 1
+        end
+
+      else
+        say_status :quiet, self.status, "I'm unsure what to do.", :red
       end
     end
 
@@ -54,12 +105,8 @@ module Vendorificator
       @vendor.overlay
     end
 
-    def run!(options = {})
-      @vendor.run! options
-    end
-
     def work_dir
-      @vendor.work_dir
+      _join(git.git_work_tree, environment.relative_root_dir, work_subdir)
     end
 
     def included_in_list?(module_list)
@@ -102,12 +149,33 @@ module Vendorificator
       @vendor.branch_name
     end
 
+    def config
+      environment.config
+    end
+
     private
+
+    # Private: Commits and annotates the conjured module.
+    #
+    # environment_metadata - Hash with environment metadata where vendor was run
+    #
+    # Returns nothing.
+    def commit_and_annotate(environment_metadata = {})
+      git.capturing.add work_dir, *@vendor.git_add_extra_paths
+      git.capturing.commit :m => @vendor.conjure_commit_message
+      git.capturing.notes({:ref => 'vendor'}, 'add', {:m => @vendor.conjure_note(environment_metadata)}, 'HEAD')
+      git.capturing.tag( { :a => true, :m => @vendor.tag_message }, @vendor.tag_name )
+      say_status :default, :tag, @vendor.tag_name
+    end
 
     def notes_exist
       git.capturing.rev_parse({verify: true, quiet: true}, 'refs/notes/vendor')
     rescue MiniGit::GitError
       nil
+    end
+
+    def merge_back(commit = branch_name)
+      git.capturing.merge({:no_edit => true, :no_ff => true}, commit)
     end
 
     def _join(*parts)
@@ -120,6 +188,32 @@ module Vendorificator
 
     def git
       @git || environment.git
+    end
+
+    def work_subdir
+      _join(config[:basedir], path)
+    end
+
+    def make_subdir_root(subdir_path)
+      curdir = Pathname.pwd
+      tmpdir = Pathname.pwd.dirname.join("#{Pathname.pwd.basename}.tmp")
+      subdir = Pathname.pwd.join(subdir_path)
+
+      Dir.chdir('..')
+
+      subdir.rename(tmpdir.to_s)
+      curdir.rmtree
+      tmpdir.rename(curdir.to_s)
+    ensure
+      Dir.chdir(curdir.to_s) if curdir.exist?
+    end
+
+    def path
+      @vendor.args[:path] || if overlay
+          _join overlay.path, group, name
+        else
+          _join group, name
+        end
     end
 
     def created_tags

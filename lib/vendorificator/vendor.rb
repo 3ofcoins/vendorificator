@@ -19,7 +19,8 @@ module Vendorificator
       end
     end
 
-    attr_reader :environment, :name, :args, :block, :overlay
+    attr_reader :environment, :name, :args, :block, :overlay, :unit
+    attr_accessor :git
     arg_reader :version
 
     def initialize(environment, name, args = {}, &block)
@@ -40,14 +41,6 @@ module Vendorificator
 
     def ===(other)
       other === self.name or File.expand_path(other.to_s) == self.work_dir
-    end
-
-    def path
-      args[:path] || if overlay
-          _join overlay.path, group, name
-        else
-          _join group, name
-        end
     end
 
     def shell
@@ -79,12 +72,8 @@ module Vendorificator
       "#<#{self.class} #{self}>"
     end
 
-    def work_subdir
-      _join(config[:basedir], path)
-    end
-
     def work_dir
-      _join(git.git_work_tree, environment.relative_root_dir, work_subdir)
+      @unit.work_dir
     end
 
     def head
@@ -141,54 +130,6 @@ module Vendorificator
       return self.status != :up_to_date
     end
 
-    def run!(options = {})
-      case status
-
-      when :up_to_date
-        say_status :default, 'up to date', @unit.to_s
-
-      when :unpulled, :unmerged
-        say_status :default, 'merging', @unit.to_s, :yellow
-        merge_back tagged_sha1
-        postprocess! if self.respond_to? :postprocess!
-        compute_dependencies!
-
-      when :outdated, :new
-        say_status :default, 'fetching', @unit.to_s, :yellow
-        begin
-          shell.padding += 1
-          before_conjure!
-          @unit.in_branch(:clean => true) do
-            FileUtils::mkdir_p work_dir
-
-            # Actually fill the directory with the wanted content
-            Dir::chdir work_dir do
-              begin
-                shell.padding += 1
-                self.conjure!
-              ensure
-                shell.padding -= 1
-              end
-
-              subdir = args[:subdirectory]
-              make_subdir_root subdir if subdir && !subdir.empty?
-            end
-
-            commit_and_annotate(options[:metadata])
-          end
-          # Merge back to the original branch
-          merge_back
-          postprocess! if self.respond_to? :postprocess!
-          compute_dependencies!
-        ensure
-          shell.padding -= 1
-        end
-
-      else
-        say_status :quiet, self.status, "I'm unsure what to do.", :red
-      end
-    end
-
     def conjure!
       block.call(self) if block
     end
@@ -220,6 +161,26 @@ module Vendorificator
       merged_tag && merged_tag[(1 + tag_name_base.length)..-1]
     end
 
+    # Public: Merges all the data we use for the commit note.
+    #
+    # environment_metadata - Hash with environment metadata where vendor was run
+    #
+    # Returns: The note in the YAML format.
+    def conjure_note(environment_metadata = {})
+      config.metadata.
+        merge(environment_metadata).
+        merge(metadata).
+        to_yaml
+    end
+
+    def conjure_commit_message
+      "Conjured vendor module #{name} version #{version}"
+    end
+
+    def tag_message
+      conjure_commit_message
+    end
+
     private
 
     def parse_initialize_args(args = {})
@@ -245,14 +206,6 @@ module Vendorificator
       _join('vendor', group, name)
     end
 
-    def conjure_commit_message
-      "Conjured vendor module #{name} version #{version}"
-    end
-
-    def tag_message
-      conjure_commit_message
-    end
-
     def tagged_sha1
       @tagged_sha1 ||= git.capturing.rev_parse(
         {:verify => true, :quiet => true}, "refs/tags/#{tag_name}^{commit}"
@@ -271,49 +224,6 @@ module Vendorificator
 
     def _join(*parts)
       parts.compact.map(&:to_s).join('/')
-    end
-
-    def make_subdir_root(subdir_path)
-      curdir = Pathname.pwd
-      tmpdir = Pathname.pwd.dirname.join("#{Pathname.pwd.basename}.tmp")
-      subdir = Pathname.pwd.join(subdir_path)
-
-      Dir.chdir('..')
-
-      subdir.rename(tmpdir.to_s)
-      curdir.rmtree
-      tmpdir.rename(curdir.to_s)
-    ensure
-      Dir.chdir(curdir.to_s) if curdir.exist?
-    end
-
-    # Private: Commits and annotates the conjured module.
-    #
-    # environment_metadata - Hash with environment metadata where vendor was run
-    #
-    # Returns nothing.
-    def commit_and_annotate(environment_metadata = {})
-      git.capturing.add work_dir, *git_add_extra_paths
-      git.capturing.commit :m => conjure_commit_message
-      git.capturing.notes({:ref => 'vendor'}, 'add', {:m => conjure_note(environment_metadata)}, 'HEAD')
-      git.capturing.tag( { :a => true, :m => tag_message }, tag_name )
-      say_status :default, :tag, tag_name
-    end
-
-    # Private: Merges all the data we use for the commit note.
-    #
-    # environment_metadata - Hash with environment metadata where vendor was run
-    #
-    # Returns: The note in the YAML format.
-    def conjure_note(environment_metadata = {})
-      config.metadata.
-        merge(environment_metadata).
-        merge(metadata).
-        to_yaml
-    end
-
-    def merge_back(commit = branch_name)
-      git.capturing.merge({:no_edit => true, :no_ff => true}, commit)
     end
 
     def merged_base
@@ -341,7 +251,6 @@ module Vendorificator
         end
     end
   end
-
 
   Config.register_module :vendor, Vendor
 end

@@ -44,8 +44,8 @@ module Vendorificator
         deny { uncategorized.branch_name.include? 'cat' }
         assert { categorized.branch_name.include? 'cat' }
 
-        deny { uncategorized.path.include? 'cat' }
-        assert { categorized.path.include? 'cat' }
+        deny { uncategorized.unit.send(:path).include? 'cat' }
+        assert { categorized.unit.send(:path).include? 'cat' }
 
         uncategorized.stubs(:version).returns(:foo)
         categorized.stubs(:version).returns(:foo)
