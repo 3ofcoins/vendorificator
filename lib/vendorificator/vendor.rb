@@ -19,13 +19,12 @@ module Vendorificator
       end
     end
 
-    attr_reader :environment, :name, :args, :block, :overlay, :unit
+    attr_reader :environment, :name, :args, :block, :unit
     attr_accessor :git
     arg_reader :version
 
     def initialize(environment, name, args = {}, &block)
       @environment = environment
-      @overlay = config.overlay_instance
       @name = name
       @block = block
       @metadata = {
@@ -35,7 +34,11 @@ module Vendorificator
       @metadata[:parsed_args] = @args = parse_initialize_args(args)
       @metadata[:module_annotations] = @args[:annotate] if @args[:annotate]
 
-      @unit = Unit::Vendor.new(vendor: self)
+      @unit = if config.overlay_instance
+                Unit::Overlay.new(vendor: self)
+              else
+                Unit::Vendor.new(vendor: self)
+              end
       @environment.units << @unit
     end
 
@@ -61,11 +64,7 @@ module Vendorificator
     end
 
     def branch_name
-      if overlay
-        _join config[:branch_prefix], 'overlay', overlay.path, 'layer', group, name
-      else
-        _join config[:branch_prefix], group, name
-      end
+      @unit.branch_name
     end
 
     def inspect
@@ -183,9 +182,15 @@ module Vendorificator
 
     private
 
+    def parse_component_args(args = {})
+      result = {}
+      #@overlay = args.delete(:overlay) if args.key?(:overlay)
+
+      result
+    end
+
     def parse_initialize_args(args = {})
       @group = args.delete(:group) if args.key?(:group)
-      @overlay = args.delete(:overlay) if args.key?(:overlay)
       if args.key?(:category)
         @group ||= args.delete(:category)
         say_status :default, 'DEPRECATED', 'Using :category option is deprecated and will be removed in future versions. Use :group instead.'

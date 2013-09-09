@@ -1,6 +1,9 @@
 module Vendorificator
   class Unit
 
+    def initialize(args = {})
+    end
+
     def in_branch(options = {}, &block)
       branch_exists = !!head
       Dir.mktmpdir "vendor-#{group}-#{name}" do |tmpdir|
@@ -101,10 +104,6 @@ module Vendorificator
       created_tags.unshift("refs/heads/#{branch_name}")
     end
 
-    def overlay
-      @vendor.overlay
-    end
-
     def work_dir
       _join(git.git_work_tree, environment.relative_root_dir, work_subdir)
     end
@@ -143,10 +142,6 @@ module Vendorificator
 
     def tag_name_base
       @vendor.send :tag_name_base
-    end
-
-    def branch_name
-      @vendor.branch_name
     end
 
     def config
@@ -206,14 +201,6 @@ module Vendorificator
       tmpdir.rename(curdir.to_s)
     ensure
       Dir.chdir(curdir.to_s) if curdir.exist?
-    end
-
-    def path
-      @vendor.args[:path] || if overlay
-          _join overlay.path, group, name
-        else
-          _join group, name
-        end
     end
 
     def created_tags

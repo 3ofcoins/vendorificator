@@ -18,3 +18,4 @@ require 'vendorificator/vendor/tool'
 
 require 'vendorificator/unit'
 require 'vendorificator/unit/vendor'
+require 'vendorificator/unit/overlay'

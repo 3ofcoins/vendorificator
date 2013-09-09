@@ -42,5 +42,12 @@ EOF
       end
     end
   end
+
+  describe '#initialize' do
+    it 'assigns to an overlay' do
+      skip
+    end
+  end
+
 end
 
