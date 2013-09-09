@@ -38,6 +38,26 @@ module Vendorificator
       end
     end
 
+    def status
+      # If there's no branch yet, it's a completely new module
+      return :new unless head
+
+      # If there's a branch but no tag, it's a known module that's not
+      # been updated for the new definition yet.
+      return :outdated unless tagged_sha1
+
+      # Well, this is awkward: branch is in config and exists, but is
+      # not merged into current branch at all.
+      return :unmerged unless merged?
+
+      # Merge base is tagged with our tag. We're good.
+      return :up_to_date if tagged_sha1 == merged_base
+
+      return :unpulled if environment.fast_forwardable?(tagged_sha1, merged_base)
+
+      return :unknown
+    end
+
     def run!(options = {})
       case status
 
@@ -116,10 +136,6 @@ module Vendorificator
       @vendor.group
     end
 
-    def status
-      @vendor.status
-    end
-
     def updatable?
       @vendor.updatable?
     end
@@ -138,10 +154,6 @@ module Vendorificator
 
     def merged_notes
       @vendor.merged_notes
-    end
-
-    def tag_name_base
-      @vendor.send :tag_name_base
     end
 
     def config
@@ -206,6 +218,30 @@ module Vendorificator
     def created_tags
       git.capturing.show_ref.lines.map{ |line| line.split(' ')[1] }.
         select{ |ref| ref =~ /\Arefs\/tags\/#{tag_name_base}\// }
+    end
+
+    def tagged_sha1
+      @tagged_sha1 ||= git.capturing.rev_parse(
+        {:verify => true, :quiet => true}, "refs/tags/#{tag_name}^{commit}"
+      ).strip
+    rescue MiniGit::GitError
+      nil
+    end
+
+    def tag_name
+      @vendor.send :tag_name
+    end
+
+    def tag_name_base
+      @vendor.send :tag_name_base
+    end
+
+    def merged_base
+      @vendor.send :merged_base
+    end
+
+    def merged?
+      @vendor.send :merged?
     end
 
     def shell

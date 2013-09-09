@@ -106,23 +106,7 @@ module Vendorificator
     end
 
     def status
-      # If there's no branch yet, it's a completely new module
-      return :new unless head
-
-      # If there's a branch but no tag, it's a known module that's not
-      # been updated for the new definition yet.
-      return :outdated unless tagged_sha1
-
-      # Well, this is awkward: branch is in config and exists, but is
-      # not merged into current branch at all.
-      return :unmerged unless merged?
-
-      # Merge base is tagged with our tag. We're good.
-      return :up_to_date if tagged_sha1 == merged_base
-
-      return :unpulled if environment.fast_forwardable?(tagged_sha1, merged_base)
-
-      return :unknown
+      @unit.status
     end
 
     def needed?
@@ -182,13 +166,6 @@ module Vendorificator
 
     private
 
-    def parse_component_args(args = {})
-      result = {}
-      #@overlay = args.delete(:overlay) if args.key?(:overlay)
-
-      result
-    end
-
     def parse_initialize_args(args = {})
       @group = args.delete(:group) if args.key?(:group)
       if args.key?(:category)
@@ -209,14 +186,6 @@ module Vendorificator
 
     def tag_name_base
       _join('vendor', group, name)
-    end
-
-    def tagged_sha1
-      @tagged_sha1 ||= git.capturing.rev_parse(
-        {:verify => true, :quiet => true}, "refs/tags/#{tag_name}^{commit}"
-      ).strip
-    rescue MiniGit::GitError
-      nil
     end
 
     def git
