@@ -83,13 +83,6 @@ module Vendorificator
       _join(tag_name_base, version)
     end
 
-    # Public: Get git vendor notes of the merged commit.
-    #
-    # Returns the Hash of git vendor notes.
-    def merged_notes
-      Commit.new(merged_base, git).notes?
-    end
-
     def version
       @args[:version] || (!config[:use_upstream_version] && merged_version) || upstream_version
     end
@@ -99,10 +92,7 @@ module Vendorificator
     end
 
     def updatable?
-      return nil if self.status == :up_to_date
-      return false if !head
-      return false if head && merged_base == head
-      git.describe({:abbrev => 0, :always => true}, branch_name)
+      @unit.updatable?
     end
 
     def status
