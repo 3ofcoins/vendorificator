@@ -41,13 +41,49 @@ EOF
         deny { refs.include? 'refs/tags/vendor/cookbooks/nginx_simplecgi/0.1.0' }
       end
     end
-  end
 
-  describe '#initialize' do
-    it 'assigns to an overlay' do
-      skip
+    describe '#included_in_list?' do
+      let(:unit) do
+        Vendor.new(basic_environment, 'test_name', :group => 'test_group').unit
+      end
+
+      it 'finds a module by name' do
+        assert { unit.included_in_list?(['test_name']) }
+      end
+
+      it 'finds a module by qualified name' do
+        assert { unit.included_in_list?(['test_group/test_name']) }
+      end
+
+      it 'finds a module by path' do
+        unit.stubs(:work_dir).returns('./vendor/test_group/test_name')
+
+        assert { unit.included_in_list?(['./vendor/test_group/test_name']) }
+      end
+
+      it 'finds a module by merge commit' do
+        unit.stubs(:merged_base).returns('foobar')
+        unit.stubs(:work_dir).returns('abc/def')
+
+        assert { unit.included_in_list?(['foobar']) }
+      end
+
+      it 'finds a module by branch name' do
+        unit.stubs(:merged_base).returns('abcdef')
+        unit.stubs(:work_dir).returns('abc/def')
+        unit.stubs(:branch_name).returns('foo/bar')
+
+        assert { unit.included_in_list?(['foo/bar']) }
+      end
+
     end
-  end
 
+    describe '#initialize' do
+      it 'assigns to an overlay' do
+        skip
+      end
+    end
+
+  end
 end
 

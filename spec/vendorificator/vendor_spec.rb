@@ -49,8 +49,8 @@ module Vendorificator
 
         uncategorized.stubs(:version).returns(:foo)
         categorized.stubs(:version).returns(:foo)
-        deny { uncategorized.tag_name.include? 'cat' }
-        assert { categorized.tag_name.include? 'cat' }
+        deny { uncategorized.unit.send(:tag_name).include? 'cat' }
+        assert { categorized.unit.send(:tag_name).include? 'cat' }
       end
 
       it 'accepts a deprecated :category option' do
@@ -101,39 +101,6 @@ module Vendorificator
       end
     end
 
-    describe '#included_in_list?' do
-      let(:vendor) { Vendor.new(basic_environment, 'test_name', :group => 'test_group') }
-
-      it 'finds a module by name' do
-        assert { vendor.included_in_list?(['test_name']) }
-      end
-
-      it 'finds a module by qualified name' do
-        assert { vendor.included_in_list?(['test_group/test_name']) }
-      end
-
-      it 'finds a module by path' do
-        vendor.stubs(:work_dir).returns('./vendor/test_group/test_name')
-
-        assert { vendor.included_in_list?(['./vendor/test_group/test_name']) }
-      end
-
-      it 'finds a module by merge commit' do
-        vendor.stubs(:merged_base).returns('foobar')
-        vendor.stubs(:work_dir).returns('abc/def')
-
-        assert { vendor.included_in_list?(['foobar']) }
-      end
-
-      it 'finds a module by branch name' do
-        vendor.stubs(:merged_base).returns('abcdef')
-        vendor.stubs(:work_dir).returns('abc/def')
-
-        vendor.stubs(:branch_name).returns('foo/bar')
-        assert { vendor.included_in_list?(['foo/bar']) }
-      end
-
-    end
   end
 
   module Hooks

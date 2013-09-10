@@ -130,7 +130,13 @@ module Vendorificator
     end
 
     def included_in_list?(module_list)
-      @vendor.included_in_list? module_list
+      modpaths = module_list.map { |m| File.expand_path(m) }
+
+      module_list.include?(name) ||
+        module_list.include?("#{group}/#{name}") ||
+        modpaths.include?(File.expand_path(work_dir)) ||
+        module_list.include?(merged_base) ||
+        module_list.include?(branch_name)
     end
 
     def group
@@ -171,6 +177,10 @@ module Vendorificator
       Commit.new(merged_base, git).notes?
     end
 
+    def merged_version
+      merged_tag && merged_tag[(1 + tag_name_base.length)..-1]
+    end
+
     private
 
     # Private: Commits and annotates the conjured module.
@@ -182,8 +192,8 @@ module Vendorificator
       git.capturing.add work_dir, *@vendor.git_add_extra_paths
       git.capturing.commit :m => @vendor.conjure_commit_message
       git.capturing.notes({:ref => 'vendor'}, 'add', {:m => conjure_note(environment_metadata)}, 'HEAD')
-      git.capturing.tag( { :a => true, :m => @vendor.tag_message }, @vendor.tag_name )
-      say_status :default, :tag, @vendor.tag_name
+      git.capturing.tag( { :a => true, :m => @vendor.tag_message }, tag_name )
+      say_status :default, :tag, tag_name
     end
 
     # Public: Merges all the data we use for the commit note.
@@ -259,19 +269,36 @@ module Vendorificator
     end
 
     def tag_name
-      @vendor.send :tag_name
+      _join(tag_name_base, version)
     end
 
     def tag_name_base
-      @vendor.send :tag_name_base
+      _join('vendor', group, name)
     end
 
     def merged_base
-      @vendor.send :merged_base
+      return @merged_base if defined? @merged_base
+      base = git.capturing.merge_base(head, 'HEAD').strip
+      @merged_base = base.empty? ? nil : base
+    rescue MiniGit::GitError
+      @merged_base = nil
     end
 
     def merged?
-      @vendor.send :merged?
+      !merged_base.nil?
+    end
+
+    def merged_tag
+      return @merged_tag if defined? @merged_tag
+      @merged_tag = if merged?
+          tag = git.capturing.describe( {
+              :exact_match => true,
+              :match => _join(tag_name_base, '*') },
+            merged_base).strip
+          tag.empty? ? nil : tag
+        else
+          nil
+        end
     end
 
     def shell
