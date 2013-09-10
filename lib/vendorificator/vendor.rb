@@ -28,7 +28,6 @@ module Vendorificator
       @name = name
       @block = block
       @metadata = {
-        :module_name => @name,
         :unparsed_args => args.clone
       }
       @metadata[:parsed_args] = @args = parse_initialize_args(args)
@@ -114,6 +113,7 @@ module Vendorificator
 
     def metadata
       default = {
+        :module_name => @name,
         :module_version => version,
         :module_group => @group,
       }
@@ -132,18 +132,6 @@ module Vendorificator
 
     def merged_version
       merged_tag && merged_tag[(1 + tag_name_base.length)..-1]
-    end
-
-    # Public: Merges all the data we use for the commit note.
-    #
-    # environment_metadata - Hash with environment metadata where vendor was run
-    #
-    # Returns: The note in the YAML format.
-    def conjure_note(environment_metadata = {})
-      config.metadata.
-        merge(environment_metadata).
-        merge(metadata).
-        to_yaml
     end
 
     def conjure_commit_message

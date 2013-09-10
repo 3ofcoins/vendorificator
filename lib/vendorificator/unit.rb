@@ -2,6 +2,7 @@ module Vendorificator
   class Unit
 
     def initialize(args = {})
+      @metadata = {}
     end
 
     def in_branch(options = {}, &block)
@@ -180,15 +181,34 @@ module Vendorificator
     def commit_and_annotate(environment_metadata = {})
       git.capturing.add work_dir, *@vendor.git_add_extra_paths
       git.capturing.commit :m => @vendor.conjure_commit_message
-      git.capturing.notes({:ref => 'vendor'}, 'add', {:m => @vendor.conjure_note(environment_metadata)}, 'HEAD')
+      git.capturing.notes({:ref => 'vendor'}, 'add', {:m => conjure_note(environment_metadata)}, 'HEAD')
       git.capturing.tag( { :a => true, :m => @vendor.tag_message }, @vendor.tag_name )
       say_status :default, :tag, @vendor.tag_name
+    end
+
+    # Public: Merges all the data we use for the commit note.
+    #
+    # environment_metadata - Hash with environment metadata where vendor was run
+    #
+    # Returns: The note in the YAML format.
+    def conjure_note(environment_metadata = {})
+      config.metadata.
+        merge(environment_metadata).
+        merge(metadata).
+        merge(@vendor.metadata).
+        to_yaml
     end
 
     def notes_exist
       git.capturing.rev_parse({verify: true, quiet: true}, 'refs/notes/vendor')
     rescue MiniGit::GitError
       nil
+    end
+
+    def metadata
+      default = {
+      }
+      default.merge @metadata
     end
 
     def merge_back(commit = branch_name)
