@@ -42,62 +42,21 @@ module Vendorificator
     end
 
     def ===(other)
-      other === self.name or File.expand_path(other.to_s) == self.work_dir
-    end
-
-    def shell
-      @environment.shell
-    end
-
-    def say(verb_level= :default, &block)
-      output = yield
-      @environment.say verb_level, output
-    end
-
-    def say_status(*args, &block)
-      @environment.say_status(*args, &block)
+      other === name || File.expand_path(other.to_s) == unit.work_dir
     end
 
     def group
       defined?(@group) ? @group : self.class.group
     end
 
-    def branch_name
-      @unit.branch_name
-    end
-
     def inspect
       "#<#{self.class} #{self}>"
-    end
-
-    def work_dir
-      @unit.work_dir
-    end
-
-    def head
-      @unit.head
     end
 
     def version
       @args[:version] ||
         (!config[:use_upstream_version] && unit.merged_version) ||
         upstream_version
-    end
-
-    def upstream_version
-      # To be overriden
-    end
-
-    def updatable?
-      @unit.updatable?
-    end
-
-    def status
-      @unit.status
-    end
-
-    def needed?
-      return self.status != :up_to_date
     end
 
     def conjure!
@@ -108,6 +67,7 @@ module Vendorificator
     def git_add_extra_paths ; [] ; end
     def before_conjure! ; end
     def compute_dependencies! ; end
+    def upstream_version ; end
 
     def metadata
       default = {
@@ -120,10 +80,6 @@ module Vendorificator
 
     def conjure_commit_message
       "Conjured vendor module #{name} version #{version}"
-    end
-
-    def tag_message
-      conjure_commit_message
     end
 
     private
@@ -154,8 +110,21 @@ module Vendorificator
       environment.config
     end
 
-    def _join(*parts)
-      parts.compact.map(&:to_s).join('/')
+    def work_dir
+      unit.work_dir
+    end
+
+    def shell
+      environment.shell
+    end
+
+    def say(verb_level= :default, &block)
+      output = yield
+      environment.say verb_level, output
+    end
+
+    def say_status(*args, &block)
+      environment.say_status(*args, &block)
     end
   end
 

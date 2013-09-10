@@ -192,7 +192,7 @@ module Vendorificator
       git.capturing.add work_dir, *@vendor.git_add_extra_paths
       git.capturing.commit :m => @vendor.conjure_commit_message
       git.capturing.notes({:ref => 'vendor'}, 'add', {:m => conjure_note(environment_metadata)}, 'HEAD')
-      git.capturing.tag( { :a => true, :m => @vendor.tag_message }, tag_name )
+      git.capturing.tag( { :a => true, :m => tag_message }, tag_name )
       say_status :default, :tag, tag_name
     end
 
@@ -223,6 +223,10 @@ module Vendorificator
 
     def merge_back(commit = branch_name)
       git.capturing.merge({:no_edit => true, :no_ff => true}, commit)
+    end
+
+    def tag_message
+      @vendor.conjure_commit_message
     end
 
     def _join(*parts)

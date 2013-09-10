@@ -41,8 +41,8 @@ module Vendorificator
         uncategorized = Vendor.new(basic_environment, 'test')
         categorized   = Vendor.new(basic_environment, 'test', :group => :cat)
 
-        deny { uncategorized.branch_name.include? 'cat' }
-        assert { categorized.branch_name.include? 'cat' }
+        deny { uncategorized.unit.branch_name.include? 'cat' }
+        assert { categorized.unit.branch_name.include? 'cat' }
 
         deny { uncategorized.unit.send(:path).include? 'cat' }
         assert { categorized.unit.send(:path).include? 'cat' }

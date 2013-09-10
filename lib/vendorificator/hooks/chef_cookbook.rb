@@ -23,7 +23,7 @@ module Vendorificator::Hooks
           environment.config[:chef_cookbook_ignore_dependencies]
 
       if !ign || ign.respond_to?(:include?)
-        metadata = File.join(self.work_dir, 'metadata.rb')
+        metadata = File.join(work_dir, 'metadata.rb')
 
         unless File.exist?(metadata)
           say_status :quiet, 'WARNING', "Metadata of #{name} does not exist at #{metadata}, could not gather dependencies", :red
