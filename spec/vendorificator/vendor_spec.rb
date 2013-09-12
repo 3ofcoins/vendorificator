@@ -41,16 +41,16 @@ module Vendorificator
         uncategorized = Vendor.new(basic_environment, 'test')
         categorized   = Vendor.new(basic_environment, 'test', :group => :cat)
 
-        deny { uncategorized.unit.branch_name.include? 'cat' }
-        assert { categorized.unit.branch_name.include? 'cat' }
+        deny { uncategorized.segment.branch_name.include? 'cat' }
+        assert { categorized.segment.branch_name.include? 'cat' }
 
-        deny { uncategorized.unit.send(:path).include? 'cat' }
-        assert { categorized.unit.send(:path).include? 'cat' }
+        deny { uncategorized.segment.send(:path).include? 'cat' }
+        assert { categorized.segment.send(:path).include? 'cat' }
 
         uncategorized.stubs(:version).returns(:foo)
         categorized.stubs(:version).returns(:foo)
-        deny { uncategorized.unit.send(:tag_name).include? 'cat' }
-        assert { categorized.unit.send(:tag_name).include? 'cat' }
+        deny { uncategorized.segment.send(:tag_name).include? 'cat' }
+        assert { categorized.segment.send(:tag_name).include? 'cat' }
       end
 
       it 'accepts a deprecated :category option' do

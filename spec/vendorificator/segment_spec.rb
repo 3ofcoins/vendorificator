@@ -1,7 +1,7 @@
 require_relative '../spec_helper'
 
 module Vendorificator
-  describe Unit do
+  describe Segment do
     describe '#pushable_refs' do
       let(:environment) do
         Environment.new(Thor::Shell::Basic.new) do
@@ -43,37 +43,37 @@ EOF
     end
 
     describe '#included_in_list?' do
-      let(:unit) do
-        Vendor.new(basic_environment, 'test_name', :group => 'test_group').unit
+      let(:segment) do
+        Vendor.new(basic_environment, 'test_name', :group => 'test_group').segment
       end
 
       it 'finds a module by name' do
-        assert { unit.included_in_list?(['test_name']) }
+        assert { segment.included_in_list?(['test_name']) }
       end
 
       it 'finds a module by qualified name' do
-        assert { unit.included_in_list?(['test_group/test_name']) }
+        assert { segment.included_in_list?(['test_group/test_name']) }
       end
 
       it 'finds a module by path' do
-        unit.stubs(:work_dir).returns('./vendor/test_group/test_name')
+        segment.stubs(:work_dir).returns('./vendor/test_group/test_name')
 
-        assert { unit.included_in_list?(['./vendor/test_group/test_name']) }
+        assert { segment.included_in_list?(['./vendor/test_group/test_name']) }
       end
 
       it 'finds a module by merge commit' do
-        unit.stubs(:merged_base).returns('foobar')
-        unit.stubs(:work_dir).returns('abc/def')
+        segment.stubs(:merged_base).returns('foobar')
+        segment.stubs(:work_dir).returns('abc/def')
 
-        assert { unit.included_in_list?(['foobar']) }
+        assert { segment.included_in_list?(['foobar']) }
       end
 
       it 'finds a module by branch name' do
-        unit.stubs(:merged_base).returns('abcdef')
-        unit.stubs(:work_dir).returns('abc/def')
-        unit.stubs(:branch_name).returns('foo/bar')
+        segment.stubs(:merged_base).returns('abcdef')
+        segment.stubs(:work_dir).returns('abc/def')
+        segment.stubs(:branch_name).returns('foo/bar')
 
-        assert { unit.included_in_list?(['foo/bar']) }
+        assert { segment.included_in_list?(['foo/bar']) }
       end
 
     end

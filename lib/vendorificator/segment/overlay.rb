@@ -1,5 +1,5 @@
 module Vendorificator
-  class Unit::Overlay < Unit
+  class Segment::Overlay < Segment
     attr_reader :overlay
 
     def initialize(options)

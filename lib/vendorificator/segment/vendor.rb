@@ -1,5 +1,5 @@
 module Vendorificator
-  class Unit::Vendor < Unit
+  class Segment::Vendor < Segment
 
     def initialize(options)
       @vendor = options.delete(:vendor)

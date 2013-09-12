@@ -1,5 +1,5 @@
 module Vendorificator
-  class Unit
+  class Segment
 
     def initialize(args = {})
       @metadata = {}

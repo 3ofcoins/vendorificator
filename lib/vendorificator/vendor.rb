@@ -19,7 +19,7 @@ module Vendorificator
       end
     end
 
-    attr_reader :environment, :name, :args, :block, :unit
+    attr_reader :environment, :name, :args, :block, :segment
     attr_accessor :git
     arg_reader :version
 
@@ -33,12 +33,12 @@ module Vendorificator
       @metadata[:parsed_args] = @args = parse_initialize_args(args)
       @metadata[:module_annotations] = @args[:annotate] if @args[:annotate]
 
-      @unit = if config.overlay_instance
-                Unit::Overlay.new(vendor: self)
+      @segment = if config.overlay_instance
+                Segment::Overlay.new(vendor: self)
               else
-                Unit::Vendor.new(vendor: self)
+                Segment::Vendor.new(vendor: self)
               end
-      @environment.units << @unit
+      @environment.segments << @segment
     end
 
     def ===(other)
@@ -55,7 +55,7 @@ module Vendorificator
 
     def version
       @args[:version] ||
-        (!config[:use_upstream_version] && unit.merged_version) ||
+        (!config[:use_upstream_version] && segment.merged_version) ||
         upstream_version
     end
 
@@ -111,7 +111,7 @@ module Vendorificator
     end
 
     def work_dir
-      unit.work_dir
+      segment.work_dir
     end
 
     def shell
