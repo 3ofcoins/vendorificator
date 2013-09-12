@@ -42,7 +42,7 @@ module Vendorificator
     end
 
     def ===(other)
-      other === name || File.expand_path(other.to_s) == unit.work_dir
+      other === name || File.expand_path(other.to_s) == work_dir
     end
 
     def group

@@ -5,38 +5,8 @@ module Vendorificator
       @metadata = {}
     end
 
-    def in_branch(options = {}, &block)
-      branch_exists = !!head
-      Dir.mktmpdir "vendor-#{group}-#{name}" do |tmpdir|
-        clone_opts = {:shared => true, :no_checkout => true}
-        clone_opts[:branch] = branch_name if branch_exists
-        say { MiniGit::Capturing.git :clone, clone_opts, git.git_dir, tmpdir }
-
-        tmpgit = MiniGit.new(tmpdir)
-        tmpgit.capturing.checkout({orphan: true}, branch_name) unless branch_exists
-        tmpgit.fetch git.git_dir, "refs/notes/vendor:refs/notes/vendor" if notes_exist
-        if options[:clean] || !branch_exists
-          tmpgit.rm({ :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
-        end
-
-        begin
-          @git = tmpgit
-          @vendor.git = tmpgit
-
-          Dir.chdir tmpdir do
-            yield
-          end
-        ensure
-          @git = nil
-          @vendor.git = nil
-        end
-
-        git.fetch tmpdir
-        git.fetch({tags: true}, tmpdir)
-        git.fetch tmpdir,
-          "refs/heads/#{branch_name}:refs/heads/#{branch_name}",
-          "refs/notes/vendor:refs/notes/vendor"
-      end
+    def fast_forward(branch)
+      in_branch { git.merge({:ff_only => true}, branch) }
     end
 
     def status
@@ -107,12 +77,6 @@ module Vendorificator
       end
     end
 
-    def head
-      git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/heads/#{branch_name}").strip
-    rescue MiniGit::GitError
-      nil
-    end
-
     def compute_dependencies!
       @vendor.compute_dependencies!
     end
@@ -150,24 +114,12 @@ module Vendorificator
       git.describe({:abbrev => 0, :always => true}, branch_name)
     end
 
-    def merged_version
-      @vendor.merged_version
-    end
-
     def version
       @vendor.version
     end
 
     def to_s
       _join name, version
-    end
-
-    def merged_notes
-      @vendor.merged_notes
-    end
-
-    def config
-      environment.config
     end
 
     # Public: Get git vendor notes of the merged commit.
@@ -182,6 +134,10 @@ module Vendorificator
     end
 
     private
+
+    def config
+      environment.config
+    end
 
     # Private: Commits and annotates the conjured module.
     #
@@ -207,6 +163,46 @@ module Vendorificator
         merge(metadata).
         merge(@vendor.metadata).
         to_yaml
+    end
+
+    def head
+      git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/heads/#{branch_name}").strip
+    rescue MiniGit::GitError
+      nil
+    end
+
+    def in_branch(options = {}, &block)
+      branch_exists = !!head
+      Dir.mktmpdir "vendor-#{group}-#{name}" do |tmpdir|
+        clone_opts = {:shared => true, :no_checkout => true}
+        clone_opts[:branch] = branch_name if branch_exists
+        say { MiniGit::Capturing.git :clone, clone_opts, git.git_dir, tmpdir }
+
+        tmpgit = MiniGit.new(tmpdir)
+        tmpgit.capturing.checkout({orphan: true}, branch_name) unless branch_exists
+        tmpgit.fetch git.git_dir, "refs/notes/vendor:refs/notes/vendor" if notes_exist
+        if options[:clean] || !branch_exists
+          tmpgit.rm({ :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
+        end
+
+        begin
+          @git = tmpgit
+          @vendor.git = tmpgit
+
+          Dir.chdir tmpdir do
+            yield
+          end
+        ensure
+          @git = nil
+          @vendor.git = nil
+        end
+
+        git.fetch tmpdir
+        git.fetch({tags: true}, tmpdir)
+        git.fetch tmpdir,
+          "refs/heads/#{branch_name}:refs/heads/#{branch_name}",
+          "refs/notes/vendor:refs/notes/vendor"
+      end
     end
 
     def notes_exist

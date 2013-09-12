@@ -69,7 +69,7 @@ module Vendorificator
 
       it "handles fast forwardable branches" do
         environment.units << stub(
-          :branch_name => 'vendor/test', :head => '123456', :in_branch => true,
+          :branch_name => 'vendor/test', :head => '123456', :fast_forward => true,
           :name => 'test', :compute_dependencies! => nil
         )
         environment.expects(:fast_forwardable?).returns(true)

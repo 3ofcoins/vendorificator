@@ -98,7 +98,7 @@ module Vendorificator
             say_status :default, 'unchanged', mod.branch_name
           elsif fast_forwardable?(theirs, ours)
             say_status :default, 'updated', mod.name, :yellow
-            mod.in_branch { git.merge({:ff_only => true}, theirs) } unless options[:dry_run]
+            mod.fast_forward theirs unless options[:dry_run]
           elsif fast_forwardable?(ours, theirs)
             say_status :default, 'older', mod.branch_name
           else
