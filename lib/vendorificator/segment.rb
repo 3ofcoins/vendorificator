@@ -30,59 +30,54 @@ module Vendorificator
     end
 
     def run!(options = {})
-      case status
+      say_status :default, :module, name
+      indent do
+        case status
 
-      when :up_to_date
-        say_status :default, 'up to date', to_s
+        when :up_to_date
+          say_status :default, 'up to date', to_s
 
-      when :unpulled, :unmerged
-        say_status :default, 'merging', to_s, :yellow
-        @vendor.merge_back tagged_sha1
-        postprocess! if self.respond_to? :postprocess!
-        compute_dependencies!
+        when :unpulled, :unmerged
+          say_status :default, 'merging', to_s, :yellow
+          @vendor.merge_back tagged_sha1
+          postprocess! if self.respond_to? :postprocess!
+          compute_dependencies!
 
-      when :outdated, :new
-        say_status :default, 'fetching', to_s, :yellow
-        begin
-          shell.padding += 1
-          @vendor.before_conjure!
-          in_branch(:clean => true) do
-            FileUtils::mkdir_p work_dir
+        when :outdated, :new
+          say_status :default, 'fetching', to_s, :yellow
+          begin
+            shell.padding += 1
+            @vendor.before_conjure!
+            in_branch(:clean => true) do
+              FileUtils::mkdir_p work_dir
 
-            # Actually fill the directory with the wanted content
-            Dir::chdir work_dir do
-              begin
-                shell.padding += 1
-                @vendor.conjure!
-              ensure
-                shell.padding -= 1
+              # Actually fill the directory with the wanted content
+              Dir::chdir work_dir do
+                begin
+                  shell.padding += 1
+                  @vendor.conjure!
+                ensure
+                  shell.padding -= 1
+                end
+
+                subdir = @vendor.args[:subdirectory]
+                make_subdir_root subdir if subdir && !subdir.empty?
               end
 
-              subdir = @vendor.args[:subdirectory]
-              make_subdir_root subdir if subdir && !subdir.empty?
+              commit_and_annotate(options[:metadata])
             end
-
-            commit_and_annotate(options[:metadata])
+            # Merge back to the original branch
+            merge_back
+            @vendor.postprocess! if @vendor.respond_to? :postprocess!
+            @vendor.compute_dependencies!
+          ensure
+            shell.padding -= 1
           end
-          # Merge back to the original branch
-          merge_back
-          @vendor.postprocess! if @vendor.respond_to? :postprocess!
-          @vendor.compute_dependencies!
-        ensure
-          shell.padding -= 1
+
+        else
+          say_status :quiet, self.status, "I'm unsure what to do.", :red
         end
-
-      else
-        say_status :quiet, self.status, "I'm unsure what to do.", :red
       end
-    end
-
-    def compute_dependencies!
-      @vendor.compute_dependencies!
-    end
-
-    def name
-      @vendor.name
     end
 
     def pushable_refs
@@ -312,6 +307,14 @@ module Vendorificator
 
     def say_status(*args, &block)
       environment.say_status(*args, &block)
+    end
+
+    def indent(verb_level = :default, *args, &block)
+      say_status verb_level, *args unless args.empty?
+      shell.padding += 1 if shell
+      yield
+    ensure
+      shell.padding -= 1 if shell
     end
   end
 end

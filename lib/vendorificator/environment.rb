@@ -191,10 +191,7 @@ module Vendorificator
       metadata = metadata_snapshot
 
       each_segment(*options[:segments]) do |mod|
-        say_status :default, :module, mod.name
-        indent do
-          mod.run!(:metadata => metadata)
-        end
+        mod.run!(:metadata => metadata)
       end
     end
 

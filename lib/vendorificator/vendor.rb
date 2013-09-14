@@ -33,12 +33,12 @@ module Vendorificator
       @metadata[:parsed_args] = @args = parse_initialize_args(args)
       @metadata[:module_annotations] = @args[:annotate] if @args[:annotate]
 
-      @segment = if config.overlay_instance
-                Segment::Overlay.new(vendor: self)
-              else
-                Segment::Vendor.new(vendor: self)
-              end
-      @environment.segments << @segment
+      @segment = Segment::Vendor.new(vendor: self, overlay: config.overlay_instance)
+      if config.overlay_instance
+        config.overlay_instance.segments << @segment
+      else
+        @environment.segments << @segment
+      end
     end
 
     def ===(other)

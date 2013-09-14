@@ -81,7 +81,8 @@ module Vendorificator
     end
 
     def overlay(path, &block)
-      @overlay_instance = Overlay.new(path)
+      @overlay_instance = Segment::Overlay.new(path: path)
+      environment.segments << @overlay_instance
       yield
     ensure
       @overlay_instance = nil

@@ -79,17 +79,17 @@ module Vendorificator
       end
 
       it 'assigns an overlay instance to all segments in the block' do
-        assert { environment.segments.size > 1 }
-        environment.each_segment do |vendor|
-          assert { vendor.overlay != nil }
+        overlay = environment.segments.first
+        assert { overlay.segments.size > 1 }
+        overlay.each_segment do |seg|
+          assert { seg.overlay != nil }
         end
       end
 
       it 'assigns the same overlay instance to all segments in the block' do
-        overlay = nil
-        assert { environment.segments.size > 1 }
-        environment.each_segment do |vendor|
-          overlay ||= vendor.overlay
+        overlay = environment.segments.first
+        assert { overlay.segments.size > 1 }
+        overlay.each_segment do |vendor|
           assert { vendor.overlay == overlay }
         end
       end
