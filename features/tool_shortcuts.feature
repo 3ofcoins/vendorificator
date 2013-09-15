@@ -40,3 +40,24 @@ Scenario: chef_berkshelf
     | Name         | cookbooks                   |
     | With file    | build-essential/metadata.rb  |
 
+Scenario: postprocessing tool
+  Given a repository with following Vendorfile:
+    """ruby
+    chef_berkshelf do
+      FileUtils::rm_rf 'runit'
+    end
+    """
+  And a file named "Berksfile" with:
+    """ruby
+    site :opscode
+    cookbook 'runit'
+    """
+  And I successfully run `berks install`
+  And I successfully run `git add Berksfile Berksfile.lock`
+  And I successfully run `git commit -m Berksfile`
+  When I run vendor command "install"
+  Then following has been conjured:
+    | Name         | cookbooks                   |
+    | With file    | build-essential/metadata.rb |
+    | With file    | yum/metadata.rb             |
+    | Without file | runit/metadata.rb           |
