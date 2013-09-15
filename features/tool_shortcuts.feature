@@ -21,7 +21,6 @@ Scenario: rubygems_bundler
     | With file    | hello-0.0.1.gem |
     | Without file | first-0.gem     |
 
-@berkshelf
 Scenario: chef_berkshelf
   Given a repository with following Vendorfile:
     """ruby
