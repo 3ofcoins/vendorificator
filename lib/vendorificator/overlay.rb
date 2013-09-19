@@ -1,6 +1,6 @@
 module Vendorificator
   class Overlay
-    attr_reader :path
+    attr_reader :path, :segments
 
     def initialize(path)
       # Clears leading '/' from the path.
