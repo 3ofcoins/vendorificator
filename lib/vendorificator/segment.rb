@@ -163,6 +163,19 @@ module Vendorificator
       end
     end
 
+    def in_work_dir
+      FileUtils::mkdir_p work_dir
+
+      Dir::chdir work_dir do
+        begin
+          shell.padding += 1
+          yield
+        ensure
+          shell.padding -= 1
+        end
+      end
+    end
+
     def notes_exist
       git.capturing.rev_parse({verify: true, quiet: true}, 'refs/notes/vendor')
     rescue MiniGit::GitError
@@ -249,6 +262,18 @@ module Vendorificator
         else
           nil
         end
+    end
+
+    # Private: Checks whether a particular branch exists.
+    #
+    # branch - name of the branch to check, default to segment branch
+    #
+    # Returns true/false.
+    def branch_exists?(branch = branch_name)
+      git.capturing.rev_parse({:verify => true}, "refs/heads/#{branch}")
+      true
+    rescue MiniGit::GitError
+      false
     end
 
     def shell

@@ -13,8 +13,16 @@ module Vendorificator
       "Overlay \"#{overlay.path}\""
     end
 
+    def base_branch_name
+      _join config[:branch_prefix], 'overlay', overlay.path
+    end
+
     def branch_name
-      _join config[:branch_prefix], 'overlay', overlay.path, 'layer'
+      _join base_branch_name, 'layer'
+    end
+
+    def merge_branch_name
+      _join base_branch_name, 'merged'
     end
 
     def compute_dependencies!
@@ -53,16 +61,38 @@ module Vendorificator
 
     private
 
-    def merge_back(commit = branch_name)
-      git.capturing.merge({:no_edit => true, :no_ff => true}, commit)
+    def merge_back
+      # Merge in all the vendor segments into overlay/merged branch
+      if branch_exists?(merge_branch_name)
+        git.capturing.checkout merge_branch_name
+      else
+        git.capturing.checkout({b: merge_branch_name})
+      end
+      each_segment do |seg|
+        git.capturing.merge({:no_edit => true, :no_ff => true}, seg.branch_name)
+      end
+
+      # Merge overlay/merged to the original branch
+      git.capturing.checkout '-'
+      git.capturing.merge({:no_edit => true, :no_ff => true}, merge_branch_name)
+
+      # Postprocess
       each_segment do |seg|
         seg.vendor.postprocess! if seg.vendor.respond_to? :postprocess!
         seg.vendor.compute_dependencies!
       end
     end
 
-    def update(options)
-      each_segment { |seg| seg.send :update, options }
+    def update(options = {})
+      shell.padding += 1
+      each_segment do |seg|
+        seg.conjure options
+        seg.send :merge_back
+      end
+
+      merge_back
+    ensure
+      shell.padding -= 1
     end
 
   end

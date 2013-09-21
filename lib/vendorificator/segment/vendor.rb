@@ -32,36 +32,32 @@ module Vendorificator
       @vendor.compute_dependencies!
     end
 
-    private
-
-    def merge_back(commit = branch_name)
-      git.capturing.merge({:no_edit => true, :no_ff => true}, commit)
-      @vendor.postprocess! if @vendor.respond_to? :postprocess!
-      @vendor.compute_dependencies!
-    end
-
-    def update(options)
-      shell.padding += 1
+    # Public: Conjures the vendor module without merging back.
+    def conjure(options = {})
       @vendor.before_conjure!
-      in_branch(:clean => true) do
-        FileUtils::mkdir_p work_dir
-
-        # Actually fill the directory with the wanted content
-        Dir::chdir work_dir do
-          begin
-            shell.padding += 1
-            @vendor.conjure!
-          ensure
-            shell.padding -= 1
-          end
+      in_branch(clean: true) do
+        in_work_dir do
+          @vendor.conjure!
 
           subdir = @vendor.args[:subdirectory]
           make_subdir_root subdir if subdir && !subdir.empty?
         end
-
-        commit_and_annotate(options[:metadata])
+        commit_and_annotate(options[:metadata] || {})
       end
-      # Merge back to the original branch
+    end
+
+    private
+
+    # Private: Merges back to the original branch (usually master).
+    def merge_back(commit = branch_name)
+      git.capturing.merge({no_edit: true, no_ff: true}, commit)
+      @vendor.postprocess! if @vendor.respond_to? :postprocess!
+      @vendor.compute_dependencies!
+    end
+
+    def update(options = {})
+      shell.padding += 1
+      conjure options
       merge_back
     ensure
       shell.padding -= 1

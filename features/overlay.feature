@@ -15,7 +15,8 @@ Scenario:
     | Version   | 0.23                               |
     | With file | README                             |
     | Path      | foo/generated                      |
-    | Branch    | vendor/overlay/foo/layer/generated |
   And the file "vendor/foo/generated/README" should contain "Hello, World!"
+  And branch "vendor/overlay/foo/layer/generated" exists
   And branch "vendor/generated" does not exist
+  And branch "vendor/overlay/foo/merged" exists
 
