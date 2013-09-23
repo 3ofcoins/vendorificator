@@ -33,6 +33,10 @@ module Vendorificator
     end
 
     # Public: Conjures the vendor module without merging back.
+    #
+    # options - available options: :metadata - Hash with metadata information
+    #
+    # Returns nothing.
     def conjure(options = {})
       @vendor.before_conjure!
       in_branch(clean: true) do
@@ -46,14 +50,18 @@ module Vendorificator
       end
     end
 
-    private
-
-    # Private: Merges back to the original branch (usually master).
+    # Public: Merges back to the original branch (usually master).
+    #
+    # commit - git ref/branch to merge, defaults to segment branch
+    #
+    # Returns nothing.
     def merge_back(commit = branch_name)
       git.capturing.merge({no_edit: true, no_ff: true}, commit)
       @vendor.postprocess! if @vendor.respond_to? :postprocess!
       @vendor.compute_dependencies!
     end
+
+    private
 
     def update(options = {})
       shell.padding += 1

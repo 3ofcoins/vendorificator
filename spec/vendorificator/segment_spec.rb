@@ -2,6 +2,29 @@ require_relative '../spec_helper'
 
 module Vendorificator
   describe Segment do
+    describe '#work_dir' do
+      it 'includes vendor group' do
+        env = basic_environment
+        env.stubs(:relative_root_dir)
+        env.git.stubs(:git_work_tree)
+        categorized = Vendor.new(env, 'test', group: 'group').segment
+        uncategorized = Vendor.new(env, 'test').segment
+
+        assert { categorized.work_dir.include? 'group' }
+        deny { uncategorized.work_dir.include? 'group' }
+      end
+    end
+
+    describe '#branch_name' do
+      it 'includes vendor group' do
+        uncategorized = Vendor.new(basic_environment, 'test').segment
+        categorized = Vendor.new(basic_environment, 'test', group: 'group').segment
+
+        deny { uncategorized.branch_name.include? 'group' }
+        assert { categorized.branch_name.include? 'group' }
+      end
+    end
+
     describe '#pushable_refs' do
       let(:environment) do
         Environment.new(Thor::Shell::Basic.new) do
@@ -76,12 +99,6 @@ EOF
         assert { segment.included_in_list?(['foo/bar']) }
       end
 
-    end
-
-    describe '#initialize' do
-      it 'assigns to an overlay' do
-        skip
-      end
     end
 
   end

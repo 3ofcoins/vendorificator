@@ -37,22 +37,6 @@ module Vendorificator
         assert { Vendor::Categorized.new(basic_environment, 'test', :group => nil).group == nil }
       end
 
-      it 'is inserted into paths and other names' do
-        uncategorized = Vendor.new(basic_environment, 'test')
-        categorized   = Vendor.new(basic_environment, 'test', :group => :cat)
-
-        deny { uncategorized.segment.branch_name.include? 'cat' }
-        assert { categorized.segment.branch_name.include? 'cat' }
-
-        deny { uncategorized.segment.send(:path).include? 'cat' }
-        assert { categorized.segment.send(:path).include? 'cat' }
-
-        uncategorized.stubs(:version).returns(:foo)
-        categorized.stubs(:version).returns(:foo)
-        deny { uncategorized.segment.send(:tag_name).include? 'cat' }
-        assert { categorized.segment.send(:tag_name).include? 'cat' }
-      end
-
       it 'accepts a deprecated :category option' do
         vendor = Vendor.new(basic_environment, 'test', :category => 'foo')
 
