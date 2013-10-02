@@ -90,6 +90,16 @@ module Vendorificator
       @overlay_instance = nil
     end
 
+    # Public: Check if we should work in the fake mode.
+    #
+    # Returns true/false.
+    def fake_mode?
+      setting = MiniGit::Capturing.git(:config, 'vendorificator.stub').strip
+      ['', 'false', '0', 'no'].include?(setting) ? false : true
+    rescue MiniGit::GitError
+      true
+    end
+
     option :basedir, 'vendor'
     option :branch_prefix, 'vendor'
     option :remotes, %w(origin)

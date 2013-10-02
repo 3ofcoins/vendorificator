@@ -1,5 +1,6 @@
-# Require everything except the CLI.
+require 'minigit'
 
+# Require everything except the CLI.
 require "vendorificator/version"
 
 require 'vendorificator/config'

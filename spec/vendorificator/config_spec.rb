@@ -94,5 +94,44 @@ module Vendorificator
         end
       end
     end
+
+    describe 'fake_mode?' do
+      it 'returns true when config not set' do
+        MiniGit::Capturing.stubs(:git).with(:config, 'vendorificator.stub').raises(MiniGit::GitError)
+        assert { config.fake_mode? == true }
+      end
+
+      it 'returns true when set to any truish value' do
+        stub_fake_mode 'any_truish_value'
+        assert { config.fake_mode? == true }
+      end
+
+      it 'returns false when set to empty string' do
+        stub_fake_mode ''
+        assert { config.fake_mode? == false }
+      end
+
+      it 'returns false when set to false' do
+        stub_fake_mode 'false'
+        assert { config.fake_mode? == false }
+      end
+
+      it 'returns false when set to no' do
+        stub_fake_mode 'no'
+        assert { config.fake_mode? == false }
+      end
+
+      it 'returns false when set to 0' do
+        stub_fake_mode '0'
+        assert { config.fake_mode? == false }
+      end
+    end
+
+    private
+
+    def stub_fake_mode(value)
+      MiniGit::Capturing.stubs(:git).with(:config, 'vendorificator.stub').
+        returns(value)
+    end
   end
 end
