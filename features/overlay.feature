@@ -74,7 +74,7 @@ Scenario: overlay with multiple sources
 Scenario: Overlay ID
   Given a repository with following Vendorfile:
     """ruby
-    overlay '/', id: 'base' do
+    overlay 'base', path: '/' do
       vendor 'generated', :version => '0.23' do |v|
         File.open('README', 'w') { |f| f.puts "Hello, World!" }
       end
