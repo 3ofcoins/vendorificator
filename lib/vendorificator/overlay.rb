@@ -3,17 +3,15 @@ module Vendorificator
     attr_reader :path, :name, :segments
 
     def initialize(options = {})
-      @name = options[:name]
-      if options[:path]
-        @path = options[:path]
-      else
-        @path = @name.clone
-      end
-
-      # Clears leading '/' from the path.
-      @path = (adj_path = @path.gsub(/\A\//, '')) != '' ? adj_path : nil
+      @name = strip_leading_slash(options[:name])
+      @path = options[:path] ? strip_leading_slash(options[:path]) : @name
       @segments = []
     end
 
+    private
+
+    def strip_leading_slash(string)
+      (result = string.gsub(/\A\//, '')) != '' ? result : nil
+    end
   end
 end
