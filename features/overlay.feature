@@ -13,8 +13,8 @@ Scenario:
   Then the following has been conjured:
     | Name      | generated |
     | Version   | 0.23      |
+    | Path      | foo      |
     | With file | README    |
-    | Path      | /foo      |
   And the file "foo/README" should contain "Hello, World!"
   And branch "vendor/overlay/foo/layer/generated" exists
   And branch "vendor/generated" does not exist
@@ -34,7 +34,7 @@ Scenario: Overlay in repository root
     | Name      | generated |
     | Version   | 0.23      |
     | With file | README    |
-    | Path      | /         |
+    | Path      |           |
   And the file "README" should contain "Hello, World!"
   And branch "vendor/overlay/layer/generated" exists
   And branch "vendor/generated" does not exist

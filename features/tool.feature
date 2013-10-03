@@ -23,7 +23,7 @@ Scenario: Use Gem bundler to download rubygems, and Vendorificator to vendor the
   When I run vendor command "install"
   Then following has been conjured:
     | Name         | bundler         |
-    | Path         | cache           |
+    | Path         | vendor/cache    |
     | With file    | hello-0.0.1.gem |
     | Without file | first-0.gem     |
     | Branch       | vendor/bundler  |
@@ -37,7 +37,7 @@ Scenario: Bundler correctly downloads and caches dependencies
   When I run vendor command "install"
   Then following has been conjured:
     | Name         | bundler         |
-    | Path         | cache           |
+    | Path         | vendor/cache    |
     | Without file | hello-0.0.1.gem |
     | With file    | first-0.gem     |
     | With file    | second-0.gem    |
@@ -51,7 +51,7 @@ Scenario: directory contents are completely replaced on re-vendoring
   When I run vendor command "install"
   Then following has been conjured:
     | Name         | bundler         |
-    | Path         | cache           |
+    | Path         | vendor/cache    |
     | With file    | hello-0.0.1.gem |
     | Without file | first-0.gem     |
   When I change Gemfile to:
@@ -62,7 +62,7 @@ Scenario: directory contents are completely replaced on re-vendoring
   And I run vendor command "install"
   Then following has been conjured:
     | Name         | bundler         |
-    | Path         | cache           |
+    | Path         | vendor/cache    |
     | Without file | hello-0.0.1.gem |
     | With file    | first-0.gem     |
     | With file    | second-0.gem    |

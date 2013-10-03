@@ -21,8 +21,8 @@ module Vendorificator
     end
 
     def branch_name
-      if @overlay
-        _join @overlay.branch_name, group, name
+      if overlay
+        _join overlay.branch_name, group, name
       else
         _join config[:branch_prefix], group, name
       end
@@ -82,5 +82,14 @@ module Vendorificator
         @vendor.args[:path] || _join(group, name)
       end
     end
+
+    def work_subdir
+      if overlay
+        _join overlay.path
+      else
+        _join config[:basedir], path
+      end
+    end
+
   end
 end

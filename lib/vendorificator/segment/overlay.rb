@@ -95,6 +95,11 @@ module Vendorificator
       shell.padding -= 1
     end
 
+    def work_subdir
+      _join path
+    end
+
+
   end
 end
 

@@ -1,5 +1,9 @@
 def vendor_path_for(mod, path)
-  File.join('vendor', mod['Path'] || mod['Name'], path)
+  if mod['Path']
+    File.join mod['Path'], path
+  else
+    File.join 'vendor', mod['Name'], path
+  end
 end
 
 Then /^(?:the )?following has( not)? been conjured:$/ do |not_p, table|

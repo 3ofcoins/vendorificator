@@ -17,7 +17,7 @@ Scenario: rubygems_bundler
   When I run vendor command "install"
   Then following has been conjured:
     | Name         | rubygems        |
-    | Path         | cache           |
+    | Path         | vendor/cache    |
     | With file    | hello-0.0.1.gem |
     | Without file | first-0.gem     |
     | Branch       | vendor/rubygems |

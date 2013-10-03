@@ -200,10 +200,6 @@ module Vendorificator
       @git || environment.git
     end
 
-    def work_subdir
-      _join(config[:basedir], path)
-    end
-
     def make_subdir_root(subdir_path)
       curdir = Pathname.pwd
       tmpdir = Pathname.pwd.dirname.join("#{Pathname.pwd.basename}.tmp")
