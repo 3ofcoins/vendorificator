@@ -74,7 +74,7 @@ Scenario: overlay with multiple sources
 Scenario: Overlay ID
   Given a repository with following Vendorfile:
     """ruby
-    overlay 'base', path: '/' do
+    overlay 'base', path: '/special_base_path' do
       vendor 'generated', :version => '0.23' do |v|
         File.open('README.foo', 'w') { |f| f.puts "Hello, World!" }
       end
@@ -82,11 +82,11 @@ Scenario: Overlay ID
     """
   When I run vendor command "install -v 1"
   Then the following has been conjured:
-    | Name      | generated  |
-    | Version   | 0.23       |
-    | With file | README.foo |
-    | Path      | .          |
-  And the file "README.foo" should contain "Hello, World!"
+    | Name      | generated         |
+    | Version   | 0.23              |
+    | With file | README.foo        |
+    | Path      | special_base_path |
+  And the file "special_base_path/README.foo" should contain "Hello, World!"
   And branch "vendor/overlay/base/layer/generated" exists
   And branch "vendor/overlay/base/merged" exists
   And branch "vendor/generated" does not exist

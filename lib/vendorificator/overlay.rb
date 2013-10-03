@@ -1,6 +1,6 @@
 module Vendorificator
   class Overlay
-    attr_reader :path, :segments
+    attr_reader :path, :name, :segments
 
     def initialize(options = {})
       @name = options[:name]

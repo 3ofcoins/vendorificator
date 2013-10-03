@@ -14,7 +14,7 @@ module Vendorificator
     end
 
     def base_branch_name
-      _join config[:branch_prefix], 'overlay', overlay.path
+      _join config[:branch_prefix], 'overlay', (overlay.name || overlay.path)
     end
 
     def branch_name
