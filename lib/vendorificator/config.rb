@@ -80,8 +80,10 @@ module Vendorificator
       end
     end
 
-    def overlay(path, &block)
-      @overlay_instance = Segment::Overlay.new(path: path, environment: environment)
+    def overlay(name, options = {}, &block)
+      @overlay_instance = Segment::Overlay.new(
+        environment: environment, overlay_opts: options.merge(name: name)
+      )
       environment.segments << @overlay_instance
       yield
     ensure

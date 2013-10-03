@@ -3,7 +3,7 @@ module Vendorificator
     attr_reader :overlay, :segments, :environment
 
     def initialize(options)
-      @overlay = ::Vendorificator::Overlay.new(options[:path])
+      @overlay = ::Vendorificator::Overlay.new(options[:overlay_opts])
       @environment = options[:environment]
       @segments = []
       super
