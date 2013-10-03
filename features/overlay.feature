@@ -57,12 +57,12 @@ Scenario: overlay with multiple sources
     | Name      | foo        |
     | Version   | 0.23       |
     | With file | README.foo |
-    | Path      | /xyzzy     |
+    | Path      | xyzzy      |
   And the following has been conjured:
     | Name      | bar        |
     | Version   | 0.42       |
     | With file | README.bar |
-    | Path      | /xyzzy     |
+    | Path      | xyzzy      |
   And the file "xyzzy/README.foo" should contain "Hello, World! -- foo"
   And the file "xyzzy/README.bar" should contain "Hello, World! -- bar"
   And branch "vendor/overlay/xyzzy/layer/foo" exists
