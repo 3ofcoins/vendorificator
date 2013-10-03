@@ -4,7 +4,7 @@ module Vendorificator
 
     def initialize(path)
       # Clears leading '/' from the path.
-      @path = path.gsub(/\A\//, '')
+      @path = (adj_path = path.gsub(/\A\//, '')) != '' ? adj_path : nil
       @segments = []
     end
 

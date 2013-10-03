@@ -79,7 +79,6 @@ module Vendorificator
       shell.padding += 1
       each_segment do |seg|
         seg.conjure options
-        seg.merge_back
       end
 
       merge_back
