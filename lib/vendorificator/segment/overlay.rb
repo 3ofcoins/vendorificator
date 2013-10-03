@@ -62,21 +62,13 @@ module Vendorificator
     private
 
     def merge_back
-      # Merge in all the vendor segments into overlay/merged branch
-      if branch_exists?(merge_branch_name)
-        git.capturing.checkout merge_branch_name
-      else
-        git.capturing.checkout({b: merge_branch_name})
+      in_branch merge_branch_name do |git|
+        each_segment do |seg|
+          git.capturing.merge({:no_edit => true, :no_ff => true}, seg.branch_name)
+        end
       end
-      each_segment do |seg|
-        git.capturing.merge({:no_edit => true, :no_ff => true}, seg.branch_name)
-      end
-
-      # Merge overlay/merged to the original branch
-      git.capturing.checkout '-'
       git.capturing.merge({:no_edit => true, :no_ff => true}, merge_branch_name)
 
-      # Postprocess
       each_segment do |seg|
         seg.vendor.postprocess! if seg.vendor.respond_to? :postprocess!
         seg.vendor.compute_dependencies!
@@ -99,6 +91,49 @@ module Vendorificator
       _join path
     end
 
+    def in_branch(branch = branch_name, options = {}, &block)
+      Dir.mktmpdir do |tmpdir|
+        tmpgit = create_temp_git_repo(branch, options, tmpdir)
+        fetch_repo_data tmpgit
+        if options[:clean] || !branch_exists?(branch)
+          tmpgit.rm({ :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
+        end
+
+        Dir.chdir(tmpdir){ yield tmpgit }
+
+        propagate_repo_data_to_original branch, tmpdir
+      end
+    end
+
+    def fetch_repo_data(tmpgit)
+      each_segment do |seg|
+        tmpgit.fetch git.git_dir,
+          "refs/heads/#{seg.branch_name}:refs/heads/#{seg.branch_name}"
+      end
+      tmpgit.fetch git.git_dir, "refs/notes/vendor:refs/notes/vendor" if notes_exist?
+    end
+
+    def create_temp_git_repo(branch, options, dir)
+      clone_opts = {shared: true, no_checkout: true}
+      clone_opts[:branch] = branch if branch_exists? branch
+      say { MiniGit::Capturing.git :clone, clone_opts, git.git_dir, dir }
+
+      tmpgit = MiniGit.new(dir)
+      unless branch_exists? branch
+        say { tmpgit.capturing.checkout({orphan: true}, branch) }
+        tmpgit.capturing.commit allow_empty: true, message: 'Empty init'
+      end
+
+      tmpgit
+    end
+
+    def propagate_repo_data_to_original(branch, clone_dir)
+      git.fetch clone_dir
+      git.fetch({tags: true}, clone_dir)
+      git.fetch clone_dir,
+        "refs/heads/#{branch}:refs/heads/#{branch}",
+        "refs/notes/vendor:refs/notes/vendor"
+    end
 
   end
 end

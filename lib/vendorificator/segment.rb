@@ -130,16 +130,15 @@ module Vendorificator
     end
 
     def in_branch(options = {}, &block)
-      branch_exists = !!head
-      Dir.mktmpdir "vendor-#{group}-#{name}" do |tmpdir|
+      Dir.mktmpdir do |tmpdir|
         clone_opts = {:shared => true, :no_checkout => true}
-        clone_opts[:branch] = branch_name if branch_exists
+        clone_opts[:branch] = branch_name if branch_exists?
         say { MiniGit::Capturing.git :clone, clone_opts, git.git_dir, tmpdir }
 
         tmpgit = MiniGit.new(tmpdir)
-        tmpgit.capturing.checkout({orphan: true}, branch_name) unless branch_exists
-        tmpgit.fetch git.git_dir, "refs/notes/vendor:refs/notes/vendor" if notes_exist
-        if options[:clean] || !branch_exists
+        tmpgit.capturing.checkout({orphan: true}, branch_name) unless branch_exists?
+        tmpgit.fetch git.git_dir, "refs/notes/vendor:refs/notes/vendor" if notes_exist?
+        if options[:clean] || !branch_exists?
           tmpgit.rm({ :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
         end
 
@@ -176,10 +175,11 @@ module Vendorificator
       end
     end
 
-    def notes_exist
+    def notes_exist?
       git.capturing.rev_parse({verify: true, quiet: true}, 'refs/notes/vendor')
+      true
     rescue MiniGit::GitError
-      nil
+      false
     end
 
     def metadata
