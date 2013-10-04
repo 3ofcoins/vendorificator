@@ -131,16 +131,9 @@ module Vendorificator
 
     def in_branch(options = {}, &block)
       Dir.mktmpdir do |tmpdir|
-        clone_opts = {:shared => true, :no_checkout => true}
-        clone_opts[:branch] = branch_name if branch_exists?
-        say { MiniGit::Capturing.git :clone, clone_opts, git.git_dir, tmpdir }
-
-        tmpgit = MiniGit.new(tmpdir)
-        tmpgit.capturing.checkout({orphan: true}, branch_name) unless branch_exists?
-        tmpgit.fetch git.git_dir, "refs/notes/vendor:refs/notes/vendor" if notes_exist?
-        if options[:clean] || !branch_exists?
-          tmpgit.rm({ :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
-        end
+        tmpgit = create_temp_git_repo(branch_name, options, tmpdir)
+        fetch_repo_data tmpgit
+        repo_cleanup tmpgit if options[:clean] || !branch_exists?
 
         begin
           @git = tmpgit
@@ -154,12 +147,37 @@ module Vendorificator
           @vendor.git = nil
         end
 
-        git.fetch tmpdir
-        git.fetch({tags: true}, tmpdir)
-        git.fetch tmpdir,
-          "refs/heads/#{branch_name}:refs/heads/#{branch_name}",
-          "refs/notes/vendor:refs/notes/vendor"
+        propagate_repo_data_to_original branch_name, tmpdir
       end
+    end
+
+    def create_temp_git_repo(branch, options, dir)
+      clone_opts = {shared: true, no_checkout: true}
+      clone_opts[:branch] = branch if branch_exists? branch
+      say { MiniGit::Capturing.git :clone, clone_opts, git.git_dir, dir }
+
+      tmpgit = MiniGit.new(dir)
+      unless branch_exists? branch
+        say { tmpgit.capturing.checkout({orphan: true}, branch) }
+      end
+
+      tmpgit
+    end
+
+    def repo_cleanup(tmpgit)
+      tmpgit.rm({ :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
+    end
+
+    def fetch_repo_data(tmpgit)
+      tmpgit.fetch git.git_dir, "refs/notes/vendor:refs/notes/vendor" if notes_exist?
+    end
+
+    def propagate_repo_data_to_original(branch, clone_dir)
+      git.fetch clone_dir
+      git.fetch({tags: true}, clone_dir)
+      git.fetch clone_dir,
+        "refs/heads/#{branch}:refs/heads/#{branch}",
+        "refs/notes/vendor:refs/notes/vendor"
     end
 
     def in_work_dir

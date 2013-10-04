@@ -94,9 +94,7 @@ module Vendorificator
       Dir.mktmpdir do |tmpdir|
         tmpgit = create_temp_git_repo(branch, options, tmpdir)
         fetch_repo_data tmpgit
-        if options[:clean] || !branch_exists?(branch)
-          tmpgit.rm({ :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
-        end
+        repo_cleanup tmpgit if options[:clean] || !branch_exists?
 
         Dir.chdir(tmpdir){ yield tmpgit }
 
@@ -105,33 +103,20 @@ module Vendorificator
     end
 
     def fetch_repo_data(tmpgit)
+      super
       each_segment do |seg|
         tmpgit.fetch git.git_dir,
           "refs/heads/#{seg.branch_name}:refs/heads/#{seg.branch_name}"
       end
-      tmpgit.fetch git.git_dir, "refs/notes/vendor:refs/notes/vendor" if notes_exist?
     end
 
     def create_temp_git_repo(branch, options, dir)
-      clone_opts = {shared: true, no_checkout: true}
-      clone_opts[:branch] = branch if branch_exists? branch
-      say { MiniGit::Capturing.git :clone, clone_opts, git.git_dir, dir }
-
-      tmpgit = MiniGit.new(dir)
+      tmpgit = super
       unless branch_exists? branch
-        say { tmpgit.capturing.checkout({orphan: true}, branch) }
         tmpgit.capturing.commit allow_empty: true, message: 'Empty init'
       end
 
       tmpgit
-    end
-
-    def propagate_repo_data_to_original(branch, clone_dir)
-      git.fetch clone_dir
-      git.fetch({tags: true}, clone_dir)
-      git.fetch clone_dir,
-        "refs/heads/#{branch}:refs/heads/#{branch}",
-        "refs/notes/vendor:refs/notes/vendor"
     end
 
   end
