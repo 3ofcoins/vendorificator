@@ -90,18 +90,6 @@ module Vendorificator
       _join path
     end
 
-    def in_branch(branch = branch_name, options = {}, &block)
-      Dir.mktmpdir do |tmpdir|
-        tmpgit = create_temp_git_repo(branch, options, tmpdir)
-        fetch_repo_data tmpgit
-        repo_cleanup tmpgit if options[:clean] || !branch_exists?
-
-        Dir.chdir(tmpdir){ yield tmpgit }
-
-        propagate_repo_data_to_original branch, tmpdir
-      end
-    end
-
     def fetch_repo_data(tmpgit)
       super
       each_segment do |seg|

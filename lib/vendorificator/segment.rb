@@ -6,7 +6,7 @@ module Vendorificator
     end
 
     def fast_forward(branch)
-      in_branch { git.merge({:ff_only => true}, branch) }
+      in_branch { |tmpgit| tmpgit.merge({:ff_only => true}, branch) }
     end
 
     def status
@@ -129,25 +129,15 @@ module Vendorificator
       nil
     end
 
-    def in_branch(options = {}, &block)
+    def in_branch(branch = branch_name, options = {}, &block)
       Dir.mktmpdir do |tmpdir|
-        tmpgit = create_temp_git_repo(branch_name, options, tmpdir)
+        tmpgit = create_temp_git_repo(branch, options, tmpdir)
         fetch_repo_data tmpgit
-        repo_cleanup tmpgit if options[:clean] || !branch_exists?
+        repo_cleanup tmpgit if options[:clean] || !branch_exists?(branch)
 
-        begin
-          @git = tmpgit
-          @vendor.git = tmpgit
+        Dir.chdir(tmpdir){ yield tmpgit }
 
-          Dir.chdir tmpdir do
-            yield
-          end
-        ensure
-          @git = nil
-          @vendor.git = nil
-        end
-
-        propagate_repo_data_to_original branch_name, tmpdir
+        propagate_repo_data_to_original branch, tmpdir
       end
     end
 

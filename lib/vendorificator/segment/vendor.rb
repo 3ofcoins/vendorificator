@@ -39,14 +39,21 @@ module Vendorificator
     # Returns nothing.
     def conjure(options = {})
       @vendor.before_conjure!
-      in_branch(clean: true) do
-        in_work_dir do
-          @vendor.conjure!
+      in_branch(branch_name, clean: true) do |tmpgit|
+        begin
+          @git = tmpgit
+          @vendor.git = tmpgit
+          in_work_dir do
+            @vendor.conjure!
 
-          subdir = @vendor.args[:subdirectory]
-          make_subdir_root subdir if subdir && !subdir.empty?
+            subdir = @vendor.args[:subdirectory]
+            make_subdir_root subdir if subdir && !subdir.empty?
+          end
+          commit_and_annotate(options[:metadata] || {})
+        ensure
+          @git = nil
+          @vendor.git = nil
         end
-        commit_and_annotate(options[:metadata] || {})
       end
     end
 
