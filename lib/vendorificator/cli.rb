@@ -15,7 +15,7 @@ require 'vendorificator'
 module Vendorificator
   class CLI < Thor
     VERBOSITY_LEVELS = {1 => :quiet, 2 => :default, 3 => :chatty, 9 => :debug}
-    attr_reader :environment
+    attr_reader :environment, :verbosity
 
     check_unknown_options! :except => [:git, :diff, :log]
     stop_on_unknown_option! :git, :diff, :log
@@ -33,7 +33,7 @@ module Vendorificator
       super
       parse_options
 
-      if self.options[:verbose].to_i >= 9
+      if verbosity >= 9
         MiniGit.debug = true
       end
 
@@ -44,7 +44,7 @@ module Vendorificator
 
       @environment = Vendorificator::Environment.new(
         shell,
-        VERBOSITY_LEVELS[self.options[:verbose]] || :default,
+        VERBOSITY_LEVELS[verbosity] || :default,
         self.options[:file]
       )
 
@@ -232,9 +232,10 @@ EOF
         exit
       end
 
-      if options[:verbose] && (!VERBOSITY_LEVELS.keys.include? options[:verbose])
-        fail! "Unknown verbosity level: #{options[:verbose].inspect}"
-      end
+      # figure out verbosity
+      @verbosity = self.options[:verbose].to_i
+      @verbosity = 2 if @verbosity.zero?
+      @verbosity = VERBOSITY_LEVELS.keys.select { |i| i < verbosity }.max unless VERBOSITY_LEVELS[@verbosity]
     end
 
     def split_git_options(args)
