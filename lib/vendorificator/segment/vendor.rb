@@ -1,3 +1,5 @@
+require 'tmpdir'
+
 module Vendorificator
   class Segment::Vendor < Segment
     attr_reader :overlay, :vendor
@@ -38,23 +40,34 @@ module Vendorificator
     #
     # Returns nothing.
     def conjure(options = {})
+      shell.padding += 1
       @vendor.before_conjure!
-      in_branch(branch_name, clean: true) do |tmpgit|
-        begin
-          @git = tmpgit
-          @vendor.git = tmpgit
-          in_work_dir do
-            @vendor.conjure!
+      Dir.mktmpdir "vendorificator-#{name}" do |tmpdir|
+        in_branch(branch_name, clean: true) do |tmpgit|
+          begin
+            @git = tmpgit
+            @vendor.git = tmpgit
 
-            subdir = @vendor.args[:subdirectory]
-            make_subdir_root subdir if subdir && !subdir.empty?
+            Dir.chdir tmpdir do
+              @vendor.conjure!
+
+              subdir = @vendor.args[:subdirectory]
+              make_subdir_root subdir if subdir && !subdir.empty?
+            end
+
+            FileUtils.mkdir_p work_dir
+            tmpdir_entries = (Dir.entries(tmpdir) - %w'. ..').
+              map { |e| File.join(tmpdir, e) }
+            FileUtils.mv tmpdir_entries, work_dir
+            commit_and_annotate(options[:metadata] || {})
+          ensure
+            @git = nil
+            @vendor.git = nil
           end
-          commit_and_annotate(options[:metadata] || {})
-        ensure
-          @git = nil
-          @vendor.git = nil
         end
       end
+    ensure
+      shell.padding -= 1
     end
 
     # Public: Merges back to the original branch (usually master).

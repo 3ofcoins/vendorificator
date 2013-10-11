@@ -32,3 +32,18 @@ Scenario: module with a .gitignore file
     whatever
     """
   And git repository is clean
+
+Scenario: Git overlay in root directory
+  Given a repository with following Vendorfile:
+    """ruby
+    overlay '/' do
+      git "file://#{ENV['FIXTURES_DIR']}/git/testrepo"
+    end
+    """
+  When I run vendor command "install"
+  Then following has been conjured:
+    | Name      | testrepo                                 |
+    | Version   | 10e9ac58c77bc229d8c59a5b4eb7422916453148 |
+    | With file | test/alias.c                             |
+    | Branch    | vendor/overlay/layer/testrepo            |
+    | Path      | .                                        |
