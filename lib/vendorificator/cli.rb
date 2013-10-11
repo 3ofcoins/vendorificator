@@ -33,7 +33,7 @@ module Vendorificator
       super
       parse_options
 
-      if self.options[:debug]
+      if self.options[:verbose].to_i >= 9
         MiniGit.debug = true
       end
 
