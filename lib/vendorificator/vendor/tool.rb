@@ -25,6 +25,7 @@ module Vendorificator
       Dir.chdir(git.git_work_tree) do
         system self.command or raise RuntimeError, "Command failed"
       end
+      super
     end
 
     def git_add_extra_paths
@@ -43,18 +44,20 @@ module Vendorificator
   class Config
     register_module :tool, Vendor::Tool
 
-    def rubygems_bundler
+    def rubygems_bundler(&block)
       tool 'rubygems',
            :path => 'cache', # Hardcoded, meh
            :specs => [ 'Gemfile', 'Gemfile.lock' ],
-           :command => 'bundle package --all'
+           :command => 'bundle package --all',
+           &block
     end
 
-    def chef_berkshelf
+    def chef_berkshelf(&block)
       tool 'cookbooks',
            :path => 'cookbooks',
            :specs => [ 'Berksfile', 'Berksfile.lock' ],
-           :command => 'berks install --path vendor/cookbooks'
+           :command => 'berks install --path vendor/cookbooks',
+           &block
     end
   end
 end
