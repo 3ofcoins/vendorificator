@@ -8,7 +8,6 @@ Scenario: just URL as name
   When I run vendor command "install"
   Then following has been conjured:
     | Name      | testrepo-0.1.tar.gz        |
-    | Branch    | vendor/testrepo-0.1.tar.gz |
   And there's a git commit note including "ea207a" in "download_checksum"
   And there's a git commit note including "20480" in "download_filesize"
   And there's a git commit note including "test-assets.3ofcoins" in "download_url"

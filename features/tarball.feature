@@ -10,7 +10,6 @@ Scenario: just URL as name
     | Name      | testrepo-0.1        |
     | Version   | testrepo-0.1.tar.gz |
     | With file | test/alias.c        |
-    | Branch    | vendor/testrepo-0.1 |
 
 Scenario: URL as keyword
   Given a repository with following Vendorfile:
@@ -23,7 +22,6 @@ Scenario: URL as keyword
     | Name      | testrepo            |
     | Version   | testrepo-0.1.tar.gz |
     | With file | test/alias.c        |
-    | Branch    | vendor/testrepo     |
 
 Scenario: Version & checksum
   Given a repository with following Vendorfile:
@@ -66,4 +64,3 @@ Scenario: Tarball without a root directory
   Then following has been conjured:
     | Name      | testrepo        |
     | With file | test/alias.c    |
-    | Branch    | vendor/testrepo |

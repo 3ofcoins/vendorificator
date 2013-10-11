@@ -43,7 +43,7 @@ Scenario: Git overlay in root directory
   When I run vendor command "install"
   Then following has been conjured:
     | Name      | testrepo                                 |
+    | Branch    | vendor/overlay/layer/testrepo            |
     | Version   | 10e9ac58c77bc229d8c59a5b4eb7422916453148 |
     | With file | test/alias.c                             |
-    | Branch    | vendor/overlay/layer/testrepo            |
     | Path      | .                                        |

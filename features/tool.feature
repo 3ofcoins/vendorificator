@@ -26,7 +26,6 @@ Scenario: Use Gem bundler to download rubygems, and Vendorificator to vendor the
     | Path         | vendor/cache    |
     | With file    | hello-0.0.1.gem |
     | Without file | first-0.gem     |
-    | Branch       | vendor/bundler  |
 
 Scenario: Bundler correctly downloads and caches dependencies
   Given I have following Gemfile:

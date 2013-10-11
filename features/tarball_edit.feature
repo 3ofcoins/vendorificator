@@ -13,4 +13,3 @@ Scenario:
     | Name         | testrepo        |
     | With file    | test/alias.c    |
     | Without file | test/archive.c  |
-    | Branch       | vendor/testrepo |

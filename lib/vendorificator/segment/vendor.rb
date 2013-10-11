@@ -26,7 +26,7 @@ module Vendorificator
       if overlay
         _join overlay.branch_name, group, name
       else
-        _join config[:branch_prefix], group, name
+        super
       end
     end
 

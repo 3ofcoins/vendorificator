@@ -14,7 +14,7 @@ Scenario:
     | Name      | generated        |
     | Version   | 0.23             |
     | With file | README           |
-    | Branch    | vendor/generated |
   And the file "vendor/generated/VERSION" should contain "0.23"
   And there's a git commit note including "bar" in "foo"
   And there's a git commit note including "by Przemo" in "module_annotations"
+  And tag "vendor/generated/0.23" exists

@@ -9,7 +9,6 @@ Scenario: A single cookbook, without dependencies
   Then following has been conjured:
     | Name      | cookbooks/apt        |
     | With file | metadata.rb          |
-    | Branch    | vendor/cookbooks/apt |
 
 Scenario: Dependency hook
   Given a repository with following Vendorfile:
@@ -31,7 +30,6 @@ Scenario: Ignored dependency
   Then following has been conjured:
     | Name      | cookbooks/memcached        |
     | With file | metadata.rb                |
-    | Branch    | vendor/cookbooks/memcached |
   And following has not been conjured:
     | Name      | cookbooks/runit |
     | With file | metadata.rb     |

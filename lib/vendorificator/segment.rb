@@ -196,6 +196,14 @@ module Vendorificator
       default.merge @metadata
     end
 
+    def name
+      raise NotImplementedError
+    end
+
+    def version
+      raise NotImplementedError
+    end
+
     def tag_message
       @vendor.conjure_commit_message
     end
@@ -235,12 +243,20 @@ module Vendorificator
       nil
     end
 
+    def group
+      nil
+    end
+
+    def branch_name
+      _join(config[:branch_prefix], group, name)
+    end
+
     def tag_name
       _join(tag_name_base, version)
     end
 
     def tag_name_base
-      _join('vendor', group, name)
+      branch_name
     end
 
     def merged_base

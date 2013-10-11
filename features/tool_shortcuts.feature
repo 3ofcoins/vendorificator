@@ -20,7 +20,6 @@ Scenario: rubygems_bundler
     | Path         | vendor/cache    |
     | With file    | hello-0.0.1.gem |
     | Without file | first-0.gem     |
-    | Branch       | vendor/rubygems |
 
 @berkshelf
 Scenario: chef_berkshelf
@@ -40,5 +39,4 @@ Scenario: chef_berkshelf
   Then following has been conjured:
     | Name         | cookbooks                   |
     | With file    | build-essential/metadata.rb |
-    | Branch       | vendor/cookbooks            |
 
