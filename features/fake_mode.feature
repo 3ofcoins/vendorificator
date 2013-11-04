@@ -1,6 +1,6 @@
 Feature: Fake mode for development.
 
-Scenario:
+Scenario: Conjuring a simple module in fake mode works.
   Given a repository with following Vendorfile:
     """ruby
     vendor 'generated', :version => '0.23' do |v|

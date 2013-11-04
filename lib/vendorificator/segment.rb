@@ -55,8 +55,12 @@ module Vendorificator
       created_tags.unshift("refs/heads/#{branch_name}")
     end
 
-    def work_dir
-      _join(git.git_work_tree, environment.relative_root_dir, work_subdir)
+    def work_dir(relative = false)
+      arr = relative ? [] : [git.git_work_tree]
+      arr << environment.relative_root_dir
+      arr << work_subdir
+
+      _join *arr
     end
 
     def included_in_list?(module_list)
@@ -166,6 +170,7 @@ module Vendorificator
 
     def propagate_repo_data_to_original(branch, clone_dir)
       if config.fake_mode?
+        add_path_to_git_exclude
         copy_back_from_temporary_clone(clone_dir)
       else
         fetch_back_from_temporary_clone(branch, clone_dir)
@@ -196,6 +201,29 @@ module Vendorificator
     def copy_back_from_temporary_clone(clone_dir)
       FileUtils.mkdir_p work_dir
       FileUtils.cp_r clone_dir, work_dir
+    end
+
+    # Private: adds conjured directory path to git exclude file. Used in fake
+    # mode.
+    #
+    # Returns nothing.
+    def add_path_to_git_exclude
+      return if check_if_work_dir_excluded
+
+      if File.exists? work_dir
+        say_status(:quiet, 'FATAL', "Directory #{work_dir(true).inspect} already exists. Aborting.", :red)
+        exit
+      end
+      File.open('.git/info/exclude', 'a') { |f| f.puts work_dir(true) }
+    end
+
+    # Private: Checks if segment work_dir has already been excluded.
+    #
+    # Returns true/false.
+    def check_if_work_dir_excluded
+      File.open('.git/info/exclude').each_line.any? do |line|
+        line =="#{work_dir(true)}\n"
+      end
     end
 
     def in_work_dir
