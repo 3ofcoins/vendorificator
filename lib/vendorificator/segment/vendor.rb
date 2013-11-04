@@ -76,7 +76,7 @@ module Vendorificator
     #
     # Returns nothing.
     def merge_back(commit = branch_name)
-      git.capturing.merge({no_edit: true, no_ff: true}, commit)
+      git.capturing.merge({no_edit: true, no_ff: true}, commit) unless config.fake_mode?
       @vendor.postprocess! if @vendor.respond_to? :postprocess!
       @vendor.compute_dependencies!
     end

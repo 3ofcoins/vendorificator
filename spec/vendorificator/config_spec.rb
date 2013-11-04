@@ -98,7 +98,7 @@ module Vendorificator
     describe 'fake_mode?' do
       it 'returns true when config not set' do
         MiniGit::Capturing.stubs(:git).with(:config, 'vendorificator.stub').raises(MiniGit::GitError)
-        assert { config.fake_mode? == true }
+        assert { config.fake_mode? == false }
       end
 
       it 'returns true when set to any truish value' do

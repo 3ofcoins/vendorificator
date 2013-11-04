@@ -103,6 +103,8 @@ module Vendorificator
     #
     # Returns nothing.
     def commit_and_annotate(environment_metadata = {})
+      return if config.fake_mode?
+
       git.capturing.add work_dir, *@vendor.git_add_extra_paths
       git.capturing.commit :m => @vendor.conjure_commit_message
       git.capturing.notes({:ref => 'vendor'}, 'add', {:m => conjure_note(environment_metadata)}, 'HEAD')
@@ -110,7 +112,7 @@ module Vendorificator
       say_status :default, :tag, tag_name
     end
 
-    # Public: Merges all the data we use for the commit note.
+    # Private: Merges all the data we use for the commit note.
     #
     # environment_metadata - Hash with environment metadata where vendor was run
     #
@@ -163,11 +165,37 @@ module Vendorificator
     end
 
     def propagate_repo_data_to_original(branch, clone_dir)
+      if config.fake_mode?
+        copy_back_from_temporary_clone(clone_dir)
+      else
+        fetch_back_from_temporary_clone(branch, clone_dir)
+      end
+    end
+
+    # Private: Fetches the branches from the temporary clone in the main repo,
+    # to get the conjured data.
+    #
+    # branch - branch name to fetch
+    # clone_dir - path to the local temporary clone
+    #
+    # Returns nothing.
+    def fetch_back_from_temporary_clone(branch, clone_dir)
       git.fetch clone_dir
       git.fetch({tags: true}, clone_dir)
       git.fetch clone_dir,
         "refs/heads/#{branch}:refs/heads/#{branch}",
         "refs/notes/vendor:refs/notes/vendor"
+    end
+
+    # Private: Copies the conjured vendor files back to main repo, instead of
+    # just fetching the branches. Used in fake development mode.
+    #
+    # clone_dir - path to the local temporary clone
+    #
+    # Returns nothing.
+    def copy_back_from_temporary_clone(clone_dir)
+      FileUtils.mkdir_p work_dir
+      FileUtils.cp_r clone_dir, work_dir
     end
 
     def in_work_dir
