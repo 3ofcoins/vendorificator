@@ -289,6 +289,13 @@ overlay '/xyzzy' do
 end
 ```
 
+### Fake Mode
+
+To develop a solution based on Vendorificator without having
+everything committed to a dozen of branches, tagged, and noted, set
+`vendorificator.stub` Git setting to `true`. Then, Vendorificator will
+work live in the main repo, and ignore the output directory in Git.
+
 ## Contributing
 
 1. Fork it
