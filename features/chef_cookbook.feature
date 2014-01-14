@@ -7,8 +7,8 @@ Scenario: A single cookbook, without dependencies
     """
   When I run vendor command "install"
   Then following has been conjured:
-    | Name      | cookbooks/apt |
-    | With file | metadata.rb   |
+    | Name      | cookbooks/apt        |
+    | With file | metadata.rb          |
 
 Scenario: Dependency hook
   Given a repository with following Vendorfile:
@@ -28,8 +28,8 @@ Scenario: Ignored dependency
     """
   When I run vendor command "install"
   Then following has been conjured:
-    | Name      | cookbooks/memcached |
-    | With file | metadata.rb         |
+    | Name      | cookbooks/memcached        |
+    | With file | metadata.rb                |
   And following has not been conjured:
     | Name      | cookbooks/runit |
     | With file | metadata.rb     |

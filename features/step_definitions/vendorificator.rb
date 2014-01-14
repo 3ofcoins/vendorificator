@@ -1,5 +1,9 @@
 def vendor_path_for(mod, path)
-  File.join('vendor', mod['Path'] || mod['Name'], path)
+  if mod['Path']
+    File.join mod['Path'], path
+  else
+    File.join 'vendor', mod['Name'], path
+  end
 end
 
 Then /^(?:the )?following has( not)? been conjured:$/ do |not_p, table|
@@ -8,12 +12,13 @@ Then /^(?:the )?following has( not)? been conjured:$/ do |not_p, table|
   step "I'm on \"master\" branch"
 
   table.transpose.hashes.each do |mod|
-    step "branch \"vendor/#{mod['Name']}\" #{exists_p}"
+    branch = mod['Branch'] || "vendor/#{mod['Name']}"
+    step "branch \"#{branch}\" #{exists_p}"
 
     if mod['Version']
-      step "tag \"vendor/#{mod['Name']}/#{mod['Version']}\" #{exists_p}"
+      step "tag \"#{branch}/#{mod['Version']}\" #{exists_p}"
     else
-      step "tag matching /^vendor\\/#{Regexp.quote(mod['Name']).gsub('/', '\\/')}\\// #{exists_p}"
+      step "tag matching /^#{Regexp.quote(branch).gsub('/', '\\/')}\\// #{exists_p}"
     end
 
     if mod['With file']

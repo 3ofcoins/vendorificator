@@ -60,7 +60,7 @@ module Vendorificator
     method_option :update, :type => :boolean, :default => false
     def sync
       say_status 'DEPRECATED', 'Using vendor sync is deprecated and will be removed in future versions. Use vendor install or vendor update instead.', :yellow
-      environment.sync options.merge(:modules => modules)
+      environment.sync options.merge(:segments => modules)
     rescue DirtyRepoError
       fail! 'Repository is not clean.'
     rescue MissingVendorfileError
@@ -69,14 +69,14 @@ module Vendorificator
 
     desc :install, "Download and install new or updated vendor files"
     def install(*modules)
-      environment.sync options.merge(:modules => modules)
+      environment.sync options.merge(:segments => modules)
     rescue DirtyRepoError
       fail! 'Repository is not clean.'
     end
 
     desc :update, "Update installed vendor files"
     def update(*modules)
-      environment.sync options.merge(:modules => modules, :update => true)
+      environment.sync options.merge(:segments => modules, :update => true)
     rescue DirtyRepoError
       fail! 'Repository is not clean.'
     end
@@ -90,7 +90,7 @@ module Vendorificator
       say_status 'DEPRECATED', 'Using vendor status is deprecated and will be removed in future versions', :yellow
       say_status 'WARNING', 'Git repository is not clean', :red unless environment.clean?
 
-      environment.each_vendor_instance(*modules) do |mod|
+      environment.each_segment(*modules) do |mod|
         status_line = mod.to_s
 
         updatable = mod.updatable?
@@ -163,7 +163,7 @@ module Vendorificator
 EOF
     def git(command, *args)
       modules, git_options = split_git_options(args)
-      environment.each_vendor_instance(*modules) do |mod|
+      environment.each_segment(*modules) do |mod|
         unless mod.merged
           say_status 'unmerged', mod.to_s, :red
           next

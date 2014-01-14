@@ -57,7 +57,7 @@ module Vendorificator
       end
 
       it "creates a branch if it doesn't exist" do
-        environment.vendor_instances << stub(
+        environment.segments << stub(
           :branch_name => 'vendor/test', :head => nil,
           :compute_dependencies! => nil
         )
@@ -68,8 +68,8 @@ module Vendorificator
       end
 
       it "handles fast forwardable branches" do
-        environment.vendor_instances << stub(
-          :branch_name => 'vendor/test', :head => '123456', :in_branch => true,
+        environment.segments << stub(
+          :branch_name => 'vendor/test', :head => '123456', :fast_forward => true,
           :name => 'test', :compute_dependencies! => nil
         )
         environment.expects(:fast_forwardable?).returns(true)
@@ -108,16 +108,16 @@ module Vendorificator
       end
     end
 
-    describe '#vendor_instances' do
+    describe '#segments' do
       let(:environment){ Environment.new Thor::Shell::Basic.new, :default, nil }
 
       it 'is initialized on a new environment' do
-        assert { environment.vendor_instances == [] }
+        assert { environment.segments == [] }
       end
 
       it 'allows to add/read instances' do
-        environment.vendor_instances << :foo
-        assert { environment.vendor_instances == [:foo] }
+        environment.segments << :foo
+        assert { environment.segments == [:foo] }
       end
     end
 

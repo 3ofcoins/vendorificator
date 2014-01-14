@@ -49,10 +49,10 @@ Scenario: Vendorificating a certain tag from a git repo
     """
   When I run vendor command "install"
   Then following has been conjured:
-    | Name         | testrepo     |
-    | Version      | email-v0     |
-    | Without file | README.md    |
-    | With file    | test/alias.c |
+    | Name         | testrepo        |
+    | Version      | email-v0        |
+    | Without file | README.md       |
+    | With file    | test/alias.c    |
   And there's a git log message including "at revision f81247bde4ef7a1c7d280140cc0bcf0b8221a51f"
   And there's a git commit note including "f81247" in "git_revision"
 

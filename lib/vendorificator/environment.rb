@@ -6,10 +6,10 @@ require 'vendorificator/config'
 module Vendorificator
   class Environment
     attr_reader :config
-    attr_accessor :vendor_instances, :io
+    attr_accessor :segments, :io
 
     def initialize(shell, verbosity = :default, vendorfile = nil, &block)
-      @vendor_instances = []
+      @segments = []
       @io = IOProxy.new(shell, verbosity)
       @vendorfile = find_vendorfile(vendorfile)
       @vendor_block = block
@@ -87,7 +87,7 @@ module Vendorificator
         map { |sha, name| name =~ ref_rx ? [$', sha] : nil }.
         compact ]
 
-      each_vendor_instance do |mod|
+      each_segment do |mod|
         ours = mod.head
         theirs = remote_branches[mod.branch_name]
         if theirs
@@ -98,7 +98,7 @@ module Vendorificator
             say_status :default, 'unchanged', mod.branch_name
           elsif fast_forwardable?(theirs, ours)
             say_status :default, 'updated', mod.name, :yellow
-            mod.in_branch { git.merge({:ff_only => true}, theirs) } unless options[:dry_run]
+            mod.fast_forward theirs unless options[:dry_run]
           elsif fast_forwardable?(ours, theirs)
             say_status :default, 'older', mod.branch_name
           else
@@ -119,7 +119,7 @@ module Vendorificator
     def info(mod_name, options = {})
       load_vendorfile
 
-      if vendor = find_vendor_instance_by_name(mod_name)
+      if vendor = find_module_by_name(mod_name)
         say :default, "Module name: #{vendor.name}\n"
         say :default, "Module group: #{vendor.group}\n"
         say :default, "Module merged version: #{vendor.merged_version}\n"
@@ -132,25 +132,25 @@ module Vendorificator
       end
     end
 
-    # Public: Displays info about current modules.
+    # Public: Displays info about current segments.
     #
     # Returns nothing.
     def list
       load_vendorfile
 
-      each_vendor_instance do |mod|
+      each_segment do |mod|
         shell.say "Module: #{mod.name}, version: #{mod.version}"
       end
     end
 
-    # Public: Displays info about outdated modules.
+    # Public: Displays info about outdated segments.
     #
     # Returns nothing.
     def outdated
       load_vendorfile
 
       outdated = []
-      each_vendor_instance do |mod|
+      each_segment do |mod|
         outdated << mod if [:unpulled, :unmerged, :outdated].include? mod.status
       end
 
@@ -168,7 +168,7 @@ module Vendorificator
       ensure_clean!
 
       pushable = []
-      each_vendor_instance { |mod| pushable += mod.pushable_refs }
+      each_segment { |mod| pushable += mod.pushable_refs }
 
       pushable << 'refs/notes/vendor' if has_notes?
 
@@ -178,7 +178,7 @@ module Vendorificator
       end
     end
 
-    # Public: Runs all the vendor modules.
+    # Public: Runs all the vendor segments.
     #
     # options - The Hash of options.
     #
@@ -190,28 +190,25 @@ module Vendorificator
       config[:use_upstream_version] = options[:update]
       metadata = metadata_snapshot
 
-      each_vendor_instance(*options[:modules]) do |mod|
-        say_status :default, :module, mod.name
-        indent do
-          mod.run!(:metadata => metadata)
-        end
+      each_segment(*options[:segments]) do |mod|
+        mod.run!(:metadata => metadata)
       end
     end
 
     # Public: Goes through all the Vendor instances and runs the block
     #
-    # modules - An Array of vendor modules to yield the block for.
+    # segments - An Array of vendor segments to yield the block for.
     #
     # Returns nothing.
-    def each_vendor_instance(*modules)
-      # We don't use @vendor_instances.each here, because Vendor#run! is
+    def each_segment(*segments)
+      # We don't use @segments.each here, because Vendor#run! is
       # explicitly allowed to append to instantiate new dependencies, and #each
       # fails to catch up on some Ruby implementations.
       i = 0
       while true
-        break if i >= @vendor_instances.length
-        mod = @vendor_instances[i]
-        yield mod if modules.empty? || mod.included_in_list?(modules)
+        break if i >= @segments.length
+        mod = @segments[i]
+        yield mod if segments.empty? || mod.included_in_list?(segments)
         i += 1
       end
     end
@@ -247,7 +244,7 @@ module Vendorificator
 
     # Public: Returns module with given name
     def [](name)
-      vendor_instances.find { |v| v.name == name }
+      segments.find { |v| v.name == name }
     end
 
     # Public: Loads the vendorfile.
@@ -263,7 +260,7 @@ module Vendorificator
       end
       @config.instance_eval(&@vendor_block) if @vendor_block
 
-      each_vendor_instance{ |mod| mod.compute_dependencies! }
+      each_segment{ |mod| mod.compute_dependencies! }
 
       @vendorfile_loaded = true
     end
@@ -282,8 +279,8 @@ module Vendorificator
     # mod_name - The String containing the module id.
     #
     # Returns Vendor instance.
-    def find_vendor_instance_by_name(mod_name)
-      each_vendor_instance(mod_name) do |mod|
+    def find_module_by_name(mod_name)
+      each_segment(mod_name) do |mod|
         return mod
       end
       nil

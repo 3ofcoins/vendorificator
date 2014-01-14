@@ -17,7 +17,7 @@ Scenario: rubygems_bundler
   When I run vendor command "install"
   Then following has been conjured:
     | Name         | rubygems        |
-    | Path         | cache           |
+    | Path         | vendor/cache    |
     | With file    | hello-0.0.1.gem |
     | Without file | first-0.gem     |
 
@@ -38,14 +38,14 @@ Scenario: chef_berkshelf
   When I run vendor command "install"
   Then following has been conjured:
     | Name         | cookbooks                   |
-    | With file    | build-essential/metadata.rb  |
+    | With file    | build-essential/metadata.rb |
 
 @berkshelf
 Scenario: postprocessing tool
   Given a repository with following Vendorfile:
     """ruby
     chef_berkshelf do
-      FileUtils::rm_rf 'runit'
+      FileUtils::rm_rf 'vendor/cookbooks/runit'
     end
     """
   And a file named "Berksfile" with:

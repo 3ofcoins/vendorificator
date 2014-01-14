@@ -1,6 +1,6 @@
 # Vendorificator
 
-> **THIS PROGRAM IS STILL IN BETA**, use on your own risk!
+> **THIS PROGRAM IS STILL IN BETA**, use at your own risk!
 
 ## About
 
@@ -271,6 +271,22 @@ tool 'cookbooks', # <- chef_berkshelf
      :path => 'cookbooks',
      :specs => [ 'Berksfile', 'Berksfile.lock' ],
      :command => 'berks install --path vendor/cookbooks'
+```
+
+#### overlay
+
+Overlays multiple modules in the same directory, instead of each of them being
+conjured in its own.
+
+```ruby
+overlay '/xyzzy' do
+  vendor 'foo', :version => '0.23' do |v|
+    File.open('README.foo', 'w') { |f| f.puts "Hello, foos!" }
+  end
+  vendor 'bar', :version => '0.42' do |v|
+    File.open('README.bar', 'w') { |f| f.puts "Hello, bars!" }
+  end
+end
 ```
 
 ## Contributing

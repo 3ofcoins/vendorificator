@@ -62,5 +62,5 @@ Scenario: Tarball without a root directory
     """
   When I run vendor command "install"
   Then following has been conjured:
-    | Name      | testrepo     |
-    | With file | test/alias.c |
+    | Name      | testrepo        |
+    | With file | test/alias.c    |
