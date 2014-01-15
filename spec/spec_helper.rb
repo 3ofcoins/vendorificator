@@ -44,8 +44,9 @@ class MiniTest::Spec
   include Vendorificator::Spec::Helpers::Wrong
 
   before do
-    _git = stub
-    _git.stubs(:capturing).returns(stub)
+    _git = stub('git')
+    _capturing = stub('git.capturing')
+    _git.stubs(:capturing).returns(_capturing)
     Vendorificator::Environment.any_instance.stubs(:git).returns(_git)
   end
 
@@ -55,7 +56,7 @@ class MiniTest::Spec
 
   def basic_environment
     @basic_environment ||= Vendorificator::Environment.new(
-      'spec/vendorificator/fixtures/vendorfiles/empty_vendor.rb'
+      Thor::Shell::Basic.new, :quiet, nil
     )
   end
 

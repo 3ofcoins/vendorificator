@@ -67,5 +67,71 @@ module Vendorificator
         assert { config.metadata[:foo] == :bar }
       end
     end
+
+    describe '#overlay' do
+      let(:environment) do
+        env = Environment.new(Thor::Shell::Basic.new, :quiet,
+          'spec/vendorificator/fixtures/vendorfiles/overlay.rb'
+        )
+        env.load_vendorfile
+
+        env
+      end
+
+      it 'assigns an overlay instance to all segments in the block' do
+        overlay = environment.segments.first
+        assert { overlay.segments.size > 1 }
+        overlay.each_segment do |seg|
+          assert { seg.overlay != nil }
+        end
+      end
+
+      it 'assigns the same overlay instance to all segments in the block' do
+        overlay = environment.segments.first
+        assert { overlay.segments.size > 1 }
+        overlay.each_segment do |vendor|
+          assert { vendor.overlay == overlay }
+        end
+      end
+    end
+
+    describe 'fake_mode?' do
+      it 'returns false when config not set' do
+        MiniGit::Capturing.stubs(:git).with(:config, 'vendorificator.stub').raises(MiniGit::GitError)
+        assert { config.fake_mode? == false }
+      end
+
+      it 'returns true when set to any truish value' do
+        stub_fake_mode 'any_truish_value'
+        assert { config.fake_mode? == true }
+      end
+
+      it 'returns false when set to empty string' do
+        stub_fake_mode ''
+        assert { config.fake_mode? == false }
+      end
+
+      it 'returns false when set to false' do
+        stub_fake_mode 'false'
+        assert { config.fake_mode? == false }
+      end
+
+      it 'returns false when set to no' do
+        stub_fake_mode 'no'
+        assert { config.fake_mode? == false }
+      end
+
+      it 'returns false when set to 0' do
+        stub_fake_mode '0'
+        assert { config.fake_mode? == false }
+      end
+    end
+
+    private
+
+    def stub_fake_mode(value)
+      MiniGit::Capturing.stubs(:git).with(:config, 'vendorificator.stub').
+        returns(value)
+    end
   end
 end

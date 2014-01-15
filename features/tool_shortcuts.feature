@@ -14,10 +14,10 @@ Scenario: rubygems_bundler
     source "file://#{ENV['FIXTURES_DIR']}/rubygems"
     gem "hello"
     """
-  When I successfully run `vendor sync`
+  When I run vendor command "install"
   Then following has been conjured:
     | Name         | rubygems        |
-    | Path         | cache           |
+    | Path         | vendor/cache    |
     | With file    | hello-0.0.1.gem |
     | Without file | first-0.gem     |
 
@@ -35,8 +35,30 @@ Scenario: chef_berkshelf
   And I successfully run `berks install`
   And I successfully run `git add Berksfile Berksfile.lock`
   And I successfully run `git commit -m Berksfile`
-  When I successfully run `vendor sync`
+  When I run vendor command "install"
   Then following has been conjured:
     | Name         | cookbooks                   |
-    | With file    | build-essential/metadata.rb  |
+    | With file    | build-essential/metadata.rb |
 
+@berkshelf
+Scenario: postprocessing tool
+  Given a repository with following Vendorfile:
+    """ruby
+    chef_berkshelf do
+      FileUtils::rm_rf 'vendor/cookbooks/runit'
+    end
+    """
+  And a file named "Berksfile" with:
+    """ruby
+    site :opscode
+    cookbook 'runit'
+    """
+  And I successfully run `berks install`
+  And I successfully run `git add Berksfile Berksfile.lock`
+  And I successfully run `git commit -m Berksfile`
+  When I run vendor command "install"
+  Then following has been conjured:
+    | Name         | cookbooks                   |
+    | With file    | build-essential/metadata.rb |
+    | With file    | yum/metadata.rb             |
+    | Without file | runit/metadata.rb           |

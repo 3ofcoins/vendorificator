@@ -7,7 +7,7 @@ Scenario: module with a .gitignore file
       File.open('.gitignore', 'w') { |f| f.puts 'ignored.txt' }
     end
     """
-  When I successfully run `vendor sync`
+  When I run vendor command "install"
   Then the following has been conjured:
     | Name      | ignore     |
     | With file | .gitignore |
@@ -25,10 +25,25 @@ Scenario: module with a .gitignore file
       File.open('.gitignore', 'w') { |f| f.puts 'ignored.txt' }
     end
     """
-  And I successfully run `vendor sync`
+  And I run vendor command "install"
   Then the file "vendor/ignore/files.txt" should not contain "ignored.txt"
   And the file "vendor/ignore/ignored.txt" should contain exactly:
     """
     whatever
     """
   And git repository is clean
+
+Scenario: Git overlay in root directory
+  Given a repository with following Vendorfile:
+    """ruby
+    overlay '/' do
+      git "file://#{ENV['FIXTURES_DIR']}/git/testrepo"
+    end
+    """
+  When I run vendor command "install"
+  Then following has been conjured:
+    | Name      | testrepo                                 |
+    | Branch    | vendor/overlay/layer/testrepo            |
+    | Version   | 10e9ac58c77bc229d8c59a5b4eb7422916453148 |
+    | With file | test/alias.c                             |
+    | Path      | .                                        |

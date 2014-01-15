@@ -62,3 +62,19 @@ end
 Then /^notes ref "(.*?)" exists in the remote repo$/ do |ref_name|
   assert { remote_git.note_refs.include?(ref_name) }
 end
+
+def branch_contains?(branch, path)
+  @branch_files ||= {}
+  @branch_files[branch] ||= git.capturing.
+    ls_tree( {:r => true, :z => true, :name_only => true}, branch).
+    split("\0")
+  @branch_files[branch].include?(path)
+end
+
+Then(/^the branch "(.*?)" should contain file "(.*?)"$/) do |branch, path|
+  assert { branch_contains?(branch, path) }
+end
+
+Then(/^the branch "(.*?)" should not contain file "(.*?)"$/) do |branch, path|
+  deny { branch_contains?(branch, path) }
+end

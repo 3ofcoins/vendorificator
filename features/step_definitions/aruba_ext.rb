@@ -1,10 +1,17 @@
-
 Then /^the last output should match (#{PATTERN})$/ do |expected|
   assert { last_output =~ expected }
 end
 
 Then /^the last output should not match (#{PATTERN})$/ do |expected|
   deny { last_output =~ expected }
+end
+
+Then /^the last vendor output should match (#{PATTERN})$/ do |expected|
+  assert { mock_output =~ expected }
+end
+
+Then /^the last vendor output should not match (#{PATTERN})$/ do |expected|
+  deny { mock_output =~ expected }
 end
 
 Then /^it should fail$/ do

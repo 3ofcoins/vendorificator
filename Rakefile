@@ -11,13 +11,6 @@ begin
 rescue LoadError
 end
 
-namespace :relish do
-  desc "Publish documentation to Relish"
-  task :push do
-    sh "relish push 3ofcoins/vendorificator"
-  end
-end
-
 task :info do
   sh 'which git'
   sh 'git --version'
@@ -29,9 +22,10 @@ begin
 
   desc 'Run Cucumber features'
   Cucumber::Rake::Task.new(:features) do |t|
-    t.fork = false
+    # t.fork = false
     t.cucumber_opts = %w{--format progress}
     t.cucumber_opts += %w{--tags ~@berkshelf} unless defined?(Berkshelf)
+    t.cucumber_opts += ENV['CUCUMBER_OPTS'].split if ENV['CUCUMBER_OPTS']
   end
 rescue LoadError
   desc 'Cucumber rake task not available'

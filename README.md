@@ -1,6 +1,6 @@
 # Vendorificator
 
-> **THIS PROGRAM IS STILL IN BETA**, use on your own risk!
+> **THIS PROGRAM IS STILL IN BETA**, use at your own risk!
 
 ## About
 
@@ -57,8 +57,8 @@ detail.
    a Git remote
  * `vendor push` will push all vendor branches, tags, and notes to
    a Git remote
- * `vendor diff` will show the differences between vendor module's
-   pristine branch and curent work tree
+ * `vendor diff` will show a `git diff` of vendor module's files between vendor
+   module's pristine branch and current work tree
  * `vendor log` will show a `git log` of all changes made to a particular
    vendor module's files that are not in module's pristine branch
 
@@ -112,10 +112,10 @@ It takes following options:
  * `:version` - the version of module. If the module's contents should
    change, increase the version, so that Vendorificator knows it needs
    to re-create the module.
- * `:category` - module's *category* is subdirectory of the basedir
+ * `:group` - module's *group* is subdirectory of the basedir
    where module's directory will be created. For example, `vendor
    "foo"` will go to `vendor/foo` by default, but `vendor "foo",
-   :category => :widgets` will go to `vendor/widgets/foo`. It is also
+   :group => :widgets` will go to `vendor/widgets/foo`. It is also
    added in a similar way to module's branch name, tag names, etc.
  * `:path` - lets you specify subdirectory in which the module will be
    downloaded
@@ -197,7 +197,7 @@ Example:
 ```ruby
 git 'git://github.com/mpasternacki/nagios.git',
     :branch => 'COOK-1997',
-    :category => :cookbooks,
+    :group => :cookbooks,
     :version => '0.20130124.2'
 ```
 
@@ -206,7 +206,7 @@ git 'git://github.com/mpasternacki/nagios.git',
 Downloads an Opscode Chef cookbook from http://community.opscode.com/
 website (same thing that `knife cookbook site install` does). It
 resolves dependencies -- all needed modules will be downloaded by
-default. Its category defaults to `:cookbooks`. It may take the same
+default. Its group defaults to `:cookbooks`. It may take the same
 arguments as `archive` (but the name and possibly version is almost
 always enough), plus:
 
@@ -238,7 +238,7 @@ option to add it:
 
 ```ruby
 git 'git://github.com/user/cookbook.git',
-  :category => :cookbooks,
+  :group => :cookbooks,
   :hooks => 'ChefCookbookDependencies'
 end
 ```
@@ -254,6 +254,9 @@ Vendorificator. Takes the same arguments as `vendor`, plus:
  * `:command` -- command to run to download files
  * `:specs` -- files specifying what to download; these will be kept
    on the vendor branch together with downloaded dependencies
+ * `:extras` -- files that are needed for the tool to work, but which
+   won't be committed to the vendor branch together with specs and
+   dependencies
 
 Two convenience shortcuts are provided, `rubygems_bundler`, and
 `chef_berkshelf`. They take no arguments. Their definitions are
@@ -272,6 +275,29 @@ tool 'cookbooks', # <- chef_berkshelf
      :specs => [ 'Berksfile', 'Berksfile.lock' ],
      :command => 'berks install --path vendor/cookbooks'
 ```
+
+#### overlay
+
+Overlays multiple modules in the same directory, instead of each of them being
+conjured in its own.
+
+```ruby
+overlay '/xyzzy' do
+  vendor 'foo', :version => '0.23' do |v|
+    File.open('README.foo', 'w') { |f| f.puts "Hello, foos!" }
+  end
+  vendor 'bar', :version => '0.42' do |v|
+    File.open('README.bar', 'w') { |f| f.puts "Hello, bars!" }
+  end
+end
+```
+
+### Fake Mode
+
+To develop a solution based on Vendorificator without having
+everything committed to a dozen of branches, tagged, and noted, set
+`vendorificator.stub` Git setting to `true`. Then, Vendorificator will
+work live in the main repo, and ignore the output directory in Git.
 
 ## Contributing
 

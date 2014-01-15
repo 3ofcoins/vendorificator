@@ -16,22 +16,28 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "vendorificator"
   gem.require_paths = ["lib"]
-  gem.version       = Vendorificator::VERSION
+  gem.version       = if ENV['PRERELEASE']
+                        require 'minigit'
+                        git_desc = MiniGit::Capturing.new(__FILE__).describe.strip.gsub('-', '.')
+                        Gem::Version.new(Vendorificator::VERSION).bump.to_s << ".git.#{git_desc}"
+                      else
+                        Vendorificator::VERSION
+                      end
 
   gem.add_dependency 'escape'
   gem.add_dependency 'thor', '>= 0.18.1'
   gem.add_dependency 'minigit', '>= 0.0.3'
   gem.add_dependency 'awesome_print'
 
-  gem.add_development_dependency 'aruba', '0.5.1'
-  gem.add_development_dependency 'cucumber', '~> 2.0'
+  gem.add_development_dependency 'aruba', '~> 0.5.3'
+  gem.add_development_dependency 'cucumber', '~> 1.3.10'
   gem.add_development_dependency 'mocha', '>= 0.14.0'
-  gem.add_development_dependency 'chef', '>= 10.16.0' unless is_jruby
   gem.add_development_dependency 'berkshelf' unless is_jruby || !is_1_9_plus
   gem.add_development_dependency 'vcr'
   gem.add_development_dependency 'webmock'
-  gem.add_development_dependency 'wrong', '>= 0.7.0'
+  gem.add_development_dependency 'wrong', '~> 0.7'
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'simplecov'
-  gem.add_development_dependency 'minitest', '~> 5.0.0'
+  gem.add_development_dependency 'tee', '~> 1.0'
+  gem.add_development_dependency 'minitest', '~> 5.2'
 end

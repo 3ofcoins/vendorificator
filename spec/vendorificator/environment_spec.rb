@@ -2,10 +2,16 @@ require 'spec_helper'
 
 module Vendorificator
   describe Environment do
-    before do
-      MiniGit.any_instance.stubs(:fetch)
+    let(:environment) do
+      Environment.new Thor::Shell::Basic.new, :quiet, nil do
+        vendor 'name', :option => 'value'
+        vendor 'other_name', :option => 'other_value'
+      end
     end
-    let(:environment){ Environment.new 'spec/vendorificator/fixtures/vendorfiles/vendor.rb' }
+
+    before do
+      environment.git.capturing.stubs(:remote).returns("origin\n")
+    end
 
     describe '#clean' do
       it 'returns false for dirty repo' do
@@ -41,39 +47,77 @@ module Vendorificator
     end
 
     describe '#pull' do
+      let(:environment){ Environment.new(Thor::Shell::Basic.new, :quiet, nil){} }
+
+      before do
+        environment.git.expects(:fetch).with('origin')
+        environment.git.expects(:fetch).with({:tags => true}, 'origin')
+        @git_fetch_notes = environment.git.expects(:fetch).with('origin', 'refs/notes/vendor:refs/notes/vendor')
+        environment.git.capturing.stubs(:show_ref).returns("602315 refs/remotes/origin/vendor/test\n")
+      end
+
       it "creates a branch if it doesn't exist" do
-        Environment.any_instance.unstub(:git)
-        environment.git.capturing.stubs(:show_ref).
-          returns("602315 refs/remotes/origin/vendor/test")
-        environment.vendor_instances = [ stub(:branch_name => 'vendor/test', :head => nil)]
+        environment.segments << stub(
+          :branch_name => 'vendor/test', :head => nil,
+          :compute_dependencies! => nil
+        )
 
         environment.git.expects(:branch).with({:track => true}, 'vendor/test', '602315')
+
         environment.pull('origin')
       end
 
       it "handles fast forwardable branches" do
-        Environment.any_instance.unstub(:git)
-        environment.git.capturing.stubs(:show_ref).
-          returns("602315 refs/remotes/origin/vendor/test")
-        environment.vendor_instances = [stub(
-          :branch_name => 'vendor/test', :head => '123456', :in_branch => true, :name => 'test'
-        )]
-
+        environment.segments << stub(
+          :branch_name => 'vendor/test', :head => '123456', :fast_forward => true,
+          :name => 'test', :compute_dependencies! => nil
+        )
         environment.expects(:fast_forwardable?).returns(true)
+
+        environment.pull('origin')
+      end
+
+      it "handles git error on fetching empty notes" do
+        @git_fetch_notes.raises(MiniGit::GitError)
+
         environment.pull('origin')
       end
     end
 
-    describe '#vendor_instances' do
-      let(:environment){ Environment.new 'spec/vendorificator/fixtures/vendorfiles/empty_vendor.rb' }
+    describe '#push' do
+      let(:environment){ Environment.new(Thor::Shell::Basic.new, :quiet, nil){} }
+
+      it "handles git error on pushing empty notes" do
+        environment.stubs(:ensure_clean!)
+
+        environment.git.capturing.expects(:rev_parse).with({:quiet => true, :verify => true}, 'refs/notes/vendor').raises(MiniGit::GitError)
+        environment.git.expects(:push).with('origin', [])
+        environment.git.stubs(:push).with('origin', :tags => true)
+
+        environment.push(:remote => 'origin')
+      end
+
+      it "pushes note when they exist" do
+        environment.stubs(:ensure_clean!)
+
+        environment.git.capturing.expects(:rev_parse).with({:quiet => true, :verify => true}, 'refs/notes/vendor').returns('abcdef')
+        environment.git.expects(:push).with('origin', ['refs/notes/vendor'])
+        environment.git.stubs(:push).with('origin', :tags => true)
+
+        environment.push(:remote => 'origin')
+      end
+    end
+
+    describe '#segments' do
+      let(:environment){ Environment.new Thor::Shell::Basic.new, :default, nil }
 
       it 'is initialized on a new environment' do
-        assert { environment.vendor_instances == [] }
+        assert { environment.segments == [] }
       end
 
       it 'allows to add/read instances' do
-        environment.vendor_instances << :foo
-        assert { environment.vendor_instances == [:foo] }
+        environment.segments << :foo
+        assert { environment.segments == [:foo] }
       end
     end
 
@@ -98,5 +142,6 @@ module Vendorificator
         assert { @metadata[:git_describe] == 'git description' }
       end
     end
+
   end
 end

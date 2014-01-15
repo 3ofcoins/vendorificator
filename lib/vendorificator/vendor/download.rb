@@ -11,11 +11,11 @@ module Vendorificator
     attr_reader :conjured_checksum, :conjured_filesize
 
     def path
-      args[:path] || category
+      args[:path] || group
     end
 
     def conjure!
-      shell.say_status :download, url
+      say_status :default, :download, url
       File.open name, 'w' do |outf|
         outf.write( open(url).read )
       end

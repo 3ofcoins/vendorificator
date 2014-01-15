@@ -5,7 +5,7 @@ require 'vendorificator/vendor'
 
 module Vendorificator
   class Vendor::Tool < Vendor
-    arg_reader :specs, :command
+    arg_reader :specs, :extras, :command
 
     def before_conjure!
       upstream_version # to cache the version in instance attribute,
@@ -14,47 +14,67 @@ module Vendorificator
     end
 
     def conjure!
-      specs.each do |spec|
-        src = File.join(environment.git.git_work_tree, spec)
-        if File.exist?(src)
-          FileUtils.install File.join(environment.git.git_work_tree, spec),
-                            File.join(git.git_work_tree, spec),
-                            verbose: true
-        end
-        Dir.chdir(git.git_work_tree) do
-          system self.command or raise RuntimeError, "Command failed"
-        end
-      end
-    end
-
-    def git_add_extra_paths
-      specs.inject(super) do |rv, path|
-        rv << path
+      Dir.chdir(git.git_work_tree) do
+        git.checkout(
+          environment.current_branch, '--', specs_in_repo, extras_in_repo
+          ) unless specs_in_repo.empty? && extras_in_repo.empty?
+        git.rm({:cached => true}, extras_in_repo) unless extras_in_repo.empty?
+        system self.command or raise RuntimeError, "Command failed"
+        super
       end
     end
 
     def upstream_version
       @upstream_version ||= git.capturing.
-        log({:n => 1, :pretty => 'format:%ad-%h', :date => 'short'}, *specs).
+        log({:n => 1, :pretty => 'format:%ad-%h', :date => 'short'}, specs_in_repo).
         strip
+    end
+
+    private
+
+    def specs_in_repo
+      @spec_in_repo ||= select_by_glob_list(origin_files, specs)
+    end
+
+    def extras_in_repo
+      @extras_in_repo ||= select_by_glob_list(origin_files, extras)
+    end
+
+    def select_by_glob_list(haystack, needles)
+      return [] if !needles || needles.empty?
+      needles = Array(needles)
+      haystack.select do |straw|
+        needles.any? do |needle|
+          File.fnmatch(needle, straw, File::FNM_PATHNAME)
+        end
+      end
+    end
+
+    def origin_files
+      @origin_files ||= git.capturing.
+        ls_tree( {:r => true, :z => true, :name_only => true},
+                 environment.current_branch).
+        split("\0")
     end
   end
 
   class Config
     register_module :tool, Vendor::Tool
 
-    def rubygems_bundler
+    def rubygems_bundler(&block)
       tool 'rubygems',
            :path => 'cache', # Hardcoded, meh
            :specs => [ 'Gemfile', 'Gemfile.lock' ],
-           :command => 'bundle package --all'
+           :command => 'bundle package --all',
+           &block
     end
 
-    def chef_berkshelf
-      tool 'cookbooks',
-           :path => 'cookbooks',
-           :specs => [ 'Berksfile', 'Berksfile.lock' ],
-           :command => 'berks install --path vendor/cookbooks'
+    def chef_berkshelf(args={}, &block)
+      args[:path] ||= 'cookbooks'
+      args[:specs] ||= []
+      args[:specs] |= [ 'Berksfile', 'Berksfile.lock' ]
+      args[:command] = "berks install --path vendor/#{args[:path]}"
+      tool 'cookbooks', args, &block
     end
   end
 end

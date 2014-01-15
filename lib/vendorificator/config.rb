@@ -3,7 +3,7 @@ require 'pathname'
 module Vendorificator
   class Config
     attr_accessor :environment
-    attr_reader :metadata
+    attr_reader :metadata, :overlay_instance
 
     @defaults = {}
     @modules = {}
@@ -34,6 +34,7 @@ module Vendorificator
     end
 
     def initialize(params = {})
+      @fake_mode = check_fake_mode
       @configuration = self.class.defaults.merge(params)
       @metadata = {}
     end
@@ -80,8 +81,38 @@ module Vendorificator
       end
     end
 
+    def overlay(name, options = {}, &block)
+      @overlay_instance = Segment::Overlay.new(
+        environment: environment, overlay_opts: options.merge(name: name)
+      )
+      environment.segments << @overlay_instance
+      yield
+    ensure
+      @overlay_instance = nil
+    end
+
+    # Public: Returns information whether we work in the fake mode.
+    #
+    # Returns true/false.
+    def fake_mode?
+      @fake_mode
+    end
+
     option :basedir, 'vendor'
     option :branch_prefix, 'vendor'
     option :remotes, %w(origin)
+
+    private
+
+    # Private: Check if we should work in the fake mode.
+    #
+    # Returns true/false.
+    def check_fake_mode
+      setting = MiniGit::Capturing.git(:config, 'vendorificator.stub').strip
+      ['', 'false', '0', 'no'].include?(setting) ? false : true
+    rescue MiniGit::GitError
+      false
+    end
+
   end
 end

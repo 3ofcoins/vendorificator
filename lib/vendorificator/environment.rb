@@ -1,28 +1,32 @@
 require 'pathname'
-require 'minigit'
 require 'awesome_print'
 require 'vendorificator/config'
 
 module Vendorificator
   class Environment
     attr_reader :config
-    attr_accessor :shell, :vendor_instances
+    attr_accessor :segments, :io
 
-    def initialize(vendorfile=nil, &block)
-      @vendor_instances = []
+    def initialize(shell, verbosity = :default, vendorfile = nil, &block)
+      @segments = []
+      @io = IOProxy.new(shell, verbosity)
+      @vendorfile = find_vendorfile(vendorfile)
+      @vendor_block = block
 
       @config = Vendorificator::Config.new
       @config.environment = self
-      if vendorfile || !block_given?
-        @config.read_file(find_vendorfile(vendorfile).to_s)
-      end
-      @config.instance_eval(&block) if block_given?
+    end
 
-      self.each_vendor_instance{ |mod| mod.compute_dependencies! }
+    def shell
+      io.shell
+    end
+
+    def say(*args)
+      io.say(*args)
     end
 
     def say_status(*args)
-      shell.say_status(*args) if shell
+      io.say_status(*args)
     end
 
     # Main MiniGit instance
@@ -49,10 +53,12 @@ module Vendorificator
     #
     # Returns nothing.
     def pull_all(options = {})
+      load_vendorfile
+
       ensure_clean!
       remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
       remotes.each do |remote|
-        indent 'remote', remote do
+        indent :default, 'remote', remote do
           pull(remote, options)
         end
       end
@@ -68,7 +74,10 @@ module Vendorificator
 
       git.fetch(remote)
       git.fetch({:tags => true}, remote)
-      git.fetch(remote, 'refs/notes/vendor:refs/notes/vendor')
+      begin
+        git.fetch(remote, 'refs/notes/vendor:refs/notes/vendor')
+      rescue MiniGit::GitError  # ignore
+      end
 
       ref_rx = /^refs\/remotes\/#{Regexp.quote(remote)}\//
       remote_branches = Hash[ git.capturing.show_ref.
@@ -77,25 +86,25 @@ module Vendorificator
         map { |sha, name| name =~ ref_rx ? [$', sha] : nil }.
         compact ]
 
-      each_vendor_instance do |mod|
+      each_segment do |mod|
         ours = mod.head
         theirs = remote_branches[mod.branch_name]
         if theirs
           if not ours
-            say_status 'new', mod.branch_name, :yellow
+            say_status :default, 'new', mod.branch_name, :yellow
             git.branch({:track => true}, mod.branch_name, theirs) unless options[:dry_run]
           elsif ours == theirs
-            say_status 'unchanged', mod.branch_name
+            say_status :default, 'unchanged', mod.branch_name
           elsif fast_forwardable?(theirs, ours)
-            say_status 'updated', mod.name, :yellow
-            mod.in_branch { git.merge({:ff_only => true}, theirs) } unless options[:dry_run]
+            say_status :default, 'updated', mod.name, :yellow
+            mod.fast_forward theirs unless options[:dry_run]
           elsif fast_forwardable?(ours, theirs)
-            say_status 'older', mod.branch_name
+            say_status :default, 'older', mod.branch_name
           else
-            say_status 'complicated', mod.branch_name, :red
+            say_status :default, 'complicated', mod.branch_name, :red
           end
         else
-          say_status 'unknown', mod.branch_name
+          say_status :default, 'unknown', mod.branch_name
         end
       end
     end
@@ -107,17 +116,44 @@ module Vendorificator
     #
     # Returns nothing.
     def info(mod_name, options = {})
-      if vendor = find_vendor_instance_by_name(mod_name)
-        shell.say "Module name: #{vendor.name}\n"
-        shell.say "Module category: #{vendor.category}\n"
-        shell.say "Module merged version: #{vendor.merged_version}\n"
-        shell.say "Module merged notes: #{vendor.merged_notes.ai}\n"
+      load_vendorfile
+
+      if vendor = find_module_by_name(mod_name)
+        say :default, "Module name: #{vendor.name}\n"
+        say :default, "Module group: #{vendor.group}\n"
+        say :default, "Module merged version: #{vendor.merged_version}\n"
+        say :default, "Module merged notes: #{vendor.merged_notes.ai}\n"
       elsif (commit = Commit.new(mod_name, git)).exists?
-        shell.say "Branches that contain this commit: #{commit.branches.join(', ')}\n"
-        shell.say "Vendorificator notes on this commit: #{commit.notes.ai}\n"
+        say :default, "Branches that contain this commit: #{commit.branches.join(', ')}\n"
+        say :default, "Vendorificator notes on this commit: #{commit.notes.ai}\n"
       else
-        shell.say "Module or ref #{mod_name.inspect} not found."
+        say :default, "Module or ref #{mod_name.inspect} not found."
       end
+    end
+
+    # Public: Displays info about current segments.
+    #
+    # Returns nothing.
+    def list
+      load_vendorfile
+
+      each_segment do |mod|
+        shell.say "Module: #{mod.name}, version: #{mod.version}"
+      end
+    end
+
+    # Public: Displays info about outdated segments.
+    #
+    # Returns nothing.
+    def outdated
+      load_vendorfile
+
+      outdated = []
+      each_segment do |mod|
+        outdated << mod if [:unpulled, :unmerged, :outdated].include? mod.status
+      end
+
+      outdated.each { |mod| say_status :quiet, 'outdated', mod.name }
     end
 
     # Public: Push changes on module branches.
@@ -126,55 +162,52 @@ module Vendorificator
     #
     # Returns nothing.
     def push(options = {})
+      load_vendorfile
+
       ensure_clean!
 
       pushable = []
-      each_vendor_instance{ |mod| pushable += mod.pushable_refs }
+      each_segment { |mod| pushable += mod.pushable_refs }
+
+      pushable << 'refs/notes/vendor' if has_notes?
 
       remotes = options[:remote] ? options[:remote].split(',') : config[:remotes]
       remotes.each do |remote|
         git.push remote, pushable
-        git.push remote, :tags => true
-        git.push remote, 'refs/notes/vendor'
       end
     end
 
-    # Public: Runs all the vendor modules.
+    # Public: Runs all the vendor segments.
     #
     # options - The Hash of options.
     #
     # Returns nothing.
     def sync(options = {})
+      load_vendorfile
+
       ensure_clean!
       config[:use_upstream_version] = options[:update]
       metadata = metadata_snapshot
 
-      each_vendor_instance(*options[:modules]) do |mod|
-        say_status :module, mod.name
-        indent do
-          mod.run!(:metadata => metadata)
-        end
+      each_segment(*options[:segments]) do |mod|
+        mod.run!(:metadata => metadata)
       end
     end
 
     # Public: Goes through all the Vendor instances and runs the block
     #
-    # modules - ?
+    # segments - An Array of vendor segments to yield the block for.
     #
     # Returns nothing.
-    def each_vendor_instance(*modules)
-      modpaths = modules.map { |m| File.expand_path(m) }
-
-      # We don't use @vendor_instances.each here, because Vendor#run! is
+    def each_segment(*segments)
+      # We don't use @segments.each here, because Vendor#run! is
       # explicitly allowed to append to instantiate new dependencies, and #each
       # fails to catch up on some Ruby implementations.
       i = 0
       while true
-        break if i >= @vendor_instances.length
-        mod = @vendor_instances[i]
-        yield mod if modules.empty? ||
-          modules.include?(mod.name) ||
-          modpaths.include?(mod.work_dir)
+        break if i >= @segments.length
+        mod = @segments[i]
+        yield mod if segments.empty? || mod.included_in_list?(segments)
         i += 1
       end
     end
@@ -197,31 +230,57 @@ module Vendorificator
         :vendorificator_version => ::Vendorificator::VERSION,
         :current_branch => git.capturing.rev_parse({:abbrev_ref => true}, 'HEAD').strip,
         :current_sha => git.capturing.rev_parse('HEAD').strip,
-        :git_describe => (git.capturing.describe.strip rescue '')
+        :git_describe => (git.capturing.describe(:always => true).strip rescue '')
       }
     end
 
     # Public: returns `config[:root_dir]` relative to Git repository root
     def relative_root_dir
       @relative_root_dir ||= config[:root_dir].relative_path_from(
-        Pathname.new(git.git_work_tree))
+        Pathname.new(git.git_work_tree)
+      )
     end
 
     # Public: Returns module with given name
     def [](name)
-      vendor_instances.find { |v| v.name == name }
+      segments.find { |v| v.name == name }
+    end
+
+    # Public: Loads the vendorfile.
+    #
+    # Returns nothing.
+    def load_vendorfile
+      raise RuntimeError, 'Vendorfile has been already loaded!' if @vendorfile_loaded
+
+      if @vendorfile
+        @config.read_file @vendorfile.to_s
+      else
+        raise MissingVendorfileError unless @vendor_block
+      end
+      @config.instance_eval(&@vendor_block) if @vendor_block
+
+      each_segment{ |mod| mod.compute_dependencies! }
+
+      @vendorfile_loaded = true
+    end
+
+    # Public: Checks if vendorfile has been already loaded.
+    #
+    # Returns boolean.
+    def vendorfile_loaded?
+      defined?(@vendorfile_loaded) && @vendorfile_loaded
     end
 
     private
 
-    # Private: Finds a vendor instance by module name.
+    # Private: Finds a vendor instance by module (qualified) name, path or branch.
     #
-    # mod_name - The String containing the module name.
+    # mod_name - The String containing the module id.
     #
     # Returns Vendor instance.
-    def find_vendor_instance_by_name(mod_name)
-      each_vendor_instance do |mod|
-        return mod if mod.name == mod_name
+    def find_module_by_name(mod_name)
+      each_segment(mod_name) do |mod|
+        return mod
       end
       nil
     end
@@ -231,8 +290,8 @@ module Vendorificator
     # given - the optional String containing vendorfile path.
     #
     # Returns a String containing the vendorfile path.
-    def find_vendorfile(given=nil)
-      given = [ given, ENV['VENDORFILE'] ].find do |candidate|
+    def find_vendorfile(given = nil)
+      given = [given, ENV['VENDORFILE']].find do |candidate|
         candidate && !(candidate.respond_to?(:empty?) && candidate.empty?)
       end
       return given if given
@@ -247,11 +306,11 @@ module Vendorificator
         # avoid stepping above the tmp directory when testing
         if ENV['VENDORIFICATOR_SPEC_RUN'] &&
             dir.join('vendorificator.gemspec').exist?
-          raise ArgumentError, "Vendorfile not found"
+          break
         end
       end
 
-      raise ArgumentError, "Vendorfile not found"
+      return nil
     end
 
     # Private: Aborts on a dirty repository.
@@ -264,12 +323,23 @@ module Vendorificator
     # Private: Indents the output.
     #
     # Returns nothing.
-    def indent(*args, &block)
-      say_status *args unless args.empty?
+    def indent(verb_level = :default, *args, &block)
+      say_status verb_level, *args unless args.empty?
       shell.padding += 1 if shell
       yield
     ensure
       shell.padding -= 1 if shell
     end
+
+    # Private: Checks if there are git vendor notes.
+    #
+    # Returns true/false.
+    def has_notes?
+      git.capturing.rev_parse({:quiet => true, :verify => true}, 'refs/notes/vendor')
+      true
+    rescue MiniGit::GitError
+      false
+    end
+
   end
 end
