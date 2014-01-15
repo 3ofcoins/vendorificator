@@ -60,8 +60,9 @@ Scenario: Running tasks without Vendorfile where they don't need it
 Scenario: Running tasks without Vendorfile where they need it
   Given a directory named "foo"
   When I cd to "foo"
-  And I run vendor command "pull"
-  Then the last vendor output should match /Vendorfile not found/
+  And I try to run vendor command "pull"
+  Then it has failed
+  And the last vendor output should match /Vendorfile not found/
 
 Scenario: Getting module list
   Given a repository with following Vendorfile:

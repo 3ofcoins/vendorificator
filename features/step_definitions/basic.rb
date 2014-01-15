@@ -58,3 +58,19 @@ When /^I run vendor command "(.*)"$/ do |args|
     end
   end
 end
+
+Before do
+  @last_vendor_exception = nil
+end
+
+When /^I try to run vendor command "(.*)"$/ do |args|
+  begin
+    step "I run vendor command \"#{args}\""
+  rescue => exc
+    @last_vendor_exception = exc
+  end
+end
+
+Then 'it has failed' do
+  assert { !!@last_vendor_exception }
+end
