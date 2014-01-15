@@ -29,9 +29,10 @@ begin
 
   desc 'Run Cucumber features'
   Cucumber::Rake::Task.new(:features) do |t|
-    t.fork = false
+    # t.fork = false
     t.cucumber_opts = %w{--format progress}
     t.cucumber_opts += %w{--tags ~@berkshelf} unless defined?(Berkshelf)
+    t.cucumber_opts += ENV['CUCUMBER_OPTS'].split if ENV['CUCUMBER_OPTS']
   end
 rescue LoadError
   desc 'Cucumber rake task not available'
