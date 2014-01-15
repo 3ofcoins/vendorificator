@@ -24,8 +24,8 @@ module Vendorificator
       end
       Dir.chdir(git.git_work_tree) do
         system self.command or raise RuntimeError, "Command failed"
-        super
       end
+      super
     end
 
     def git_add_extra_paths

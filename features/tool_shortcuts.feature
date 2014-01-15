@@ -45,7 +45,7 @@ Scenario: postprocessing tool
   Given a repository with following Vendorfile:
     """ruby
     chef_berkshelf do
-      FileUtils::rm_rf 'vendor/cookbooks/runit'
+      FileUtils::rm_rf 'runit'
     end
     """
   And a file named "Berksfile" with:
