@@ -254,6 +254,9 @@ Vendorificator. Takes the same arguments as `vendor`, plus:
  * `:command` -- command to run to download files
  * `:specs` -- files specifying what to download; these will be kept
    on the vendor branch together with downloaded dependencies
+ * `:extras` -- files that are needed for the tool to work, but which
+   won't be committed to the vendor branch together with specs and
+   dependencies
 
 Two convenience shortcuts are provided, `rubygems_bundler`, and
 `chef_berkshelf`. They take no arguments. Their definitions are

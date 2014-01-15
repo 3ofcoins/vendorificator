@@ -5,7 +5,7 @@ require 'vendorificator/vendor'
 
 module Vendorificator
   class Vendor::Tool < Vendor
-    arg_reader :specs, :command
+    arg_reader :specs, :extras, :command
 
     def before_conjure!
       upstream_version # to cache the version in instance attribute,
@@ -15,7 +15,10 @@ module Vendorificator
 
     def conjure!
       Dir.chdir(git.git_work_tree) do
-        git.checkout(environment.current_branch, '--', spec_files) unless spec_files.empty?
+        git.checkout(
+          environment.current_branch, '--', specs_in_repo, extras_in_repo
+          ) unless specs_in_repo.empty? && extras_in_repo.empty?
+        git.rm({:cached => true}, extras_in_repo) unless extras_in_repo.empty?
         system self.command or raise RuntimeError, "Command failed"
         super
       end
@@ -23,25 +26,35 @@ module Vendorificator
 
     def upstream_version
       @upstream_version ||= git.capturing.
-        log({:n => 1, :pretty => 'format:%ad-%h', :date => 'short'}, spec_files).
+        log({:n => 1, :pretty => 'format:%ad-%h', :date => 'short'}, specs_in_repo).
         strip
     end
 
     private
 
-    def spec_files
-      @spec_files ||=
-        begin
-          _specs = Array(specs)
-          git.capturing.
-            ls_tree({:r => true, :z => true, :name_only => true}, environment.current_branch).
-            split("\0").
-            select do |path|
-              _specs.any? do |spec|
-                File.fnmatch(spec, path, File::FNM_PATHNAME)
-              end
-            end
+    def specs_in_repo
+      @spec_in_repo ||= select_by_glob_list(origin_files, specs)
+    end
+
+    def extras_in_repo
+      @extras_in_repo ||= select_by_glob_list(origin_files, extras)
+    end
+
+    def select_by_glob_list(haystack, needles)
+      return [] if !needles || needles.empty?
+      needles = Array(needles)
+      haystack.select do |straw|
+        needles.any? do |needle|
+          File.fnmatch(needle, straw, File::FNM_PATHNAME)
         end
+      end
+    end
+
+    def origin_files
+      @origin_files ||= git.capturing.
+        ls_tree( {:r => true, :z => true, :name_only => true},
+                 environment.current_branch).
+        split("\0")
     end
   end
 

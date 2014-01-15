@@ -66,3 +66,4 @@ Scenario: directory contents are completely replaced on re-vendoring
     | Without file | hello-0.0.1.gem |
     | With file    | first-0.gem     |
     | With file    | second-0.gem    |
+
