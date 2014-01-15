@@ -1,5 +1,15 @@
 # Changes
 
+## 0.5.0
+
+ - Added overlays
+ - Added fake mode
+ - Tools now check specs from repo rather than copy from original
+   work tree; added tool extras for files that shouldn't be committed
+   to vendor branch.
+ - Better error messages
+ - Improved CLI syntax, verbosity levels
+
 ## 0.4.0
 
  - Dropped support for Ruby 1.8.7
