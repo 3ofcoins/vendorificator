@@ -71,6 +71,6 @@ When /^I try to run vendor command "(.*)"$/ do |args|
   end
 end
 
-Then 'it has failed' do
+Then 'it fails' do
   assert { !!@last_vendor_exception }
 end

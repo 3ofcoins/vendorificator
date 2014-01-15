@@ -61,7 +61,7 @@ Scenario: Running tasks without Vendorfile where they need it
   Given a directory named "foo"
   When I cd to "foo"
   And I try to run vendor command "pull"
-  Then it has failed
+  Then it fails
   And the last vendor output should match /Vendorfile not found/
 
 Scenario: Getting module list
