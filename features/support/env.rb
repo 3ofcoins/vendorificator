@@ -7,6 +7,8 @@ require 'wrong'
 
 require 'vendorificator/cli'
 
+MiniGit.debug = true if ENV['CUCUMBER_DEBUG']
+
 ENV['GIT_AUTHOR_NAME'] = ENV['GIT_COMMITTER_NAME'] = 'Vendorificator Cucumber'
 ENV['GIT_AUTHOR_EMAIL'] = ENV['GIT_COMMITTER_EMAIL'] = 'nonexistent@example.com'
 
