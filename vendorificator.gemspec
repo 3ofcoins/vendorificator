@@ -32,7 +32,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'aruba', '~> 0.5.3'
   gem.add_development_dependency 'cucumber', '~> 1.3.10'
   gem.add_development_dependency 'mocha', '>= 0.14.0'
-  gem.add_development_dependency 'chef', '>= 10.16.0' unless is_jruby
   gem.add_development_dependency 'berkshelf' unless is_jruby || !is_1_9_plus
   gem.add_development_dependency 'vcr'
   gem.add_development_dependency 'webmock'
