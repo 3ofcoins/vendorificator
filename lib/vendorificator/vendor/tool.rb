@@ -14,30 +14,34 @@ module Vendorificator
     end
 
     def conjure!
-      specs.each do |spec|
-        src = File.join(environment.git.git_work_tree, spec)
-        if File.exist?(src)
-          FileUtils.install File.join(environment.git.git_work_tree, spec),
-                            File.join(git.git_work_tree, spec),
-                            verbose: true
-        end
-      end
       Dir.chdir(git.git_work_tree) do
+        git.checkout(environment.current_branch, '--', spec_files) unless spec_files.empty?
         system self.command or raise RuntimeError, "Command failed"
       end
       super
     end
 
-    def git_add_extra_paths
-      specs.inject(super) do |rv, path|
-        rv << path
-      end
-    end
-
     def upstream_version
       @upstream_version ||= git.capturing.
-        log({:n => 1, :pretty => 'format:%ad-%h', :date => 'short'}, *specs).
+        log({:n => 1, :pretty => 'format:%ad-%h', :date => 'short'}, spec_files).
         strip
+    end
+
+    private
+
+    def spec_files
+      @spec_files ||=
+        begin
+          _specs = Array(specs)
+          git.capturing.
+            ls_tree({:r => true, :z => true, :name_only => true}, environment.current_branch).
+            split("\0").
+            select do |path|
+              _specs.any? do |spec|
+                File.fnmatch(spec, path, File::FNM_PATHNAME)
+              end
+            end
+        end
     end
   end
 
@@ -52,12 +56,12 @@ module Vendorificator
            &block
     end
 
-    def chef_berkshelf(&block)
-      tool 'cookbooks',
-           :path => 'cookbooks',
-           :specs => [ 'Berksfile', 'Berksfile.lock' ],
-           :command => 'berks install --path vendor/cookbooks',
-           &block
+    def chef_berkshelf(args={}, &block)
+      args[:path] ||= 'cookbooks'
+      args[:specs] ||= []
+      args[:specs] |= [ 'Berksfile', 'Berksfile.lock' ]
+      args[:command] = "berks install --path vendor/#{args[:path]}"
+      tool 'cookbooks', args, &block
     end
   end
 end
