@@ -62,12 +62,14 @@ module Vendorificator
     private
 
     def merge_back
-      in_branch merge_branch_name do |git|
-        each_segment do |seg|
-          git.capturing.merge({:no_edit => true, :no_ff => true}, seg.branch_name)
+      unless config.fake_mode?
+        in_branch merge_branch_name do |git|
+          each_segment do |seg|
+            git.capturing.merge({:no_edit => true, :no_ff => true}, seg.branch_name)
+          end
         end
+        git.capturing.merge({:no_edit => true, :no_ff => true}, merge_branch_name)
       end
-      git.capturing.merge({:no_edit => true, :no_ff => true}, merge_branch_name)
 
       each_segment do |seg|
         seg.vendor.postprocess! if seg.vendor.respond_to? :postprocess!

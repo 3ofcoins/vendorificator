@@ -58,6 +58,7 @@ Scenario: directory contents are completely replaced on re-vendoring
     source "file://#{ENV['FIXTURES_DIR']}/rubygems"
     gem "first"
     """
+  And I run `git commit -a -m bump`
   And I run vendor command "install"
   Then following has been conjured:
     | Name         | bundler         |

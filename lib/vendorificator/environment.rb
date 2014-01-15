@@ -1,5 +1,4 @@
 require 'pathname'
-require 'minigit'
 require 'awesome_print'
 require 'vendorificator/config'
 

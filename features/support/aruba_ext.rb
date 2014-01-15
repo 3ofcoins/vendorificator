@@ -1,5 +1,6 @@
 require 'shellwords'
 require 'stringio'
+require 'tee' if ENV['CUCUMBER_DEBUG']
 
 module Vendorificator
   module TestSupport
@@ -29,6 +30,7 @@ module Vendorificator
       def with_redirected_stdout(&block)
         redirect_stdout
         yield
+      ensure
         bring_back_stdout
       end
 
@@ -55,6 +57,8 @@ module Vendorificator
         @orig_stderr = $stderr
         $stdout = @mock_stdout = StringIO.new
         $stderr = @mock_stderr = StringIO.new
+        $stdout = Tee.new(STDOUT, @mock_stdout, :stdout => false) if ENV['CUCUMBER_DEBUG']
+        $stderr = Tee.new(STDERR, @mock_stderr, :stdout => false) if ENV['CUCUMBER_DEBUG']
       end
 
       def bring_back_stdout
