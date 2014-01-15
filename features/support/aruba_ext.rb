@@ -29,6 +29,7 @@ module Vendorificator
       def with_redirected_stdout(&block)
         redirect_stdout
         yield
+      ensure
         bring_back_stdout
       end
 
