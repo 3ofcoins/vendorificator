@@ -11,13 +11,6 @@ begin
 rescue LoadError
 end
 
-namespace :relish do
-  desc "Publish documentation to Relish"
-  task :push do
-    sh "relish push 3ofcoins/vendorificator"
-  end
-end
-
 task :info do
   sh 'which git'
   sh 'git --version'
