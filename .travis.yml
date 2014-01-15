@@ -6,6 +6,7 @@ rvm:
   - 2.0.0
   - 2.1.0
   - jruby-19mode
+  - rbx-2.2.3
 notifications:
   hipchat:
     secure: "bds8WNPnAmnj2ommhDk2JNclAY1Ei/bGeWONRhhKNv1zwrqMvZ7B6M5UapEZ\n6K8z70vFMrdIDEJjzuf+ATYS0BVWKnXCYaofiIfJ7V2hiBm7/xNZ15m2bIrM\nQFIMR/Lrkd+wFA0O8z6SaPjvdEgZC6im4zAAuRq7LpH3NTy6qaA="
