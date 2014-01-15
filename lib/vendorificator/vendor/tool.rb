@@ -17,8 +17,8 @@ module Vendorificator
       Dir.chdir(git.git_work_tree) do
         git.checkout(environment.current_branch, '--', spec_files) unless spec_files.empty?
         system self.command or raise RuntimeError, "Command failed"
+        super
       end
-      super
     end
 
     def upstream_version
