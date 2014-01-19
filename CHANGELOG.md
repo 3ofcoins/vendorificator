@@ -1,5 +1,9 @@
 # Changes
 
+## 0.5.1
+
+ - Correctly specify ref for specs/extras in tool.
+
 ## 0.5.0
 
  - Added overlays

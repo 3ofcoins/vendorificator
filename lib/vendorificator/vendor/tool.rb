@@ -16,7 +16,7 @@ module Vendorificator
     def conjure!
       Dir.chdir(git.git_work_tree) do
         git.checkout(
-          environment.current_branch, '--', specs_in_repo, extras_in_repo
+          "origin/#{environment.current_branch}", '--', specs_in_repo, extras_in_repo
           ) unless specs_in_repo.empty? && extras_in_repo.empty?
         git.rm({:cached => true}, extras_in_repo) unless extras_in_repo.empty?
         system self.command or raise RuntimeError, "Command failed"
