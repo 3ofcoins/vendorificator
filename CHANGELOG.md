@@ -1,5 +1,10 @@
 # Changes
 
+## 0.5.2
+
+ - Fixed `vendor push`
+ - Added `--pull` and `--push` switches to `vendor update`
+
 ## 0.5.1
 
  - Correctly specify ref for specs/extras in tool.

@@ -95,6 +95,13 @@ module Vendorificator
       merged_tag && merged_tag[(1 + tag_name_base.length)..-1]
     end
 
+
+    def head
+      git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/heads/#{branch_name}").strip
+    rescue MiniGit::GitError
+      nil
+    end
+
     private
 
     def config
@@ -127,12 +134,6 @@ module Vendorificator
         merge(metadata).
         merge(@vendor.metadata).
         to_yaml
-    end
-
-    def head
-      git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/heads/#{branch_name}").strip
-    rescue MiniGit::GitError
-      nil
     end
 
     def in_branch(branch = branch_name, options = {}, &block)

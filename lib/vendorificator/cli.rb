@@ -75,8 +75,12 @@ module Vendorificator
     end
 
     desc :update, "Update installed vendor files"
+    method_option :pull, :type => :boolean, :default => false
+    method_option :push, :type => :boolean, :default => false
     def update(*modules)
+      pull if options[:pull]
       environment.sync options.merge(:segments => modules, :update => true)
+      push if options[:push]
     rescue DirtyRepoError
       fail! 'Repository is not clean.'
     end

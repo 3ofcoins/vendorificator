@@ -15,6 +15,22 @@ module Vendorificator
       end
     end
 
+    describe '#head' do
+      let(:seg) { Vendor.new(basic_environment, 'test').segment }
+      let(:rev_parse) { basic_environment.git.capturing.expects(:rev_parse).with({:verify => true, :quiet => true}, "refs/heads/vendor/test") }
+      it "returns SHA1 of segment's head" do
+        rev_parse.returns "a2745fdf2d7e51f139f9417c5ca045b389fa939f\n"
+        head = seg.head
+        assert { head == 'a2745fdf2d7e51f139f9417c5ca045b389fa939f' }
+      end
+
+      it "returns nil when segment's branch does not exist" do
+        rev_parse.raises MiniGit::GitError
+        head = seg.head
+        assert { head.nil? }
+      end
+    end
+
     describe '#branch_name' do
       it 'includes vendor group' do
         uncategorized = Vendor.new(basic_environment, 'test').segment
