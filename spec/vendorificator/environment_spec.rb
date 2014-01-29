@@ -2,12 +2,7 @@ require 'spec_helper'
 
 module Vendorificator
   describe Environment do
-    let(:environment) do
-      Environment.new Thor::Shell::Basic.new, :quiet, nil do
-        vendor 'name', :option => 'value'
-        vendor 'other_name', :option => 'other_value'
-      end
-    end
+    let(:environment) { Environment.new(Thor::Shell::Basic.new, :quiet, nil){} }
 
     before do
       environment.git.capturing.stubs(:remote).returns("origin\n")
@@ -47,8 +42,6 @@ module Vendorificator
     end
 
     describe '#pull' do
-      let(:environment){ Environment.new(Thor::Shell::Basic.new, :quiet, nil){} }
-
       before do
         environment.git.expects(:fetch).with('origin')
         environment.git.expects(:fetch).with({:tags => true}, 'origin')
@@ -85,8 +78,6 @@ module Vendorificator
     end
 
     describe '#push' do
-      let(:environment){ Environment.new(Thor::Shell::Basic.new, :quiet, nil){} }
-
       it "handles git error on pushing empty notes" do
         environment.stubs(:ensure_clean!)
 
@@ -109,8 +100,6 @@ module Vendorificator
     end
 
     describe '#segments' do
-      let(:environment){ Environment.new Thor::Shell::Basic.new, :default, nil }
-
       it 'is initialized on a new environment' do
         assert { environment.segments == [] }
       end
