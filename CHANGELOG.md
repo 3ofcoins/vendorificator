@@ -1,5 +1,6 @@
 # Changes
 
+ - Added `--pull` and `--push` switches to `vendor update`
  - Fixed `vendor push`
 
 ## 0.5.1
