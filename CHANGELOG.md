@@ -1,5 +1,7 @@
 # Changes
 
+ - Fixed `vendor push`
+
 ## 0.5.1
 
  - Correctly specify ref for specs/extras in tool.
