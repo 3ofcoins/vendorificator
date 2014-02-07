@@ -1,6 +1,8 @@
-# pack-refs with: peeled 
+# pack-refs with: peeled fully-peeled 
 69389e336277bd81f9af75a565cc511eb6fb497f refs/heads/blue
 0989414c2aa7b529d3c9ede7ca4ccd940c77efe4 refs/heads/email
 10e9ac58c77bc229d8c59a5b4eb7422916453148 refs/heads/master
 ecbfa229ba5f11c05b18bcc4f7c32b8f25d63f8c refs/heads/topic/green
 ecbfa229ba5f11c05b18bcc4f7c32b8f25d63f8c refs/heads/topic/pink
+53ac1a96882e666cee31504179abc21eac522f8d refs/tags/email-v0
+^f81247bde4ef7a1c7d280140cc0bcf0b8221a51f
