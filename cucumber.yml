@@ -1,2 +1,2 @@
 ---
-default: --format pretty
+default: --format pretty --exclude features/fixtures
