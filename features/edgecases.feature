@@ -47,3 +47,28 @@ Scenario: Git overlay in root directory
     | Version   | 10e9ac58c77bc229d8c59a5b4eb7422916453148 |
     | With file | test/alias.c                             |
     | Path      | .                                        |
+
+Scenario: a new version of vendor module is same as previous
+  Given a repository with following Vendorfile:
+    """ruby
+    vendor 'hello', :version => 1 do
+      File.write('README', 'Hello, World!')
+    end
+    """
+  When I run vendor command "install"
+  Then following has been conjured:
+    | Name      | hello  |
+    | Version   | 1      |
+    | With file | README |
+  When I change Vendorfile to:
+    """ruby
+    vendor 'hello', :version => 2 do
+      File.write('README', 'Hello, World!')
+    end
+    """
+  And I run vendor command "update"
+  Then following has been conjured:
+    | Name      | hello  |
+    | Version   | 2      |
+    | With file | README |
+  

@@ -120,7 +120,7 @@ module Vendorificator
       return if config.fake_mode?
 
       git.capturing.add work_dir, *@vendor.git_add_extra_paths
-      git.capturing.commit :m => @vendor.conjure_commit_message
+      git.capturing.commit :m => @vendor.conjure_commit_message, :allow_empty => true
       git.capturing.notes({:ref => 'vendor'}, 'add', {:m => conjure_note(environment_metadata)}, 'HEAD')
       git.capturing.tag( { :a => true, :m => tag_message }, tag_name )
       say_status :default, :tag, tag_name
