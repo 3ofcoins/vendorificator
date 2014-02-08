@@ -43,19 +43,21 @@ module Vendorificator
 
     describe '#pull' do
       before do
-        environment.git.expects(:fetch).with('origin')
-        environment.git.expects(:fetch).with({:tags => true}, 'origin')
-        @git_fetch_notes = environment.git.expects(:fetch).with('origin', 'refs/notes/vendor:refs/notes/vendor')
+        @fetch = environment.git.expects(:fetch).with({:quiet => true}, 'origin',
+          'refs/heads/vendor/*:refs/remotes/origin/vendor/*',
+          'refs/tags/*:refs/tags/*',
+          'refs/notes/vendor:refs/notes/vendor')
         environment.git.capturing.stubs(:show_ref).returns("602315 refs/remotes/origin/vendor/test\n")
       end
 
       it "creates a branch if it doesn't exist" do
         environment.segments << stub(
-          :branch_name => 'vendor/test', :head => nil,
-          :compute_dependencies! => nil
-        )
+          :name => 'test',
+          :branch_name => 'vendor/test',
+          :head => nil,
+          :compute_dependencies! => nil)
 
-        environment.git.expects(:branch).with({:track => true}, 'vendor/test', '602315')
+        environment.git.expects(:branch).with({:track => true, :quiet => true}, 'vendor/test', 'origin/vendor/test')
 
         environment.pull('origin')
       end
@@ -71,8 +73,7 @@ module Vendorificator
       end
 
       it "handles git error on fetching empty notes" do
-        @git_fetch_notes.raises(MiniGit::GitError)
-
+        @fetch.raises(MiniGit::GitError)
         environment.pull('origin')
       end
     end
