@@ -52,7 +52,7 @@ Scenario: a new version of vendor module is same as previous
   Given a repository with following Vendorfile:
     """ruby
     vendor 'hello', :version => 1 do
-      File.write('README', 'Hello, World!')
+      File.open('README', 'w') { |f| f.puts 'Hello, World!') }
     end
     """
   When I run vendor command "install"
@@ -63,7 +63,7 @@ Scenario: a new version of vendor module is same as previous
   When I change Vendorfile to:
     """ruby
     vendor 'hello', :version => 2 do
-      File.write('README', 'Hello, World!')
+      File.open('README', 'w') { |f| f.puts 'Hello, World!') }
     end
     """
   And I run vendor command "update"
@@ -71,4 +71,4 @@ Scenario: a new version of vendor module is same as previous
     | Name      | hello  |
     | Version   | 2      |
     | With file | README |
-  
+ 
