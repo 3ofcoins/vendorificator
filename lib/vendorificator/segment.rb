@@ -6,7 +6,10 @@ module Vendorificator
     end
 
     def fast_forward(branch)
-      in_branch { |tmpgit| tmpgit.merge({:ff_only => true}, branch) }
+      in_branch do |tmpgit|
+        tmpgit.checkout(:quiet => true)
+        tmpgit.merge({:ff_only => true, :quiet => true}, branch)
+      end
     end
 
     def status
