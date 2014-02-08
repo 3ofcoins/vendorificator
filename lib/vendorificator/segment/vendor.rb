@@ -59,6 +59,8 @@ module Vendorificator
             tmpdir_entries = (Dir.entries(tmpdir) - %w'. ..').
               map { |e| File.join(tmpdir, e) }
             FileUtils.mv tmpdir_entries, work_dir
+
+            @vendor.after_conjure!
             commit_and_annotate(options[:metadata] || {})
           ensure
             @git = nil

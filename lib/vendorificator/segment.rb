@@ -6,7 +6,10 @@ module Vendorificator
     end
 
     def fast_forward(branch)
-      in_branch { |tmpgit| tmpgit.merge({:ff_only => true}, branch) }
+      in_branch do |tmpgit|
+        tmpgit.checkout(:quiet => true)
+        tmpgit.merge({:ff_only => true, :quiet => true}, branch)
+      end
     end
 
     def status
@@ -117,7 +120,7 @@ module Vendorificator
       return if config.fake_mode?
 
       git.capturing.add work_dir, *@vendor.git_add_extra_paths
-      git.capturing.commit :m => @vendor.conjure_commit_message
+      git.capturing.commit :m => @vendor.conjure_commit_message, :allow_empty => true
       git.capturing.notes({:ref => 'vendor'}, 'add', {:m => conjure_note(environment_metadata)}, 'HEAD')
       git.capturing.tag( { :a => true, :m => tag_message }, tag_name )
       say_status :default, :tag, tag_name
@@ -140,7 +143,6 @@ module Vendorificator
       Dir.mktmpdir do |tmpdir|
         tmpgit = create_temp_git_repo(branch, options, tmpdir)
         fetch_repo_data tmpgit
-        repo_cleanup tmpgit if options[:clean] || !branch_exists?(branch)
 
         Dir.chdir(tmpdir){ yield tmpgit }
 
@@ -149,24 +151,21 @@ module Vendorificator
     end
 
     def create_temp_git_repo(branch, options, dir)
-      clone_opts = {shared: true, no_checkout: true}
+      clone_opts = {shared: true, no_checkout: true, quiet: true}
       clone_opts[:branch] = branch if branch_exists? branch
-      say { MiniGit::Capturing.git :clone, clone_opts, git.git_dir, dir }
+      MiniGit.git(:clone, clone_opts, git.git_dir, dir)
 
       tmpgit = MiniGit.new(dir)
       unless branch_exists? branch
-        say { tmpgit.capturing.checkout({orphan: true}, branch) }
+        tmpgit.capturing.checkout({quiet: true}, {orphan: true}, branch)
+        tmpgit.capturing.rm({ :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
       end
 
       tmpgit
     end
 
-    def repo_cleanup(tmpgit)
-      tmpgit.rm({ :r => true, :f => true, :q => true, :ignore_unmatch => true }, '.')
-    end
-
     def fetch_repo_data(tmpgit)
-      tmpgit.fetch git.git_dir, "refs/notes/vendor:refs/notes/vendor" if notes_exist?
+      tmpgit.fetch({quiet: true}, git.git_dir, "refs/notes/vendor:refs/notes/vendor") if notes_exist?
     end
 
     def propagate_repo_data_to_original(branch, clone_dir)
@@ -186,11 +185,10 @@ module Vendorificator
     #
     # Returns nothing.
     def fetch_back_from_temporary_clone(branch, clone_dir)
-      git.fetch clone_dir
-      git.fetch({tags: true}, clone_dir)
-      git.fetch clone_dir,
+      git.fetch({quiet: true}, clone_dir,
         "refs/heads/#{branch}:refs/heads/#{branch}",
-        "refs/notes/vendor:refs/notes/vendor"
+        "refs/tags/*:refs/tags/*",
+        "refs/notes/vendor:refs/notes/vendor")
     end
 
     # Private: Copies the conjured vendor files back to main repo, instead of
@@ -317,6 +315,7 @@ module Vendorificator
     end
 
     def merged_base
+      return nil if !head
       return @merged_base if defined? @merged_base
       base = git.capturing.merge_base(head, 'HEAD').strip
       @merged_base = base.empty? ? nil : base
@@ -347,7 +346,7 @@ module Vendorificator
     #
     # Returns true/false.
     def branch_exists?(branch = branch_name)
-      git.capturing.rev_parse({:verify => true}, "refs/heads/#{branch}")
+      git.capturing.rev_parse({:verify => true, :quiet => true}, "refs/heads/#{branch}")
       true
     rescue MiniGit::GitError
       false

@@ -10,6 +10,7 @@ Gem::Specification.new do |gem|
   gem.description   = "Vendor everything. Stay sane."
   gem.summary       = "Integrate third-party vendor modules into your git repository"
   gem.homepage      = "https://github.com/3ofcoins/vendorificator/"
+  gem.license       = "MIT"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }

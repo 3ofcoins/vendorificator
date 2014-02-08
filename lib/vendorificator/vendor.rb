@@ -66,6 +66,7 @@ module Vendorificator
     # Hook points
     def git_add_extra_paths ; [] ; end
     def before_conjure! ; end
+    def after_conjure! ; end
     def compute_dependencies! ; end
     def upstream_version ; end
 

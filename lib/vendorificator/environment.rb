@@ -72,10 +72,11 @@ module Vendorificator
     def pull(remote, options={})
       raise RuntimeError, "Unknown remote #{remote}" unless remotes.include?(remote)
 
-      git.fetch(remote)
-      git.fetch({:tags => true}, remote)
       begin
-        git.fetch(remote, 'refs/notes/vendor:refs/notes/vendor')
+        git.fetch({:quiet => true}, remote,
+          "refs/heads/#{config[:branch_prefix]}/*:refs/remotes/origin/#{config[:branch_prefix]}/*",
+          'refs/tags/*:refs/tags/*',
+          'refs/notes/vendor:refs/notes/vendor')
       rescue MiniGit::GitError  # ignore
       end
 
@@ -91,10 +92,10 @@ module Vendorificator
         theirs = remote_branches[mod.branch_name]
         if theirs
           if not ours
-            say_status :default, 'new', mod.branch_name, :yellow
-            git.branch({:track => true}, mod.branch_name, theirs) unless options[:dry_run]
+            say_status :default, 'new', mod.name, :yellow
+            git.branch({:track => true, :quiet => true}, mod.branch_name, "#{remote}/#{mod.branch_name}") unless options[:dry_run]
           elsif ours == theirs
-            say_status :default, 'unchanged', mod.branch_name
+            say_status :default, 'unchanged', mod.name
           elsif fast_forwardable?(theirs, ours)
             say_status :default, 'updated', mod.name, :yellow
             mod.fast_forward theirs unless options[:dry_run]

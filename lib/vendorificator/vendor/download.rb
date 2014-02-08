@@ -16,12 +16,18 @@ module Vendorificator
 
     def conjure!
       say_status :default, :download, url
-      File.open name, 'w' do |outf|
+      File.open 'content', 'w' do |outf|
         outf.write( open(url).read )
       end
-      @conjured_checksum = Digest::SHA256.file(name).hexdigest
-      @conjured_filesize = File.size(name)
+      @conjured_checksum = Digest::SHA256.file('content').hexdigest
+      @conjured_filesize = File.size('content')
       add_download_metadata
+    end
+
+    def after_conjure!
+      FileUtils.mv File.join(work_dir, 'content'), work_dir+'.content'
+      Dir.rmdir work_dir
+      FileUtils.mv work_dir+'.content', work_dir
     end
 
     def upstream_version

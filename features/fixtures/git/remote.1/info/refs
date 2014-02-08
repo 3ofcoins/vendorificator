@@ -1,0 +1,8 @@
+8fa42dfde3bf120afbedb65758115c40077823f8	refs/heads/master
+cef71af0c9e5a71f6c4a2db360147b00ec0faef4	refs/heads/vendor/example.html
+cfd7a7f8c5d25a3113bb4e2dc13cad1bf59f1fe5	refs/heads/vendor/stub
+2957367170f1ddafe9e8feed9b44994b3ac646c9	refs/notes/vendor
+b63fd7b7034f54c83f98f0eb607166883840b15b	refs/tags/vendor/example.html/0
+cef71af0c9e5a71f6c4a2db360147b00ec0faef4	refs/tags/vendor/example.html/0^{}
+e8e7b1b95249fbf213de8a300957322480c400d5	refs/tags/vendor/stub/1
+cfd7a7f8c5d25a3113bb4e2dc13cad1bf59f1fe5	refs/tags/vendor/stub/1^{}
