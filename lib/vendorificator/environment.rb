@@ -72,10 +72,11 @@ module Vendorificator
     def pull(remote, options={})
       raise RuntimeError, "Unknown remote #{remote}" unless remotes.include?(remote)
 
-      git.fetch(remote)
-      git.fetch({:tags => true}, remote)
       begin
-        git.fetch(remote, 'refs/notes/vendor:refs/notes/vendor')
+        git.fetch({:quiet => true}, remote,
+          "refs/heads/#{config[:branch_prefix]}/*:refs/remotes/origin/#{config[:branch_prefix]}/*",
+          'refs/tags/*:refs/tags/*',
+          'refs/notes/vendor:refs/notes/vendor')
       rescue MiniGit::GitError  # ignore
       end
 
