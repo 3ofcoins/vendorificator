@@ -1,5 +1,13 @@
 # Changes
 
+## 0.5.3
+
+ - Fixed `vendor pull` from a clone that haven't run vendor commands
+   yet
+ - Don't break if new version of a module is same as previous one
+ - Fixed regression with downloads: files are downloaded to a file
+   rather than subdirectory again
+
 ## 0.5.2
 
  - Fixed `vendor push`
