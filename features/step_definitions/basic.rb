@@ -6,13 +6,17 @@ When /^nothing happens$/ do
   nil # NOP
 end
 
+# Configure Git username & email to unclutter console output
+def configure_git
+  run_simple 'git config user.name Cucumber'
+  run_simple 'git config user.email cucumber@`hostname --fqdn`'
+end
+
 Given /^a repository with following Vendorfile:$/ do |vendorfile_contents|
   create_dir 'working-repository'
   cd 'working-repository'
   run_simple 'git init'
-  # Configure Git username & email to unclutter console output
-  run_simple 'git config user.name Cucumber'
-  run_simple 'git config user.email cucumber@`hostname --fqdn`'
+  configure_git
   write_file('README', 'Lorem ipsum dolor sit amet')
   write_file('Vendorfile', vendorfile_contents)
   run_simple 'git add .'
@@ -23,11 +27,26 @@ Given /^a remote repository$/ do
   create_dir '../remote-repository'
   cd '../remote-repository'
   run_simple 'git init --bare'
-  # Configure Git username & email to unclutter console output
+  configure_git
   run_simple 'git config user.name Cucumber'
   run_simple 'git config user.email cucumber@`hostname --fqdn`'
   cd '../working-repository'
   run_simple 'git remote add origin ../remote-repository'
+end
+
+Given(/^a repository cloned from "(.*)"$/) do |fixture|
+  repo_path = File.join(ENV['FIXTURES_DIR'], 'git', fixture)
+  run_simple "git clone --mirror \"#{repo_path}\" remote-repository"
+  run_simple "git clone remote-repository working-repository"
+  cd 'working-repository'
+  configure_git
+end
+
+When(/^remote repository is updated from "(.*)"$/) do |fixture|
+  cd '../remote-repository'
+  repo_path = File.join(ENV['FIXTURES_DIR'], 'git', fixture)
+  run_simple "git fetch \"#{repo_path}\" 'refs/*:refs/*'"
+  cd '../working-repository'
 end
 
 When /^I set the fake mode variable$/ do

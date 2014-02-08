@@ -1,0 +1,15 @@
+# pack-refs with: peeled fully-peeled 
+978854b42893964cd861fa3a606b9bd1effcc5ed refs/heads/master
+cef71af0c9e5a71f6c4a2db360147b00ec0faef4 refs/heads/vendor/example.html
+d6dfe467247ecb8fc1efdff47270c1ca9aebc0d2 refs/heads/vendor/stub
+9caaa083a2a3de2fddc0cc5dc841041ff90ee626 refs/notes/vendor
+8fa42dfde3bf120afbedb65758115c40077823f8 refs/remotes/origin/HEAD
+8fa42dfde3bf120afbedb65758115c40077823f8 refs/remotes/origin/master
+cef71af0c9e5a71f6c4a2db360147b00ec0faef4 refs/remotes/origin/vendor/example.html
+cfd7a7f8c5d25a3113bb4e2dc13cad1bf59f1fe5 refs/remotes/origin/vendor/stub
+b63fd7b7034f54c83f98f0eb607166883840b15b refs/tags/vendor/example.html/0
+^cef71af0c9e5a71f6c4a2db360147b00ec0faef4
+e8e7b1b95249fbf213de8a300957322480c400d5 refs/tags/vendor/stub/1
+^cfd7a7f8c5d25a3113bb4e2dc13cad1bf59f1fe5
+ca5ae665ed9b67e731dc5c281dac5c28c46f3fff refs/tags/vendor/stub/2
+^d6dfe467247ecb8fc1efdff47270c1ca9aebc0d2
