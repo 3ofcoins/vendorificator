@@ -139,7 +139,7 @@ module Vendorificator
       load_vendorfile
 
       each_segment do |mod|
-        shell.say "Module: #{mod.name}, version: #{mod.version}"
+        say :default, "#{mod.name} (#{mod.version})"
       end
     end
 

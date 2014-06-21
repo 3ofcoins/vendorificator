@@ -1,5 +1,10 @@
 # Changes
 
+## unreleased
+
+ - Fixed output for many commands
+ - Support Berkshelf 3
+
 ## 0.5.3
 
  - Fixed `vendor pull` from a clone that haven't run vendor commands

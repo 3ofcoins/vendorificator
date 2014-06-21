@@ -73,7 +73,11 @@ module Vendorificator
       args[:path] ||= 'cookbooks'
       args[:specs] ||= []
       args[:specs] |= [ 'Berksfile', 'Berksfile.lock' ]
-      args[:command] = "berks install --path vendor/#{args[:path]}"
+      if args[:berks2]
+        args[:command] = "berks install --path vendor/#{args[:path]}"
+      else
+        args[:command] = "berks vendor vendor/#{args[:path]}"
+      end
       tool 'cookbooks', args, &block
     end
   end

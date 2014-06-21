@@ -29,7 +29,7 @@ Scenario: chef_berkshelf
     """
   And a file named "Berksfile" with:
     """ruby
-    site :opscode
+    source 'https://api.berkshelf.com'
     cookbook 'build-essential'
     """
   And I successfully run `berks install`
@@ -37,8 +37,8 @@ Scenario: chef_berkshelf
   And I successfully run `git commit -m Berksfile`
   When I run vendor command "install"
   Then following has been conjured:
-    | Name         | cookbooks                   |
-    | With file    | build-essential/metadata.rb |
+    | Name      | cookbooks                     |
+    | With file | build-essential/metadata.json |
 
 @berkshelf
 Scenario: postprocessing tool
@@ -50,7 +50,7 @@ Scenario: postprocessing tool
     """
   And a file named "Berksfile" with:
     """ruby
-    site :opscode
+    source 'https://api.berkshelf.com'
     cookbook 'runit'
     """
   And I successfully run `berks install`
@@ -58,7 +58,7 @@ Scenario: postprocessing tool
   And I successfully run `git commit -m Berksfile`
   When I run vendor command "install"
   Then following has been conjured:
-    | Name         | cookbooks                   |
-    | With file    | build-essential/metadata.rb |
-    | With file    | yum/metadata.rb             |
-    | Without file | runit/metadata.rb           |
+    | Name         | cookbooks                     |
+    | With file    | build-essential/metadata.json |
+    | With file    | yum/metadata.json             |
+    | Without file | runit/metadata.json           |
