@@ -73,7 +73,7 @@ Scenario: Getting module list
     """
   When I run vendor command "install"
   And I run vendor command "list"
-  Then the last vendor output should match /Module: generated, version: 0.23/
+  Then the last vendor output should match /generated \(0\.23\)/
 
 Scenario: Getting list of outdated modules
   Given a repository with following Vendorfile:

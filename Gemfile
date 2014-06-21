@@ -11,5 +11,4 @@ end
 group :development_workstation do
   gem "pry"
   gem "awesome_print"
-  gem 'debugger', :platforms => :mri
 end

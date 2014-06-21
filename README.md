@@ -258,9 +258,9 @@ Vendorificator. Takes the same arguments as `vendor`, plus:
    won't be committed to the vendor branch together with specs and
    dependencies
 
-Two convenience shortcuts are provided, `rubygems_bundler`, and
-`chef_berkshelf`. They take no arguments. Their definitions are
-examples as well:
+Two convenience shortcuts are provided, `rubygems_bundler`,
+and `chef_berkshelf`. Their definitions are examples
+as well:
 
 ```ruby
 tool 'rubygems', # <- rubygems_bundler
@@ -273,8 +273,19 @@ tool 'rubygems', # <- rubygems_bundler
 tool 'cookbooks', # <- chef_berkshelf
      :path => 'cookbooks',
      :specs => [ 'Berksfile', 'Berksfile.lock' ],
-     :command => 'berks install --path vendor/cookbooks'
+     :command => 'berks vendor vendor/cookbooks'
 ```
+
+`rubygems_bundler` takes no arguments and it passes block to `tool`.
+
+`chef_berkshelf` takes following arguments:
+
+ - `:path` (default: `'cookbooks'`) -- path to save cookbooks
+ - `:specs` (array, always present: `Berksfile` and `Berksfile.lock`)
+   -- files treated as specs (you can specify `metadata.rb` files of your
+   local cookbooks to include their dependencies automatically)
+ - `:berks2` (default: false) -- if set to `true`, use command for
+   Berkshelf 2 (default is Berkshelf 3)
 
 #### overlay
 
