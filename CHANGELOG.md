@@ -1,6 +1,6 @@
 # Changes
 
-## unreleased
+## 0.6.0
 
  - Fixed output for many commands
  - Support Berkshelf 3
