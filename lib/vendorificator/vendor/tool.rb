@@ -78,7 +78,18 @@ module Vendorificator
       else
         args[:command] = "berks vendor vendor/#{args[:path]}"
       end
-      tool 'cookbooks', args, &block
+      tool 'cookbooks', args do |v|
+        # Unignore metadata.json files
+        Dir["vendor/#{args[:path]}/*/.gitignore"].each do |gitignore_path|
+          ignored = File.read(gitignore_path)
+          ignored_proper = ignored
+            .lines
+            .reject { |ln| ln =~ /^\s*\/?metadata\.json/ }
+            .join
+          File.write(gitignore_path, ignored_proper) if ignored_proper != ignored
+        end
+        block.call(v) if block
+      end
     end
   end
 end
